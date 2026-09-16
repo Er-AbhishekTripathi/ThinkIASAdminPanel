@@ -1,0 +1,136 @@
+/* Global Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  font-family: 'Roboto', sans-serif;
+}
+
+body {
+  margin: 0;
+  background-color: #f4f7fb;
+  color: #172b4d;
+  font-family: 'Trebuchet MS', 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Shared admin visual language */
+:root {
+  --admin-ink: #172b4d;
+  --admin-muted: #6b7a90;
+  --admin-navy: #1c365e;
+  --admin-blue: #3478b5;
+  --admin-orange: #e8793d;
+  --admin-canvas: #f4f7fb;
+  --admin-paper: #ffffff;
+  --admin-line: #e2e9f1;
+  --admin-radius: 12px;
+  --admin-section-radius: 16px;
+}
+
+/* Consistent rounded surfaces across admin sections */
+.content-wrapper :where(section, article, form, .card, .panel, .listing-section, .table-container, .form-card, .editor-card, .editor-panel, .applications-panel, .faq-card, .language-section, .paper-display, .form-section, .preview-section, .syllabus-display-section) {
+  border-radius: var(--admin-section-radius);
+}
+
+.content-wrapper :where(.table-container, .listing-section, .form-card, .editor-card, .editor-panel, .applications-panel, .faq-card, .preview-section, .syllabus-display-section) {
+  overflow: hidden;
+}
+
+body button,
+body input,
+body textarea,
+body select {
+  font-family: 'Trebuchet MS', 'Segoe UI', sans-serif;
+}
+
+body input,
+body textarea,
+body select {
+  color: var(--admin-ink);
+  background: var(--admin-paper);
+}
+
+body input:focus,
+body textarea:focus,
+body select:focus {
+  outline: 0;
+  border-color: #6485a9;
+  box-shadow: 0 0 0 3px rgba(100, 133, 169, .13);
+}
+
+body button:not([mat-icon-button]) {
+  transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+}
+
+body button:not([mat-icon-button]):hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+/* Utility Classes */
+.full-width {
+  width: 100%;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.mt-1 { margin-top: 8px; }
+.mt-2 { margin-top: 16px; }
+.mt-3 { margin-top: 24px; }
+.mb-1 { margin-bottom: 8px; }
+.mb-2 { margin-bottom: 16px; }
+.mb-3 { margin-bottom: 24px; }
+
+/* Material Overrides */
+.mat-toolbar {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.mat-card {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .mat-sidenav {
+    width: 200px !important;
+  }
+  
+  .mat-toolbar span {
+    font-size: 14px;
+  }
+}
+
+/* Add this to your global styles.css */
+.create-test-dialog-panel .mat-dialog-container {
+  padding: 0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.create-test-dialog-panel .mat-dialog-content {
+  max-height: 65vh;
+}
+
+/* Add these to your global styles.css */
+.success-snackbar {
+  background: #4caf50 !important;
+  color: white !important;
+  font-weight: 500;
+}
+
+.error-snackbar {
+  background: #f44336 !important;
+  color: white !important;
+  font-weight: 500;
+}
+
+.mat-mdc-snack-bar-container .mdc-snackbar__surface {
+  border-radius: 12px !important;
+}
