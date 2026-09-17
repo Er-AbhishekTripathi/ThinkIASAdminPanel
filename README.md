@@ -1,59 +1,80 @@
-# ThinkcivilFrontend
+# ThinkCivil Admin Portal
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.15.
+The administration Angular application for ThinkCivil IAS Academy. It gives authorized staff a protected workspace for managing students, examinations, programs, learning content, payments, communication, and operational features.
 
-## Development server
+## Features
 
-To start a local development server, run:
+- Admin authentication, dashboard, and role-based route protection
+- Student profiles, student list management, exam monitoring, and results
+- Program, plan, batch, syllabus, tag, question, study module, and test management
+- Prelims and mains test series, live tests, demo tests, quizzes, and answer-writing administration
+- Announcements, notifications, testimonials, support features, careers, and free resources
+- Directory, meetings, mentorship, coupons, and live-content management
+- Angular Material forms and tables with PDF, chart, and rich-content integrations
 
-```bash
-ng serve
-```
+## Technology
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+- Angular 19 and TypeScript 5.7
+- Angular Router, HTTP client, Reactive Forms, and Angular Material
+- CKEditor 5 for rich content editing
+- RxJS, Chart.js, Moment, Font Awesome, and PDF support
+- Karma and Jasmine for unit tests
 
-## Code scaffolding
+## Requirements and installation
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+- Node.js compatible with Angular 19
+- npm
+- A running ThinkCivil backend API
 
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
+From this directory:
 
 ```bash
-ng build
+npm install
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+Configure the API URL and other client settings in `src/environment/`. Keep credentials and private service configuration out of source control.
 
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
+## Development
 
 ```bash
-ng test
+npm start
 ```
 
-## Running end-to-end tests
+Open `http://localhost:4200/`. The application redirects the root route to the login page. Use an account with the required admin role to access protected features.
 
-For end-to-end (e2e) testing, run:
+## Build and test
 
 ```bash
-ng e2e
+npm run build
+npm test
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+The production build is written to `dist/thinkcivil-admin/`. Use `npm run watch` for a continuous development build.
 
-## Additional Resources
+## Project structure
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+```text
+src/app/
+	core/       Guards, interceptors, models, and shared services
+	modules/    Admin, auth, dashboard, tests, results, and content features
+	shared/     Reusable components, pipes, translations, and services
+```
+
+Routes are defined in `src/app/app.routes.ts`. Administrative routes use both `authGuard` and `roleGuard` with `role: 'admin'` route data.
+
+## Related applications
+
+- `../student-portal`: Student-facing Angular application
+- `../bytestech.online`: Express and MongoDB backend API
+
+## Useful commands
+
+| Command | Purpose |
+| --- | --- |
+| `npm start` | Start the development server |
+| `npm run build` | Create a production build |
+| `npm run watch` | Build continuously in development mode |
+| `npm test` | Run unit tests |
+| `npm run ng -- generate component name` | Generate an Angular component |
+
+For Angular CLI documentation, see the [Angular CLI guide](https://angular.dev/tools/cli).
