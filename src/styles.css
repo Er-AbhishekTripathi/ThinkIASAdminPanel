@@ -1,6 +1,5 @@
-/* Keep Angular Material dialogs above the fixed/sticky application header. */
-.cdk-overlay-container,
-.cdk-global-overlay-wrapper {
+/* Keep Angular Material overlays above the fixed/sticky application header. */
+.cdk-overlay-container {
   z-index: 3000 !important;
 }
 
@@ -173,4 +172,66 @@ body button:not([mat-icon-button]):hover:not(:disabled) {
 
 .mat-mdc-snack-bar-container .mdc-snackbar__surface {
   border-radius: 12px !important;
+}
+
+/* Tag dropdowns render in the global CDK overlay, outside component-scoped CSS. */
+.question-tags-panel {
+  max-height: 360px !important;
+  padding: 0 !important;
+  background: #ffffff !important;
+  box-shadow: 0 8px 24px rgba(23, 43, 77, 0.2) !important;
+  z-index: 4001 !important;
+}
+
+.cdk-overlay-pane:has(.question-tags-panel) {
+  z-index: 4001 !important;
+}
+
+.cdk-overlay-connected-position-bounding-box:has(.question-tags-panel) {
+  z-index: 4001 !important;
+}
+
+.question-correct-answer-panel:not(.question-tags-panel) {
+  min-width: 180px !important;
+  max-height: 240px !important;
+  padding: 4px 0 !important;
+  background: #ffffff !important;
+  box-shadow: 0 8px 24px rgba(23, 43, 77, 0.2) !important;
+  z-index: 4001 !important;
+}
+
+.cdk-overlay-pane:has(.question-correct-answer-panel),
+.cdk-overlay-connected-position-bounding-box:has(.question-correct-answer-panel) {
+  z-index: 4001 !important;
+}
+
+.question-tags-panel .tag-search-container {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: block;
+  padding: 10px 12px;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e9f1;
+}
+
+.question-tags-panel .tag-search-field {
+  width: 100%;
+  margin: 0;
+}
+
+.question-tags-panel .mat-mdc-option {
+  min-height: 48px;
+  padding: 0 14px;
+}
+
+.question-tags-panel .tag-option-content {
+  min-width: 0;
+  gap: 12px;
+}
+
+.question-tags-panel .tag-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

@@ -6,7 +6,7 @@ import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule, MatDialog } from '@angu
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
-import { MatSelectModule } from '@angular/material/select';
+import { MatSelect, MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -72,6 +72,7 @@ export class CreateQuestionDialogComponent implements OnInit {
 
   @ViewChild('addTagDialogTemplate') addTagDialogTemplate!: TemplateRef<any>;
   @ViewChildren('tagSearchInput') tagSearchInputs!: QueryList<ElementRef>;
+  @ViewChildren(MatSelect) tagSelects!: QueryList<MatSelect>;
 
 
   // CKEditor instance
@@ -477,6 +478,7 @@ isExactMatch(tag: string, searchQuery: string | undefined): boolean {
 
   // Add Tag Dialog methods
   openAddTagDialog(questionIndex: number) {
+    this.tagSelects?.forEach(select => select.close());
     this.currentQuestionIndexForTag = questionIndex;
     this.addTagForm.reset();
     
@@ -504,7 +506,16 @@ isExactMatch(tag: string, searchQuery: string | undefined): boolean {
       const formData = this.addTagForm.value;
 
       this.tagService.createTag(formData).subscribe({
-        next: (newTag) => {
+        next: (response: any) => {
+          const newTag: TagResponse = response.tag || response;
+          const questionIndex = this.currentQuestionIndexForTag;
+
+          if (!newTag?._id || questionIndex === null) {
+            this.snackBar.open('Tag was created but could not be assigned to the question', 'Close', { duration: 3000 });
+            this.addTagLoading.set(false);
+            return;
+          }
+
           // Refresh tags list from API
           this.tagService.getTags().subscribe({
             next: (tags) => {
@@ -517,10 +528,13 @@ isExactMatch(tag: string, searchQuery: string | undefined): boolean {
               });
               
               // Get current tags for the question
-              const currentTags = this.getTagsControl(this.currentQuestionIndexForTag!).value || [];
+              const currentTags = this.getTagsControl(questionIndex).value || [];
               
               // Add the new tag to the question's tags
-              this.getTagsControl(this.currentQuestionIndexForTag!).setValue([...currentTags, newTag._id]);
+              const updatedTags = currentTags.includes(newTag._id)
+                ? currentTags
+                : [...currentTags, newTag._id];
+              this.getTagsControl(questionIndex).setValue(updatedTags);
               
               this.snackBar.open('Tag created and added to question successfully!', 'Close', { duration: 3000 });
               this.closeAddTagDialog();
@@ -534,6 +548,12 @@ isExactMatch(tag: string, searchQuery: string | undefined): boolean {
                 const index = parseInt(key);
                 this.filteredTags[index] = [...this.availableTags];
               });
+              const currentTags = this.getTagsControl(questionIndex).value || [];
+              this.getTagsControl(questionIndex).setValue(
+                currentTags.includes(newTag._id) ? currentTags : [...currentTags, newTag._id]
+              );
+              this.snackBar.open('Tag created and added to question successfully!', 'Close', { duration: 3000 });
+              this.closeAddTagDialog();
               this.addTagLoading.set(false);
             }
           });

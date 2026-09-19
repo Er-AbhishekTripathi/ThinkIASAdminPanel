@@ -108,7 +108,7 @@ export class QuizDialogComponent implements OnInit {
       title: ['', Validators.required],
       description: [''],
       isActive: [true, Validators.required],
-      questionUids: [[]]
+      questionUids: [[], Validators.minLength(1)]
     });
   }
 
@@ -174,6 +174,12 @@ export class QuizDialogComponent implements OnInit {
       const allQuestions = this.allQuestions();
       const selectedQuestions = allQuestions.filter(q => questionUids.includes(q.uid));
       this.selectedQuestions.set(selectedQuestions);
+      this.temporarilySelectedUids.set([...questionUids]);
+      this.updateQuestionUidsFormControl();
+    } else {
+      this.selectedQuestions.set([]);
+      this.temporarilySelectedUids.set([]);
+      this.updateQuestionUidsFormControl();
     }
   }
 
@@ -375,7 +381,7 @@ export class QuizDialogComponent implements OnInit {
   }
 
   onSelectionChange(selectedUids: string[]) {
-    this.temporarilySelectedUids.set(selectedUids);
+    this.temporarilySelectedUids.set([...new Set(selectedUids || [])]);
   }
 
   isAllFilteredSelected(): boolean {
@@ -477,6 +483,8 @@ export class QuizDialogComponent implements OnInit {
   }
 
   onSubmit() {
+    this.quizForm.markAllAsTouched();
+
     if (this.quizForm.valid && this.selectedQuestions().length > 0) {
       this.loading.set(true);
       
