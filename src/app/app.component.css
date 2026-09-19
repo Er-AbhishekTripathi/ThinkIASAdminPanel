@@ -77,6 +77,18 @@
   }
 }
 
+/* All app dialogs must sit above the sticky toolbar. */
+.modal,
+.loading-overlay,
+.modal-overlay,
+.dialog-overlay,
+.custom-dialog-overlay,
+.rules-modal-overlay,
+.introduction-modal-overlay,
+.cdk-overlay-backdrop {
+  z-index: 3000 !important;
+}
+
 /* ============================
    MAIN LAYOUT CONTAINER
 ============================ */

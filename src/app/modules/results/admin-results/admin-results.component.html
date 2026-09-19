@@ -55,11 +55,15 @@
         <mat-tab label="Student Rankings">
           <div class="tab-content">
             <mat-card>
-              <mat-card-header>
-                <mat-card-title>Student Rankings</mat-card-title>
-                <mat-card-subtitle>
-                  Total Students: {{ rankings().length }}
-                </mat-card-subtitle>
+              <mat-card-header class="rankings-card-header">
+                <div class="rankings-heading">
+                  <span class="section-icon ranking-icon"><mat-icon>leaderboard</mat-icon></span>
+                  <div>
+                    <mat-card-title>Student Rankings</mat-card-title>
+                    <mat-card-subtitle>Compare performance and submission speed</mat-card-subtitle>
+                  </div>
+                </div>
+                <div class="student-count"><strong>{{ rankings().length }}</strong><span>Total Students</span></div>
               </mat-card-header>
               <mat-card-content>
                 <table mat-table [dataSource]="rankings()" class="rankings-table">
@@ -79,8 +83,11 @@
                     <th mat-header-cell *matHeaderCellDef>Student</th>
                     <td mat-cell *matCellDef="let rank">
                       <div class="student-info">
+                        <span class="student-avatar">{{ rank.student.fullName.charAt(0) }}</span>
+                        <div>
                         <strong>{{ rank.student.fullName }}</strong>
                         <small>{{ rank.student.email }}</small>
+                        </div>
                       </div>
                     </td>
                   </ng-container>
@@ -89,7 +96,7 @@
                   <ng-container matColumnDef="score">
                     <th mat-header-cell *matHeaderCellDef>Score</th>
                     <td mat-cell *matCellDef="let rank">
-                      {{ rank.score }}/{{ rank.totalMarks }}
+                      <span class="score-badge"><strong>{{ rank.score }}</strong><small>/ {{ rank.totalMarks }}</small></span>
                     </td>
                   </ng-container>
 
@@ -100,7 +107,7 @@
                       <span [class.high-score]="rank.percentage >= 80" 
                             [class.medium-score]="rank.percentage >= 60 && rank.percentage < 80"
                             [class.low-score]="rank.percentage < 60">
-                        {{ rank.percentage }}%
+                        <mat-icon>{{ rank.percentage >= 80 ? 'trending_up' : rank.percentage >= 60 ? 'trending_flat' : 'trending_down' }}</mat-icon>{{ rank.percentage }}%
                       </span>
                     </td>
                   </ng-container>
@@ -109,7 +116,7 @@
                   <ng-container matColumnDef="timeTaken">
                     <th mat-header-cell *matHeaderCellDef>Time Taken</th>
                     <td mat-cell *matCellDef="let rank">
-                      {{ rank.timeTaken }} seconds
+                      <span class="table-meta"><mat-icon>schedule</mat-icon>{{ rank.timeTaken }}s</span>
                     </td>
                   </ng-container>
 
@@ -117,7 +124,7 @@
                   <ng-container matColumnDef="submittedAt">
                     <th mat-header-cell *matHeaderCellDef>Submitted</th>
                     <td mat-cell *matCellDef="let rank">
-                      {{ rank.submittedAt | date:'medium' }}
+                      <span class="table-meta"><mat-icon>event</mat-icon>{{ rank.submittedAt | date:'dd MMM, h:mm a' }}</span>
                     </td>
                   </ng-container>
 
@@ -198,7 +205,13 @@
               <!-- Question-wise Analysis -->
               <mat-card class="questions-card">
                 <mat-card-header class="questions-card-header">
-                  <mat-card-title>Question-wise Analysis</mat-card-title>
+                  <div class="questions-heading">
+                    <span class="section-icon"><mat-icon>analytics</mat-icon></span>
+                    <div>
+                      <mat-card-title>Question-wise Analysis</mat-card-title>
+                      <mat-card-subtitle>See how students performed on every question</mat-card-subtitle>
+                    </div>
+                  </div>
                   
                   <!-- Language Switch Toggle -->
                   <mat-radio-group [(ngModel)]="selectedLanguage" class="language-toggle">
@@ -213,8 +226,11 @@
                       <th mat-header-cell *matHeaderCellDef>Question</th>
                       <td mat-cell *matCellDef="let stat">
                         <div class="question-content">
-                          <strong>Q{{ stat.questionIndex }}</strong>
-                          <p class="question-text" [innerHTML]="getQuestionText(stat.question)"></p>
+                          <span class="question-number">Q{{ stat.questionIndex }}</span>
+                          <div class="question-copy">
+                            <span class="question-label">QUESTION {{ stat.questionIndex }}</span>
+                            <p class="question-text" [innerHTML]="getQuestionText(stat.question)"></p>
+                          </div>
                           
                           <!-- Description -->
                           <!-- <div *ngIf="hasDescription(stat)" class="description">
@@ -230,23 +246,27 @@
                     <ng-container matColumnDef="correctAnswers">
                       <th mat-header-cell *matHeaderCellDef>Correct</th>
                       <td mat-cell *matCellDef="let stat">
-                        <span class="correct-count">{{ stat.correctAnswers }}</span>
+                        <span class="answer-metric correct-metric"><mat-icon>check_circle</mat-icon>{{ stat.correctAnswers }}</span>
                       </td>
                     </ng-container>
 
                     <ng-container matColumnDef="incorrectAnswers">
                       <th mat-header-cell *matHeaderCellDef>Incorrect</th>
                       <td mat-cell *matCellDef="let stat">
-                        <span class="incorrect-count">{{ stat.incorrectAnswers }}</span>
+                        <span class="answer-metric incorrect-metric"><mat-icon>cancel</mat-icon>{{ stat.incorrectAnswers }}</span>
                       </td>
                     </ng-container>
 
                     <ng-container matColumnDef="correctPercentage">
                       <th mat-header-cell *matHeaderCellDef>Correct %</th>
                       <td mat-cell *matCellDef="let stat">
-                        <span [class]="getPercentageClass(stat.correctPercentage)">
-                          {{ stat.correctPercentage }}%
-                        </span>
+                        <div class="accuracy-cell">
+                          <div class="accuracy-heading">
+                            <span [class]="getPercentageClass(stat.correctPercentage)">{{ stat.correctPercentage }}%</span>
+                            <small>{{ stat.correctPercentage >= 70 ? 'Strong' : stat.correctPercentage >= 40 ? 'Needs practice' : 'Difficult' }}</small>
+                          </div>
+                          <div class="accuracy-track"><span [class]="getPercentageClass(stat.correctPercentage)" [style.width.%]="stat.correctPercentage"></span></div>
+                        </div>
                       </td>
                     </ng-container>
 

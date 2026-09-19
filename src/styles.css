@@ -1,3 +1,43 @@
+/* Keep Angular Material dialogs above the fixed/sticky application header. */
+.cdk-overlay-container,
+.cdk-global-overlay-wrapper {
+  z-index: 3000 !important;
+}
+
+/* Component modals render below the app shell's scoped styles, so keep them above the header globally. */
+.modal,
+.loading-overlay,
+.modal-overlay,
+.dialog-overlay,
+.custom-dialog-overlay {
+  z-index: 4000 !important;
+}
+
+/* Shared popup sizing: match the Manage Plans editor across admin sections. */
+body :where(.modal, .overlay, .dialog-overlay, .status-modal-backdrop) {
+  top: 58px;
+  bottom: 0;
+  align-items: flex-start;
+  overflow-y: auto;
+  padding: 16px;
+  z-index: 4000 !important;
+}
+
+body :where(.modal-content, .editor, .dialog-container, .dialog-panel, .status-modal, .modal-dialog) {
+  width: min(920px, calc(100vw - 32px));
+  max-width: 920px;
+  max-height: calc(100vh - 90px);
+  margin: 0 auto;
+  overflow-y: auto;
+}
+
+@media (max-width: 600px) {
+  body :where(.modal, .overlay, .dialog-overlay, .status-modal-backdrop) { padding: 10px; }
+  body :where(.modal-content, .editor, .dialog-container, .dialog-panel, .status-modal, .modal-dialog) {
+    width: calc(100vw - 20px);
+    max-height: calc(100vh - 78px);
+  }
+}
 /* Global Styles */
 * {
   margin: 0;
