@@ -288,6 +288,10 @@ export class TestService {
     return this.http.get<any>(`${this.apiUrl}/admin/statistics`);
   }
 
+  getDashboardCharts(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/admin/dashboard-charts`);
+  }
+
   processPayment(paymentData: any): Observable<any> {
   // For now, simulate a successful payment response
   // Replace with actual API call when backend is ready

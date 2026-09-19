@@ -968,6 +968,23 @@ form {
   font-size: 12px;
 }
 
+.batches-wrapper ::ng-deep .admin-actions button.mat-mdc-raised-button.mat-primary,
+.batches-wrapper ::ng-deep .no-items button.mat-mdc-button.mat-primary {
+  background: #4f46e5 !important;
+  color: #ffffff !important;
+  border-radius: 8px;
+}
+
+.batches-wrapper ::ng-deep .admin-actions button.mat-mdc-raised-button.mat-primary .mdc-button__label,
+.batches-wrapper ::ng-deep .no-items button.mat-mdc-button.mat-primary .mdc-button__label {
+  color: #ffffff !important;
+}
+
+.batches-wrapper ::ng-deep .admin-actions button.mat-mdc-raised-button.mat-primary:hover,
+.batches-wrapper ::ng-deep .no-items button.mat-mdc-button.mat-primary:hover {
+  background: #4338ca !important;
+}
+
 .batches-container ::ng-deep .status-field {
   width: 150px;
 }

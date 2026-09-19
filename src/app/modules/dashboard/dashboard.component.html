@@ -390,5 +390,11 @@
         </mat-card>
       </div>
     </div>
+
+    <section class="admin-analytics-grid">
+      <article class="analytics-card analytics-overview"><div class="analytics-heading"><div><span>PLATFORM OVERVIEW</span><h2>Live platform mix</h2></div><mat-icon>donut_large</mat-icon></div><div class="chart-box"><canvas #overviewChart></canvas></div></article>
+      <article class="analytics-card"><div class="analytics-heading"><div><span>ACTIVITY SNAPSHOT</span><h2>Tests and submissions</h2></div><mat-icon>bar_chart</mat-icon></div><div class="chart-box"><canvas #activityChart></canvas></div></article>
+      <article class="analytics-card analytics-wide"><div class="analytics-heading"><div><span>RECENT MOMENTUM</span><h2>Submission trend</h2></div><mat-icon>trending_up</mat-icon></div><div class="chart-box trend-box"><canvas #resultsTrendChart></canvas></div></article>
+    </section>
   </div>
 </div>

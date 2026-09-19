@@ -57,11 +57,11 @@ export class QuizService {
 
   // Admin operations
   createQuiz(quizData: any): Observable<any> {
-    return this.http.post(this.apiUrl, quizData);
+    return this.http.post(`${this.apiUrl}/create`, quizData);
   }
 
   getAllQuizzes(): Observable<Quiz[]> {
-    return this.http.get<Quiz[]>(this.apiUrl);
+    return this.http.get<Quiz[]>(`${this.apiUrl}/admin`);
   }
 
   getQuizById(id: string): Observable<any> {
@@ -69,19 +69,19 @@ export class QuizService {
   }
 
   updateQuiz(id: string, quizData: any): Observable<any> {
-    return this.http.put(`${this.apiUrl}/${id}`, quizData);
+    return this.http.put(`${this.apiUrl}/admin/${id}`, quizData);
   }
 
   deleteQuiz(id: string): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${id}`);
+    return this.http.delete(`${this.apiUrl}/delete/${id}`);
   }
 
   toggleQuizActive(id: string, isActive: boolean): Observable<any> {
-    return this.http.patch(`${this.apiUrl}/${id}/toggle-active`, { isActive });
+    return this.http.patch(`${this.apiUrl}/admin/${id}/toggle-active`, { isActive });
   }
 
   getQuizSubmissions(id: string): Observable<Submission[]> {
-    return this.http.get<Submission[]>(`${this.apiUrl}/${id}/submissions`);
+    return this.http.get<Submission[]>(`${this.apiUrl}/admin/${id}/submissions`);
   }
 
   // Public operations

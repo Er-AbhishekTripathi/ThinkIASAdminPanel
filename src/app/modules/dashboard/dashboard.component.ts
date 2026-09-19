@@ -1,5 +1,5 @@
 import { TranslatePipe } from '../../shared/i18n/translate.pipe';
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { AfterViewChecked, Component, ElementRef, inject, OnDestroy, signal, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -10,6 +10,9 @@ import { AuthService } from '../../shared/services/auth.service';
 import { TestService } from '../../shared/services/test.service';
 import { PaymentDialogComponent } from './payment-dialog/payment-dialog.component';
 import { UserService } from '../../shared/services/user.service';
+import { Chart, registerables } from 'chart.js';
+
+Chart.register(...registerables);
 
 @Component({
   selector: 'app-dashboard',
@@ -24,7 +27,7 @@ import { UserService } from '../../shared/services/user.service';
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy, AfterViewChecked {
   private authService = inject(AuthService);
   private testService = inject(TestService);
     private userService = inject(UserService);
@@ -42,6 +45,11 @@ export class DashboardComponent implements OnInit {
   
   loading = signal<boolean>(true);
   statisticsError = signal('');
+  chartData = signal<any>(null);
+  @ViewChild('overviewChart') overviewChart?: ElementRef<HTMLCanvasElement>;
+  @ViewChild('activityChart') activityChart?: ElementRef<HTMLCanvasElement>;
+  @ViewChild('resultsTrendChart') resultsTrendChart?: ElementRef<HTMLCanvasElement>;
+  private chartInstances: Chart[] = [];
 
   ngOnInit() {
     const user = this.currentUser();
@@ -54,6 +62,16 @@ export class DashboardComponent implements OnInit {
       }
     } else if (user?.role === 'admin') {
       this.loadAdminData();
+    }
+  }
+
+  ngOnDestroy() {
+    this.chartInstances.forEach(chart => chart.destroy());
+  }
+
+  ngAfterViewChecked() {
+    if (this.currentUser()?.role === 'admin' && this.chartData() && !this.chartInstances.length) {
+      this.renderAdminCharts();
     }
   }
 
@@ -134,6 +152,7 @@ export class DashboardComponent implements OnInit {
         this.totalResultsCount.set(stats.totalResults);
         this.totalTestsCount.set(stats.totalTests);
         this.loading.set(false);
+        this.loadAdminChartData();
       },
       error: (error) => {
         console.error('Error loading platform statistics:', error);
@@ -142,6 +161,45 @@ export class DashboardComponent implements OnInit {
       }
     });
   }
+
+  private loadAdminChartData() {
+    this.testService.getDashboardCharts().subscribe({
+      next: (data) => {
+        this.chartData.set(data);
+        setTimeout(() => this.renderAdminCharts());
+      },
+      error: error => console.error('Error loading dashboard chart data:', error)
+    });
+  }
+
+  private renderAdminCharts() {
+    const data = this.chartData();
+    if (!data || !this.overviewChart?.nativeElement) return;
+
+    this.chartInstances.forEach(chart => chart.destroy());
+    this.chartInstances = [];
+
+    const { overview, activity, resultsTrend } = data;
+
+    this.chartInstances.push(new Chart(this.overviewChart.nativeElement, {
+      type: 'doughnut',
+      data: { labels: ['Students', 'Tests', 'Results'], datasets: [{ data: [overview.totalStudents, overview.totalTests, overview.totalResults], backgroundColor: ['#1d5374', '#198754', '#e8793d'], borderWidth: 0 }] },
+      options: { responsive: true, maintainAspectRatio: false, cutout: '68%', plugins: { legend: { position: 'bottom' } } }
+    }));
+
+    this.chartInstances.push(new Chart(this.activityChart!.nativeElement, {
+      type: 'bar',
+      data: { labels: ['Available tests', 'Submitted results'], datasets: [{ label: 'Count', data: [activity.totalTests, activity.totalResults], backgroundColor: ['#1d5374', '#198754'], borderRadius: 8, maxBarThickness: 54 }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#e8eef2' } }, x: { grid: { display: false } } } }
+    }));
+
+    this.chartInstances.push(new Chart(this.resultsTrendChart!.nativeElement, {
+      type: 'line',
+      data: { labels: resultsTrend.map((point: any) => point.date), datasets: [{ label: 'Results', data: resultsTrend.map((point: any) => point.count), borderColor: '#e8793d', backgroundColor: 'rgba(232, 121, 61, .12)', fill: true, tension: .35, pointRadius: 4, pointBackgroundColor: '#fff', pointBorderWidth: 2 }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#e8eef2' } }, x: { grid: { display: false } } } }
+    }));
+  }
+
 
   getRecentPerformance(): string {
     const results = this.recentResults();

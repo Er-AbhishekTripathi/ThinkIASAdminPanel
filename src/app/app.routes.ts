@@ -156,8 +156,8 @@ export const routes: Routes = [
   canActivate: [authGuard, roleGuard],
   data: { role: 'admin' }
   },
-  { path: 'quizzes', component: QuizzesComponent },
-  { path: 'quizzes/:id', component: QuizDetailsComponent },
+  { path: 'quizzes', component: QuizzesComponent, canActivate: [authGuard, roleGuard], data: { role: 'admin' } },
+  { path: 'quizzes/:id', component: QuizDetailsComponent, canActivate: [authGuard, roleGuard], data: { role: 'admin' } },
   {
     path: 'manage-coupon', 
     loadComponent: () => import('./modules/admin/manage-coupon/manage-coupon.component').then(m => m.ManageCouponComponent),
