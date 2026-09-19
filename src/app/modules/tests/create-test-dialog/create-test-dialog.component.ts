@@ -105,8 +105,9 @@ export class CreateTestDialogComponent implements OnInit {
 
   setDefaultDateTime() {
   const now = new Date();
-  const startTime = new Date(now.getTime() + 60 * 60 * 1000); // 1 hour from now
-  const endTime = new Date(startTime.getTime() + 60 * 60 * 1000); // 2 hours from now (1 hour duration)
+  now.setSeconds(0, 0);
+  const startTime = now;
+  const endTime = new Date(startTime.getTime() + 60 * 60 * 1000); // 1 hour duration
   
   const formattedStartDate = this.formatDateTimeForInput(startTime);
   const formattedEndDate = this.formatDateTimeForInput(endTime);
@@ -138,9 +139,9 @@ export class CreateTestDialogComponent implements OnInit {
     if (!control.value) return null;
     const selectedTime = new Date(control.value);
     const now = new Date();
-    const bufferTime = new Date(now.getTime() + 5 * 60 * 1000);
-    if (selectedTime < bufferTime) {
-      return { 'pastDate': 'Start time must be at least 5 minutes from now' };
+    now.setSeconds(0, 0);
+    if (selectedTime < now) {
+      return { 'pastDate': 'Start time cannot be in the past' };
     }
     return null;
   }
@@ -150,8 +151,9 @@ export class CreateTestDialogComponent implements OnInit {
   const endTimeControl = this.testForm.get('endTime');
   
   if (startTimeControl?.errors?.['pastDate']) {
-    this.snackBar.open('Start time must be at least 5 minutes from now', 'Close', { duration: 3000 });
-    const minTime = new Date(new Date().getTime() + 5 * 60 * 1000);
+    this.snackBar.open('Start time cannot be in the past', 'Close', { duration: 3000 });
+    const minTime = new Date();
+    minTime.setSeconds(0, 0);
     this.testForm.patchValue({ 
       startTime: this.formatDateTimeForInput(minTime),
       endTime: this.formatDateTimeForInput(new Date(minTime.getTime() + 60 * 60 * 1000)) // Set default end time

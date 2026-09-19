@@ -62,10 +62,10 @@
         <button class="close-btn" (click)="closeForm()">&times;</button>
       </div>
       
-      <form (ngSubmit)="saveProgram()"><p role="alert" *ngIf="errorMessage">{{errorMessage}}</p><div class="form-group"><label>{{ 'Program name (Hindi)' | t }}</label><input name="programNameHindi" [(ngModel)]="currentProgram.programNameHindi"></div>
-<div class="form-group"><label>{{ 'Description (Hindi)' | t }}</label><textarea name="descriptionHindi" [(ngModel)]="currentProgram.descriptionHindi"></textarea></div>
-<div class="form-group"><label>{{ 'Duration (Hindi)' | t }}</label><input name="durationHindi" [(ngModel)]="currentProgram.durationHindi"></div>
-<div class="form-group"><label>{{ 'Features (Hindi, matching English line order)' | t }}</label><textarea name="featuresHindiInput" [(ngModel)]="featuresHindiInput"></textarea></div>
+      <form (ngSubmit)="saveProgram()">
+        <div *ngIf="errorMessage" class="form-alert form-alert-error" role="alert"><i class="fas fa-circle-exclamation"></i><span>{{ errorMessage | t }}</span></div>
+        <section class="language-section english-section">
+          <div class="language-section-header"><span class="language-badge">EN</span><div><h3>English Details</h3><p>Enter the primary program information.</p></div></div>
         <div class="form-group">
           <label><i class="fas fa-tag"></i> Program Name *</label>
           <input 
@@ -188,6 +188,15 @@
           >
           <small class="form-hint">Enter features separated by commas</small>
         </div>
+        </section>
+
+        <section class="language-section hindi-section">
+          <div class="language-section-header"><span class="language-badge">हि</span><div><h3>Hindi Details</h3><p>वैकल्पिक हिंदी जानकारी यहां भरें।</p></div></div>
+          <div class="form-group"><label>{{ 'Program name (Hindi)' | t }}</label><input name="programNameHindi" [(ngModel)]="currentProgram.programNameHindi"></div>
+          <div class="form-group"><label>{{ 'Description (Hindi)' | t }}</label><textarea name="descriptionHindi" [(ngModel)]="currentProgram.descriptionHindi"></textarea></div>
+          <div class="form-group"><label>{{ 'Duration (Hindi)' | t }}</label><input name="durationHindi" [(ngModel)]="currentProgram.durationHindi"></div>
+          <div class="form-group"><label>{{ 'Features (Hindi, matching English line order)' | t }}</label><textarea name="featuresHindiInput" [(ngModel)]="featuresHindiInput" placeholder="एक फीचर प्रति लाइन"></textarea></div>
+        </section>
 
         <div class="form-row">
           <div class="form-group">

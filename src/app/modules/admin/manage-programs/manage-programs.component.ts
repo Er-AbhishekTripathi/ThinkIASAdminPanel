@@ -2,7 +2,7 @@ import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClientModule, HttpClient } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environment/environment';
 import { AdminBatchesComponent } from '../admin-batches/admin-batches.component';
 
@@ -29,7 +29,7 @@ export interface Program {
 @Component({
   selector: 'app-manage-programs',
   standalone: true,
-  imports: [TranslatePipe, CommonModule, FormsModule, HttpClientModule, AdminBatchesComponent],
+  imports: [TranslatePipe, CommonModule, FormsModule, AdminBatchesComponent],
   templateUrl: './manage-programs.component.html',
   styleUrls: ['./manage-programs.component.css']
 })
@@ -282,9 +282,7 @@ export class ManageProgramsComponent implements OnInit {
         },
         error: (error) => {
           console.error('Error updating program:', error);
-          if (error.error && error.error.message) {
-            this.errorMessage = error.error.errors?.join(' ') || error.error.message;
-          }
+            this.errorMessage = this.getProgramErrorMessage(error);
           this.isLoading = false;
         }
       });
@@ -299,13 +297,18 @@ export class ManageProgramsComponent implements OnInit {
         },
         error: (error) => {
           console.error('Error creating program:', error);
-          if (error.error && error.error.message) {
-            this.errorMessage = error.error.errors?.join(' ') || error.error.message;
-          }
+            this.errorMessage = this.getProgramErrorMessage(error);
           this.isLoading = false;
         }
       });
     }
+  }
+
+  private getProgramErrorMessage(error: any): string {
+    if (error?.status === 401 || /no token|authorization denied/i.test(error?.error?.message || '')) {
+      return 'Your admin session has expired. Please log in again and retry.';
+    }
+    return error?.error?.errors?.join(' ') || error?.error?.message || 'Unable to save program. Please try again.';
   }
 
   // Delete program
