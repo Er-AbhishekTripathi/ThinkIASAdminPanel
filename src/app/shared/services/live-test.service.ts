@@ -101,6 +101,10 @@ export class LiveTestService {
     return this.http.delete<ApiResponse<any>>(`${this.baseUrl}/${id}`);
   }
 
+  reopenLiveTest(id: string, email: string, until: string): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(`${this.baseUrl}/${id}/reopen`, { email, until });
+  }
+
   // ============================================
   // STUDENT API CALLS
   // ============================================

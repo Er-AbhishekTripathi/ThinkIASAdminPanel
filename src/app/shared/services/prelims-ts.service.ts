@@ -8,6 +8,7 @@ export interface TestDate {
   time?: string;
   duration?: number;
   _id?: string;
+  exam?: any;
 }
 
 export interface PrelimsTestSeries {
@@ -105,5 +106,9 @@ export class PrelimsTSService {
 
   getUpcomingTests(): Observable<any> {
     return this.http.get(`${this.baseUrl}/student/upcoming`);
+  }
+
+  reopenExam(seriesId: string, examId: string, email: string, until: string): Observable<any> {
+    return this.http.post(`${this.baseUrl}/${seriesId}/exams/${examId}/reopen`, { email, until });
   }
 }

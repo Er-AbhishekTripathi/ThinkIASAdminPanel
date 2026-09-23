@@ -21,6 +21,12 @@
       <div class="guidance-item"><mat-icon>check_circle</mat-icon><span><strong>1000 questions</strong><small>{{ language.hindi ? 'अधिकतम सीमा' : 'Maximum per import' }}</small></span></div>
     </div>
 
+    <div class="sheet-import">
+      <input class="sheet-input" [(ngModel)]="sheetUrl" placeholder="https://docs.google.com/spreadsheets/d/...">
+      <button mat-stroked-button type="button" [disabled]="importing || !sheetUrl" (click)="previewSheet()">{{ language.hindi ? 'लिंक से Import' : 'Import from Google Sheet' }}</button>
+      <small>{{ language.hindi ? 'Sheet को Anyone with the link can view पर शेयर करें। कॉलम CSV टेम्पलेट जैसे ही होने चाहिए।' : 'Share the sheet as Anyone with the link can view. Use the same columns as the CSV template.' }}</small>
+    </div>
+
     <label class="import-dropzone" [class.has-file]="importFile" [class.disabled]="importing">
       <input type="file" accept=".csv,.json" [disabled]="importing" (change)="previewImport($event)">
       <mat-icon>{{ importFile ? 'task' : 'cloud_upload' }}</mat-icon>
@@ -34,7 +40,7 @@
     <div class="import-preview" *ngIf="importPreview.length">
       <div class="preview-heading"><div><span class="preview-label">{{ language.hindi ? 'Preview ready' : 'Preview ready' }}</span><h3>{{ importPreview.length }} {{ language.hindi ? 'प्रश्न तैयार हैं' : 'questions ready to import' }}</h3></div><mat-icon>fact_check</mat-icon></div>
       <ol><li *ngFor="let item of importPreview.slice(0,5)"><span>{{ item.question.english }}</span><small *ngIf="item.question.hindi">{{ item.question.hindi }}</small></li></ol>
-      <button mat-raised-button color="primary" class="confirm-import-btn" [disabled]="importing" (click)="confirmImport()"><mat-icon>file_upload</mat-icon>{{ 'Import Questions' | t }}</button>
+      <button mat-raised-button color="primary" class="confirm-import-btn" [disabled]="importing" (click)="sheetUrl ? confirmSheetImport() : confirmImport()"><mat-icon>file_upload</mat-icon>{{ 'Import Questions' | t }}</button>
     </div>
   </section>
   <div class="header">
