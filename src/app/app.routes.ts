@@ -102,10 +102,22 @@ export const routes: Routes = [
   data: { role: 'admin' }
   },
   {
+    path: 'support-tickets',
+    loadComponent: () => import('./modules/admin/support-tickets/support-tickets.component').then(m => m.SupportTicketsComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { role: 'admin' }
+  },
+  {
   path: 'meeting-admin', 
   loadComponent: () => import('./modules/admin/meeting-admin/meeting-admin.component').then(m => m.MeetingAdminComponent),
   canActivate: [authGuard, roleGuard],
-  data: { role: 'admin' }
+  data: { role: 'admin', audience: 'pre' }
+  },
+  {
+  path: 'mains-meeting-admin', 
+  loadComponent: () => import('./modules/admin/meeting-admin/meeting-admin.component').then(m => m.MeetingAdminComponent),
+  canActivate: [authGuard, roleGuard],
+  data: { role: 'admin', audience: 'mains' }
   },
   {
   path: 'admin-mentorship', 

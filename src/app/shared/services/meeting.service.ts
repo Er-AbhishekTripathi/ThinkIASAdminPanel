@@ -12,6 +12,7 @@ export interface Meeting {
   duration: number;
   meetingLink: string;
   videoLink?: string;
+  audience?: 'pre' | 'mains';
   status: 'upcoming' | 'completed' | 'cancelled';
   createdBy: string;
   createdAt: string;
@@ -24,6 +25,7 @@ export interface CreateMeetingRequest {
   meetingDate: string;
   duration?: number;
   meetingLink: string;
+  audience?: 'pre' | 'mains';
 }
 
 export interface UpdateMeetingRequest {
@@ -33,6 +35,7 @@ export interface UpdateMeetingRequest {
   duration?: number;
   meetingLink?: string;
   videoLink?: string;
+  audience?: 'pre' | 'mains';
 }
 
 export interface MeetingsResponse {
@@ -70,9 +73,10 @@ export class MeetingService {
   }
 
   // Get admin meetings
-  getAdminMeetings(): Observable<MeetingsResponse> {
+  getAdminMeetings(audience?: string): Observable<MeetingsResponse> {
     return this.http.get<MeetingsResponse>(`${this.apiUrl}/admin`, {
-      headers: this.getHeaders()
+      headers: this.getHeaders(),
+      params: audience ? { audience } : undefined
     });
   }
 

@@ -354,7 +354,7 @@
 
   <mat-dialog-actions align="end" class="dialog-actions">
     <button mat-raised-button color="primary" (click)="onSubmit()"
-      [disabled]="!testForm.valid || selectedQuestions().length === 0 || loading()" class="submit-btn">
+      [disabled]="!canSave() || loading()" class="submit-btn">
       <mat-spinner diameter="20" *ngIf="loading()"></mat-spinner>
       <span *ngIf="!loading()">
         {{ isEdit() ? 'Update' : 'Create' }} Test ({{ selectedQuestions().length }} questions)

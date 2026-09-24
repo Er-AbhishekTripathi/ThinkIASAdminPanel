@@ -582,6 +582,17 @@ export class AdminLiveTestComponent implements OnInit, OnDestroy {
     });
   }
 
+  reopenTest(test: LiveTest) {
+    const email = prompt('Student email');
+    if (!email) return;
+    const until = prompt('Reopen until (YYYY-MM-DDTHH:MM)', new Date(Date.now() + 2 * 3600000).toISOString().slice(0, 16));
+    if (!until) return;
+    this.liveTestService.reopenLiveTest(test._id, email, until).subscribe({
+      next: (response: any) => this.showSnackBar(response.message || `Exam reopened for ${response.student?.email || email}`),
+      error: (error) => this.snackBar.open(error.error?.message || 'Unable to reopen exam', 'Close', { duration: 4000 })
+    });
+  }
+
   deleteTest(test: LiveTest) {
     this.confirmDialog.ask({title: 'Delete live test?', message: `Delete "${test.title}"? This action cannot be undone.`}).subscribe(() => {
       this.liveTestService.deleteLiveTest(test._id).subscribe({

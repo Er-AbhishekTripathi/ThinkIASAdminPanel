@@ -282,6 +282,14 @@
             {{ 'Delete' | t }}
           </button>
         </div>
+        <div class="paper-list" *ngIf="series.testDates?.length">
+          <h4>Exam papers</h4>
+          <div *ngFor="let slot of series.testDates" class="paper-row">
+            <span>{{ formatDate(slot.date) }} {{ slot.time }} · {{ slot.exam?.title || 'No paper yet' }}</span>
+            <button mat-button color="primary" (click)="openPaperDialog(series, slot)">{{ slot.exam ? 'Edit paper' : 'Create paper' }}</button>
+            <button mat-button *ngIf="slot.exam" (click)="openReopen(series, slot.exam)">Reopen for student</button>
+          </div>
+        </div>
       </mat-card-actions>
     </mat-card>
   </div>

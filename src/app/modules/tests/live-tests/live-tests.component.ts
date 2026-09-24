@@ -205,7 +205,7 @@ export class LiveTestsComponent implements OnInit {
       width: '90vw',
       maxWidth: '1200px',
       height: '90vh',
-      maxHeight: '800px',
+      maxHeight: 'calc(100vh - 24px)',
       panelClass: 'create-test-dialog-panel',
       autoFocus: false,
       data: { test: test || null }
@@ -220,6 +220,17 @@ export class LiveTestsComponent implements OnInit {
 
   editTest(test: any) {
     this.openCreateTestDialog(test);
+  }
+
+  reopenTest(test: any) {
+    const email = prompt('Student email');
+    if (!email) return;
+    const until = prompt('Reopen until (YYYY-MM-DDTHH:MM)', new Date(Date.now() + 2 * 3600000).toISOString().slice(0, 16));
+    if (!until) return;
+    this.testService.reopenExam(test._id, email, until).subscribe({
+      next: (response: any) => this.snackBar.open(`Exam reopened for ${response.student?.email || email}`, 'Close', { duration: 4000 }),
+      error: (error: any) => this.snackBar.open(error.error?.message || 'Unable to reopen exam', 'Close', { duration: 4000 })
+    });
   }
 
   deleteTest(testId: string) {

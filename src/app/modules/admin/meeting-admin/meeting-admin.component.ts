@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { Meeting, CreateMeetingRequest, UpdateMeetingRequest, MeetingService } from '../../../shared/services/meeting.service';
 
 @Component({
@@ -30,8 +31,10 @@ export class MeetingAdminComponent implements OnInit {
     description: '',
     meetingDate: '',
     duration: undefined,
-    meetingLink: ''
+    meetingLink: '',
+    audience: 'pre'
   };
+  audience: 'pre' | 'mains' = 'pre';
 
   editMeeting: UpdateMeetingRequest = {};
   editHistoryMeeting: UpdateMeetingRequest = {};
@@ -43,9 +46,11 @@ export class MeetingAdminComponent implements OnInit {
   successMessage = '';
   errorMessage = '';
   
-  constructor(private meetingService: MeetingService) {}
+  constructor(private meetingService: MeetingService, private route: ActivatedRoute) {}
   
   ngOnInit() {
+    this.audience = this.route.snapshot.data['audience'] === 'mains' ? 'mains' : 'pre';
+    this.newMeeting.audience = this.audience;
     this.loadMeetings();
   }
   
@@ -54,7 +59,7 @@ export class MeetingAdminComponent implements OnInit {
     this.loading = true;
     this.clearMessages();
     
-    this.meetingService.getAdminMeetings().subscribe({
+    this.meetingService.getAdminMeetings(this.audience).subscribe({
       next: (response) => {
         this.upcomingMeetings = response.upcomingMeetings;
         this.completedMeetings = response.completedMeetings;
@@ -247,6 +252,7 @@ export class MeetingAdminComponent implements OnInit {
       meetingDate: '',
       duration: undefined,
       meetingLink: ''
+      , audience: this.audience
     };
   }
   
