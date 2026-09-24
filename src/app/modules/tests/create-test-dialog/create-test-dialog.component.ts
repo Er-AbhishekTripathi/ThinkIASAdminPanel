@@ -99,8 +99,8 @@ export class CreateTestDialogComponent implements OnInit {
   temporarilySelectedUids = signal<string[]>([]);
 
   constructor() {
+    this.isEdit.set(!!this.data?.test);
     this.testForm = this.createTestForm();
-    this.isEdit.set(!!this.data.test);
   }
 
   setDefaultDateTime() {
@@ -128,6 +128,9 @@ export class CreateTestDialogComponent implements OnInit {
   }
 
   getMinDateTime(): string {
+    if (this.isEdit() || this.data?.startTime) {
+      return '';
+    }
     return this.formatDateTimeForInput(new Date());
   }
 
@@ -136,7 +139,7 @@ export class CreateTestDialogComponent implements OnInit {
   }
 
   futureDateValidator(control: FormControl): { [key: string]: any } | null {
-    if (!control.value) return null;
+    if (!control.value || this.isEdit() || this.data?.startTime) return null;
     const selectedTime = new Date(control.value);
     const now = new Date();
     now.setSeconds(0, 0);
@@ -198,7 +201,13 @@ endTimeValidator(control: FormControl): { [key: string]: any } | null {
       if (this.isEdit()) {
         this.populateForm(this.data.test);
       } else {
-        this.setDefaultDateTime();
+        if (this.data.startTime) {
+          const start = new Date(this.data.startTime);
+          const end = new Date(this.data.endTime || start.getTime() + (this.data.duration || 60) * 60000);
+          this.testForm.patchValue({ startTime: this.formatDateTimeForInput(start), endTime: this.formatDateTimeForInput(end), duration: this.data.duration || 60, title: this.data.title || '' });
+        } else {
+          this.setDefaultDateTime();
+        }
       }
     });
     this.loadTags();
@@ -544,29 +553,40 @@ endTimeValidator(control: FormControl): { [key: string]: any } | null {
     return String.fromCharCode(65 + index);
   }
 
+  canSave(): boolean {
+    if (this.selectedQuestions().length === 0) return false;
+    return ['title', 'startTime', 'endTime', 'duration', 'marksPerQuestion']
+      .every(name => this.testForm.get(name)?.valid);
+  }
+
   onSubmit() {
-    if (this.testForm.valid && this.selectedQuestions().length > 0) {
+    if (this.canSave()) {
       this.loading.set(true);
       
       const formValue = this.testForm.value;
-      const testData = {
+      const testData: any = {
         title: formValue.title,
         description: formValue.description,
         startTime: new Date(formValue.startTime).toISOString(),
-        endTime: new Date(formValue.endTime).toISOString(), // Add this
+        endTime: new Date(formValue.endTime).toISOString(),
         duration: formValue.duration,
         marksPerQuestion: formValue.marksPerQuestion,
         negativeMarks: formValue.negativeMarks,
         questionUids: this.selectedQuestions().map(q => q.uid)
       };
 
-      const operation = this.isEdit() 
-        ? this.testService.updateTest(this.data.test._id, testData)
-        : this.testService.createTest(testData);
+      const seriesId = this.data.seriesId;
+      const slotId = this.data.slotId;
+      const seriesKind = this.data.seriesKind === 'mains' ? 'mains' : 'pre';
+      const operation = seriesId && slotId
+        ? this.testService.saveSeriesPaper(seriesKind, seriesId, slotId, testData)
+        : this.isEdit()
+          ? this.testService.updateTest(this.data.test._id, testData)
+          : this.testService.createTest(testData);
 
       operation.subscribe({
         next: () => {
-          this.snackBar.open(`Test ${this.isEdit() ? 'updated' : 'created'} successfully`, 'Close', { duration: 3000 });
+          this.snackBar.open(`Test ${this.isEdit() || (seriesId && slotId) ? 'updated' : 'created'} successfully`, 'Close', { duration: 3000 });
           this.dialogRef.close(true);
         },
         error: (error) => {

@@ -146,15 +146,40 @@ body button:not([mat-icon-button]):hover:not(:disabled) {
   }
 }
 
-/* Add this to your global styles.css */
-.create-test-dialog-panel .mat-dialog-container {
-  padding: 0;
-  border-radius: 12px;
-  overflow: hidden;
+.create-test-dialog-panel {
+  max-height: calc(100vh - 24px) !important;
 }
 
+.create-test-dialog-panel .mat-mdc-dialog-container,
+.create-test-dialog-panel .mat-dialog-container,
+.create-test-dialog-panel .mat-mdc-dialog-surface {
+  padding: 0 !important;
+  border-radius: 12px;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  max-height: calc(100vh - 24px) !important;
+}
+
+.create-test-dialog-panel .mat-mdc-dialog-component-host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.create-test-dialog-panel .mat-mdc-dialog-content,
 .create-test-dialog-panel .mat-dialog-content {
-  max-height: 65vh;
+  max-height: none !important;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.create-test-dialog-panel .mat-mdc-dialog-actions,
+.create-test-dialog-panel .mat-dialog-actions {
+  flex-shrink: 0;
+  margin: 0 !important;
 }
 
 /* Add these to your global styles.css */

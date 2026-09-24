@@ -59,6 +59,7 @@ export class QuestionsMasterComponent implements OnInit {
   importPreview: any[] = [];
   importError = '';
   importing = false;
+    sheetUrl = '';
   previewImport(event: Event) {
     const input = event.target as HTMLInputElement;
     this.importFile = input.files?.[0] || null;
@@ -73,6 +74,22 @@ export class QuestionsMasterComponent implements OnInit {
     this.http.post<any>(`${environment.apiUrl}/questions/import`, form).subscribe({
       next: r => { this.importPreview = r.questions; this.importing = false; },
       error: e => { this.importError = e.error?.message || 'Unable to preview file.'; this.importing = false; }
+    });
+  }
+  previewSheet() {
+    if (!this.sheetUrl.trim() || this.importing) return;
+    this.importError = ''; this.importPreview = []; this.importing = true;
+    this.http.post<any>(`${environment.apiUrl}/questions/import-sheet`, { url: this.sheetUrl.trim(), preview: true }).subscribe({
+      next: r => { this.importPreview = r.questions; this.importing = false; },
+      error: e => { this.importError = e.error?.message || 'Unable to read Google Sheet.'; this.importing = false; }
+    });
+  }
+  confirmSheetImport() {
+    if (!this.sheetUrl.trim() || !this.importPreview.length || this.importing) return;
+    this.importing = true;
+    this.http.post<any>(`${environment.apiUrl}/questions/import-sheet`, { url: this.sheetUrl.trim() }).subscribe({
+      next: r => { this.snackBar.open(this.language.hindi ? r.messageHindi : r.message, this.language.text('Close'), {duration: 5000}); this.importPreview = []; this.sheetUrl = ''; this.importing = false; this.currentPage.set(0); this.loadQuestions(); },
+      error: e => { this.importError = e.error?.message || 'Import failed.'; this.importing = false; }
     });
   }
   confirmImport() {

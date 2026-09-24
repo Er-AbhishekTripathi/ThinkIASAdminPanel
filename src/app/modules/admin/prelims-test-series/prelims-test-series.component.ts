@@ -18,6 +18,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { PrelimsTSService, PrelimsTestSeries, TestDate } from '../../../shared/services/prelims-ts.service';
 import { ConfirmDialogService } from '../../../shared/services/confirm-dialog.service';
+import { CreateTestDialogComponent } from '../../tests/create-test-dialog/create-test-dialog.component';
 
 
 @Component({
@@ -495,5 +496,42 @@ export class PrelimsTestSeriesComponent implements OnInit {
 
   trackByIndex(index: number): number {
     return index;
+  }
+
+  slotStart(slot: TestDate) {
+    const date = new Date(slot.date);
+    const [hours, minutes] = String(slot.time || '09:00').split(':').map(Number);
+    date.setHours(hours || 0, minutes || 0, 0, 0);
+    return date;
+  }
+
+  openPaperDialog(series: PrelimsTestSeries, slot: TestDate) {
+    const start = this.slotStart(slot);
+    const dialogRef = this.dialog.open(CreateTestDialogComponent, {
+      width: '90vw', maxWidth: '1200px', height: '90vh', maxHeight: 'calc(100vh - 24px)',
+      panelClass: 'create-test-dialog-panel', autoFocus: false,
+      data: {
+        test: slot.exam || null,
+        seriesId: series._id,
+        seriesKind: 'pre',
+        slotId: slot._id || (slot as any).id,
+        startTime: start,
+        endTime: new Date(start.getTime() + (slot.duration || 120) * 60000),
+        duration: slot.duration || 120,
+        title: `${series.name} - ${this.formatDate(slot.date)}`
+      }
+    });
+    dialogRef.afterClosed().subscribe(result => { if (result) this.loadTestSeries(); });
+  }
+
+  openReopen(series: PrelimsTestSeries, exam: any) {
+    const email = prompt('Student email');
+    if (!email) return;
+    const until = prompt('Reopen until (YYYY-MM-DDTHH:MM)', new Date(Date.now() + 2 * 3600000).toISOString().slice(0, 16));
+    if (!until) return;
+    this.prelimsTSService.reopenExam(series._id!, exam._id, email, until).subscribe({
+      next: () => this.snackBar.open('Exam reopened for the student', 'Close', { duration: 3000 }),
+      error: error => this.snackBar.open(error.error?.message || 'Unable to reopen exam', 'Close', { duration: 4000 })
+    });
   }
 }

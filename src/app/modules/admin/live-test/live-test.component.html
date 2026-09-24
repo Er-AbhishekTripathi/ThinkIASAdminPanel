@@ -224,6 +224,9 @@
                 <i class="fas" [class.fa-eye-slash]="test.isActive" [class.fa-eye]="!test.isActive"></i>
                 {{ test.isActive ? 'Deactivate' : 'Activate' }}
               </button>
+              <button mat-button (click)="reopenTest(test)">
+                <i class="fas fa-unlock"></i> Reopen for student
+              </button>
               <button mat-button color="warn" (click)="deleteTest(test)">
                 <i class="fas fa-trash"></i> Delete
               </button>

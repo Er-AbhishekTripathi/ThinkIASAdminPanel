@@ -325,7 +325,7 @@ export const HINDI: Record<string, string> = {
   "Loading students...": "विद्यार्थी लोड हो रहे हैं...",
   "No students found.": "कोई विद्यार्थी नहीं मिला।",
   "Students will appear here once they register.": "पंजीकरण के बाद विद्यार्थी यहाँ दिखेंगे।",
-  "Total Students": "कुल विद्यार्थी",
+  "Total Students": "कुल विद्यार्थी", 
   "View": "देखें",
   "View Results": "परिणाम देखें",
   "Live Exam Monitoring": "लाइव परीक्षा निगरानी",

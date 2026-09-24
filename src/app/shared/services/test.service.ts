@@ -268,8 +268,17 @@ export class TestService {
     return this.http.put<Test>(`${this.apiUrl}/admin/tests/${id}`, testData);
   }
 
+  saveSeriesPaper(kind: 'pre' | 'mains', seriesId: string, slotId: string, testData: any): Observable<any> {
+    const path = kind === 'mains' ? 'mains-ts' : 'prelims-ts';
+    return this.http.post(`${this.apiUrl}/${path}/${seriesId}/slots/${slotId}/exam`, testData);
+  }
+
   deleteTest(id: string): Observable<any> {
     return this.http.delete(`${this.apiUrl}/admin/tests/${id}`);
+  }
+
+  reopenExam(id: string, email: string, until: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/admin/tests/${id}/reopen`, { email, until });
   }
 
   getTestResults(testId: string): Observable<TestRanking[]> {

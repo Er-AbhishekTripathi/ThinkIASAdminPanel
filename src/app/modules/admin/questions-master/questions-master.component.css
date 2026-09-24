@@ -5,6 +5,7 @@
   padding: 20px;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
+.sheet-import{display:grid;gap:8px;margin:16px 0}.sheet-input{padding:12px 14px;border:1px solid #d6e0e8;border-radius:10px}
 
 /* Import workspace */
 .import-panel {

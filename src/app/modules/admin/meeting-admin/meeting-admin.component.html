@@ -207,6 +207,13 @@
     </div>
     <div class="modal-body">
       <div class="form-group">
+        <label>Audience *</label>
+        <select [(ngModel)]="newMeeting.audience" class="form-control">
+          <option value="pre">Prelims mentorship</option>
+          <option value="mains">Mains mentorship</option>
+        </select>
+      </div>
+      <div class="form-group">
         <label>Meeting Title *</label>
         <input type="text" [(ngModel)]="newMeeting.title" 
                placeholder="Enter meeting title" class="form-control" autofocus>
