@@ -1,5 +1,5 @@
 <div class="page">
-  <div class="page-header"><div><h2>Comprehensive Support System</h2><p>Manage the feature cards displayed on the Integrated Program page.</p></div><button class="primary" (click)="openCreate()">+ Add feature</button></div>
+  <div class="page-header"><div><h2>Plan Benefits</h2><p>Manage the feature cards displayed on the Integrated Program page.</p></div><button class="primary" (click)="openCreate()">+ Add feature</button></div>
   <div *ngIf="error" class="message error">{{ error }}</div>
 
   <form *ngIf="showForm" class="form-card" (ngSubmit)="save()">

@@ -250,7 +250,7 @@ export class AppComponent implements OnInit, OnDestroy {
       'program-faqs': 'Program FAQs',
       'announcement-master': 'Announcement Management',
       testimonials: 'Testimonials',
-      'support-features': 'Support Features',
+      'support-features': 'Plan Benefits',
       'free-resource-admin': 'Free Resources',
       'simple-news-admin': 'News Management',
       'live-content-admin': 'Live Content',

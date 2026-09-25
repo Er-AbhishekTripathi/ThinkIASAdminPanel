@@ -53,13 +53,14 @@
           </ng-container>
         </mat-nav-list>
       </mat-sidenav>
-
+  
       <!-- Main Content -->
       <mat-sidenav-content class="content-area">
         <section class="admin-page-banner" *ngIf="showAdminPageBanner()" aria-labelledby="admin-page-title">
           <div class="banner-content">
             <span class="banner-kicker">ThinkCivil IAS · Admin workspace</span>
-            <h1 id="admin-page-title">{{ adminPageTitle() }}</h1>
+          <!-- <p class="admin-welcome">Welcome, Administrator!</p> -->
+            <h1 id="admin-page-title">Welcome to {{ adminPageTitle() }}</h1>
             <p>{{ adminPageSubtitle() }}</p>
             <span class="banner-rule" aria-hidden="true"></span>
           </div>

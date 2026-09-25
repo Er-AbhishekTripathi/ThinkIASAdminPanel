@@ -22,19 +22,92 @@
 }
 
 .stat-card {
-  text-align: center;
-  padding: 20px;
-  transition: transform 0.2s;
+  position: relative;
+  overflow: hidden;
+  min-height: 90px;
+  padding: 16px 20px;
+  border: 1px solid #d8e2ee;
+  border-top: 4px solid #2563eb;
+  border-radius: 15px;
+  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.12), -6px 4px 16px rgba(15, 159, 143, 0.08), 6px -3px 14px rgba(224, 106, 59, 0.07);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
+.stat-card-tests { border-color: #c9d9f6; border-top-color: #2563eb; box-shadow: 0 8px 20px rgba(37, 99, 235, 0.16), -6px 4px 16px rgba(15, 159, 143, 0.08), 6px -3px 14px rgba(224, 106, 59, 0.07); }
+.stat-card-students { border-color: #c6e8e1; border-top-color: #0f9f8f; box-shadow: 0 8px 20px rgba(15, 159, 143, 0.16), -6px 4px 16px rgba(37, 99, 235, 0.08), 6px -3px 14px rgba(224, 106, 59, 0.07); }
+.stat-card-results { border-color: #f1d4c8; border-top-color: #e06a3b; box-shadow: 0 8px 20px rgba(224, 106, 59, 0.16), -6px 4px 16px rgba(37, 99, 235, 0.08), 6px -3px 14px rgba(15, 159, 143, 0.07); }
+
 .stat-card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-3px);
+  box-shadow: 0 14px 28px rgba(37, 99, 235, 0.18), -8px 5px 20px rgba(15, 159, 143, 0.1), 8px -4px 18px rgba(224, 106, 59, 0.09);
+}
+
+.stat-card-topline {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.stat-label {
+  color: #1e293b;
+  font-size: 0.98rem;
+  font-weight: 650;
+  letter-spacing: 0;
+}
+
+.stat-icon {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  place-items: center;
+  border-radius: 11px;
+  color: #2563eb;
+  background: #dbeafe;
+}
+
+.stat-card-students .stat-icon {
+  color: #087f73;
+  background: #ccfbf1;
+}
+
+.stat-card-results .stat-icon {
+  color: #c4512d;
+  background: #ffedd5;
+}
+
+.stat-arrow {
+  width: 18px;
+  height: 18px;
+  margin-left: auto;
+  color: #8aa0b4;
+  font-size: 18px;
+}
+
+.stat-value-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin: 8px 0 0 50px;
 }
 
 .stat-card h2 {
-  font-size: 2.5em;
-  margin: 10px 0;
-  color: #3f51b5;
+  margin: 0;
+  color: #1e3a8a;
+  font-size: 1.85rem;
+  font-weight: 750;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.stat-card-students h2 { color: #087f73; }
+.stat-card-results h2 { color: #c4512d; }
+
+.stat-description {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.78rem;
 }
 
 .admin-actions {

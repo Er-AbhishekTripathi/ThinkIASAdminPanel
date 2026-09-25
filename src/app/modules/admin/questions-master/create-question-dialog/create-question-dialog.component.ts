@@ -604,6 +604,11 @@ isExactMatch(tag: string, searchQuery: string | undefined): boolean {
   }
 
   async handleFileUpload(file: File) {
+    if (/\.docx?$/i.test(file.name)) {
+      this.snackBar.open('DOCX files must be uploaded from the Question Bank import section.', 'Close', { duration: 5000 });
+      return;
+    }
+
     if (!file.type.includes('text/plain')) {
       this.snackBar.open('Please upload only TXT files.', 'Close', { duration: 3000 });
       return;

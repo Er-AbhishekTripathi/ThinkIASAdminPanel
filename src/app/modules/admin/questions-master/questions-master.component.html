@@ -6,32 +6,32 @@
         <div class="import-icon"><mat-icon>upload_file</mat-icon></div>
         <div>
           <h2>{{ 'Import Questions' | t }}</h2>
-          <p>{{ language.hindi ? 'CSV या JSON फ़ाइल से एक साथ प्रश्न जोड़ें' : 'Add multiple questions at once from a CSV or JSON file' }}</p>
+          <p>{{ language.hindi ? 'English और Hindi DOCX फ़ाइलों से एक साथ प्रश्न जोड़ें' : 'Add bilingual questions from English and Hindi DOCX files' }}</p>
         </div>
       </div>
-      <button mat-stroked-button class="template-btn" (click)="downloadImportTemplate()">
-        <mat-icon>download</mat-icon>
-        {{ 'Download template' | t }}
-      </button>
+      <div class="template-actions">
+        <a mat-stroked-button class="template-btn" href="/EnglishQuestionTemplate.docx" download="EnglishQuestionTemplate.docx">
+          <mat-icon>download</mat-icon>
+          English DOCX
+        </a>
+        <a mat-stroked-button class="template-btn" href="/HindiQuestionTemplate.docx" download="HindiQuestionTemplate.docx">
+          <mat-icon>download</mat-icon>
+          Hindi DOCX
+        </a>
+      </div>
     </div>
 
     <div class="import-guidance">
-      <div class="guidance-item"><mat-icon>description</mat-icon><span><strong>CSV / JSON</strong><small>{{ language.hindi ? 'फ़ाइल फ़ॉर्मेट' : 'Supported format' }}</small></span></div>
+      <div class="guidance-item"><mat-icon>description</mat-icon><span><strong>DOCX</strong><small>{{ language.hindi ? 'Word फ़ाइल फ़ॉर्मेट' : 'Word file format' }}</small></span></div>
       <div class="guidance-item"><mat-icon>language</mat-icon><span><strong>English + Hindi</strong><small>{{ language.hindi ? 'दोनों भाषाएँ एक ही row में' : 'Both languages in one row' }}</small></span></div>
       <div class="guidance-item"><mat-icon>check_circle</mat-icon><span><strong>1000 questions</strong><small>{{ language.hindi ? 'अधिकतम सीमा' : 'Maximum per import' }}</small></span></div>
     </div>
 
-    <div class="sheet-import">
-      <input class="sheet-input" [(ngModel)]="sheetUrl" placeholder="https://docs.google.com/spreadsheets/d/...">
-      <button mat-stroked-button type="button" [disabled]="importing || !sheetUrl" (click)="previewSheet()">{{ language.hindi ? 'लिंक से Import' : 'Import from Google Sheet' }}</button>
-      <small>{{ language.hindi ? 'Sheet को Anyone with the link can view पर शेयर करें। कॉलम CSV टेम्पलेट जैसे ही होने चाहिए।' : 'Share the sheet as Anyone with the link can view. Use the same columns as the CSV template.' }}</small>
-    </div>
-
     <label class="import-dropzone" [class.has-file]="importFile" [class.disabled]="importing">
-      <input type="file" accept=".csv,.json" [disabled]="importing" (change)="previewImport($event)">
-      <mat-icon>{{ importFile ? 'task' : 'cloud_upload' }}</mat-icon>
-      <strong>{{ importFile?.name || (language.hindi ? 'CSV या JSON फ़ाइल चुनें' : 'Choose a CSV or JSON file') }}</strong>
-      <span>{{ importFile ? (language.hindi ? 'फ़ाइल preview के लिए तैयार है' : 'File selected for preview') : (language.hindi ? 'अधिकतम आकार 5 MB' : 'Maximum file size 5 MB') }}</span>
+      <input type="file" accept=".csv,.json,.docx" multiple [disabled]="importing" (change)="previewImport($event)">
+      <mat-icon>{{ importFiles.length ? 'task' : 'cloud_upload' }}</mat-icon>
+      <strong>{{ importFiles.length ? getImportFileNames() : (language.hindi ? 'English और Hindi DOCX चुनें' : 'Choose English and Hindi DOCX files') }}</strong>
+      <span>{{ importFiles.length > 1 ? (language.hindi ? 'समान क्रम के प्रश्न bilingual बनेंगे' : 'Matching question numbers will be merged bilingually') : (language.hindi ? 'अधिकतम दो फ़ाइलें, हर फ़ाइल 5 MB तक' : 'Up to two files, 5 MB each') }}</span>
     </label>
 
     <p role="alert" class="import-message error" *ngIf="importError">{{ importError }}</p>
@@ -40,13 +40,17 @@
     <div class="import-preview" *ngIf="importPreview.length">
       <div class="preview-heading"><div><span class="preview-label">{{ language.hindi ? 'Preview ready' : 'Preview ready' }}</span><h3>{{ importPreview.length }} {{ language.hindi ? 'प्रश्न तैयार हैं' : 'questions ready to import' }}</h3></div><mat-icon>fact_check</mat-icon></div>
       <ol><li *ngFor="let item of importPreview.slice(0,5)"><span>{{ item.question.english }}</span><small *ngIf="item.question.hindi">{{ item.question.hindi }}</small></li></ol>
-      <button mat-raised-button color="primary" class="confirm-import-btn" [disabled]="importing" (click)="sheetUrl ? confirmSheetImport() : confirmImport()"><mat-icon>file_upload</mat-icon>{{ 'Import Questions' | t }}</button>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>{{ language.hindi ? 'Import के लिए Tag चुनें' : 'Choose tag for imported questions' }}</mat-label>
+        <mat-select [(ngModel)]="importTags" multiple>
+          <mat-option *ngFor="let tag of tags()" [value]="tag._id">{{ tag.tag }}</mat-option>
+        </mat-select>
+        <mat-icon matSuffix>local_offer</mat-icon>
+      </mat-form-field>
+      <small>{{ language.hindi ? 'चुना गया tag हर question पर apply होगा।' : 'The selected tag will be applied to every imported question.' }}</small>
+      <button mat-raised-button color="primary" class="confirm-import-btn" [disabled]="importing || !importTags.length" (click)="confirmImport()"><mat-icon>file_upload</mat-icon>{{ 'Import Questions' | t }}</button>
     </div>
   </section>
-  <div class="header">
-    <h1>{{ 'Question Bank' | t }}</h1>
-    <p>{{ 'Manage Questions' | t }}</p>
-  </div>
 
   <div class="questions-container">
     <!-- Questions List Section -->

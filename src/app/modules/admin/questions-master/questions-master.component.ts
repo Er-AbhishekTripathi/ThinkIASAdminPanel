@@ -56,55 +56,45 @@ export class QuestionsMasterComponent implements OnInit {
   private http = inject(HttpClient);
   readonly language = inject(LanguageService);
   importFile: File | null = null;
+  importFiles: File[] = [];
   importPreview: any[] = [];
+  importTags: string[] = [];
   importError = '';
   importing = false;
-    sheetUrl = '';
+  getImportFileNames(): string {
+    return this.importFiles.map(file => file.name).join(' + ');
+  }
+
   previewImport(event: Event) {
     const input = event.target as HTMLInputElement;
-    this.importFile = input.files?.[0] || null;
-    this.importPreview = []; this.importError = '';
+    this.importFiles = Array.from(input.files || []);
+    this.importFile = this.importFiles[0] || null;
+    this.importPreview = []; this.importTags = []; this.importError = '';
     if (!this.importFile) return;
-    if (!/\.(csv|json)$/i.test(this.importFile.name) || this.importFile.size > 5 * 1024 * 1024) {
-      this.importError = this.language.hindi ? 'अधिकतम 5 MB की CSV या JSON फ़ाइल चुनें।' : 'Select a CSV or JSON file up to 5 MB.';
-      this.importFile = null; return;
+    if (this.importFiles.length > 2 || this.importFiles.some(file => !/\.(csv|json|docx)$/i.test(file.name) || file.size > 5 * 1024 * 1024)) {
+      this.importError = this.language.hindi ? 'अधिकतम दो CSV, JSON या DOCX फ़ाइलें चुनें। हर फ़ाइल 5 MB तक होनी चाहिए।' : 'Select up to two CSV, JSON, or DOCX files. Each file must be up to 5 MB.';
+      this.importFile = null; this.importFiles = []; return;
     }
-    const form = new FormData(); form.append('file', this.importFile); form.append('preview', 'true');
+    if (this.importFiles.length === 2 && this.importFiles.some(file => !/\.docx$/i.test(file.name))) {
+      this.importError = this.language.hindi ? 'English और Hindi को साथ import करने के लिए केवल दो DOCX फ़ाइलें चुनें।' : 'Select two DOCX files to import English and Hindi together.';
+      this.importFile = null; this.importFiles = []; return;
+    }
+    const form = new FormData(); this.importFiles.forEach(file => form.append('file', file)); form.append('preview', 'true');
     this.importing = true;
     this.http.post<any>(`${environment.apiUrl}/questions/import`, form).subscribe({
       next: r => { this.importPreview = r.questions; this.importing = false; },
       error: e => { this.importError = e.error?.message || 'Unable to preview file.'; this.importing = false; }
     });
   }
-  previewSheet() {
-    if (!this.sheetUrl.trim() || this.importing) return;
-    this.importError = ''; this.importPreview = []; this.importing = true;
-    this.http.post<any>(`${environment.apiUrl}/questions/import-sheet`, { url: this.sheetUrl.trim(), preview: true }).subscribe({
-      next: r => { this.importPreview = r.questions; this.importing = false; },
-      error: e => { this.importError = e.error?.message || 'Unable to read Google Sheet.'; this.importing = false; }
-    });
-  }
-  confirmSheetImport() {
-    if (!this.sheetUrl.trim() || !this.importPreview.length || this.importing) return;
-    this.importing = true;
-    this.http.post<any>(`${environment.apiUrl}/questions/import-sheet`, { url: this.sheetUrl.trim() }).subscribe({
-      next: r => { this.snackBar.open(this.language.hindi ? r.messageHindi : r.message, this.language.text('Close'), {duration: 5000}); this.importPreview = []; this.sheetUrl = ''; this.importing = false; this.currentPage.set(0); this.loadQuestions(); },
-      error: e => { this.importError = e.error?.message || 'Import failed.'; this.importing = false; }
-    });
-  }
   confirmImport() {
-    if (!this.importFile || !this.importPreview.length || this.importing) return;
-    const form = new FormData(); form.append('file', this.importFile);
+    if (!this.importFiles.length || !this.importPreview.length || !this.importTags.length || this.importing) return;
+    const form = new FormData(); this.importFiles.forEach(file => form.append('file', file));
+    form.append('importTags', JSON.stringify(this.importTags));
     this.importing = true;
     this.http.post<any>(`${environment.apiUrl}/questions/import`, form).subscribe({
-      next: r => { this.snackBar.open(this.language.hindi ? r.messageHindi : r.message, this.language.text('Close'), {duration: 5000}); this.importPreview = []; this.importFile = null; this.importing = false; this.currentPage.set(0); this.loadQuestions(); },
+      next: r => { this.snackBar.open(this.language.hindi ? r.messageHindi : r.message, this.language.text('Close'), {duration: 5000}); this.importPreview = []; this.importFile = null; this.importFiles = []; this.importTags = []; this.importing = false; this.currentPage.set(0); this.loadQuestions(); },
       error: e => { this.importError = e.error?.message || 'Import failed.'; this.importing = false; }
     });
-  }
-  downloadImportTemplate() {
-    const csv = '\uFEFFQuestion (English),Question (Hindi),Option A (English),Option A (Hindi),Option B (English),Option B (Hindi),Option C (English),Option C (Hindi),Option D (English),Option D (Hindi),Correct Answer,Description (English),Description (Hindi),Tags\nCapital of India?,भारत की राजधानी?,Delhi,दिल्ली,Mumbai,मुंबई,Chennai,चेन्नई,Kolkata,कोलकाता,A,Delhi is the capital.,दिल्ली राजधानी है.,\n';
-    const url = URL.createObjectURL(new Blob([csv], {type: 'text/csv;charset=utf-8'}));
-    const link = document.createElement('a'); link.href = url; link.download = 'questions-template.csv'; link.click(); URL.revokeObjectURL(url);
   }
   private questionService = inject(QuestionService);
   private tagService = inject(TagService);

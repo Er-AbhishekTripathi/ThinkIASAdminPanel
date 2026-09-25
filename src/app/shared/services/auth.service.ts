@@ -105,40 +105,111 @@ export class AuthService {
   public currentUser = computed(() => this.currentUserSignal());
   public menuItems = computed(() => this.withWebsitePageMenuItems(this.menuItemsSignal()));
 
+  private normalizeMenuItemName(name: string): string {
+    const normalized = name?.trim() || '';
+    if (normalized === 'Tag Master') return 'Tag Management';
+    if (
+      normalized === 'Plan Benefits' ||
+      normalized === 'Support Features' ||
+      normalized === 'Support Feature'
+    ) return 'Plan Benefits';
+    return normalized;
+  }
+
   private withWebsitePageMenuItems(menuItems: MenuItem[]): MenuItem[] {
     const hasWebsitePageManage = menuItems.some(item => item.name === 'Website Page Manage');
     const normalizedItems = hasWebsitePageManage
       ? menuItems.filter(item => !this.isWebsitePageItem(item.path))
       : menuItems;
 
-    return normalizedItems.map(item => {
-      if (item.name !== 'Website Page Manage') {
-        return item;
-      }
-
-      const children = (item.children || []).map(child => {
-        if (this.isAnnouncementItem(child.path)) {
-          return { ...child, name: 'Announcement Master', path: '/announcement-master' };
+    const migratedItems = this.normalizeLegacyQuestionManagementGroup(
+      normalizedItems.map(item => {
+        if (item.name !== 'Website Page Manage') {
+          return {
+            ...item,
+            name: this.normalizeMenuItemName(item.name || ''),
+            children: item.children?.map(child => ({
+              ...child,
+              name: this.normalizeMenuItemName(child.name || '')
+            }))
+          };
         }
-        if (this.isCareersItem(child.path)) {
-          return { ...child, name: 'Careers', path: '/careers' };
+
+        const children = (item.children || []).map(child => {
+          if (this.isAnnouncementItem(child.path)) {
+            return { ...child, name: 'Announcement Master', path: '/announcement-master' };
+          }
+          // if (this.isCareersItem(child.path)) {
+          //   return { ...child, name: 'Careers', path: '/careers' };
+          // }
+          return child;
+        });
+
+        const websitePagePaths = children.map(child => child.path);
+        if (!websitePagePaths.some(path => this.isAnnouncementItem(path))) {
+          children.push({ name: 'Announcement Master', path: '/announcement-master', icon: 'campaign' });
         }
-        return child;
-      });
+        // if (!websitePagePaths.some(path => this.isCareersItem(path))) {
+        //   children.push({ name: 'Careers', path: '/careers', icon: 'work' });
+        // }
 
-      const websitePagePaths = children.map(child => child.path);
-      if (!websitePagePaths.some(path => this.isAnnouncementItem(path))) {
-        children.push({ name: 'Announcement Master', path: '/announcement-master', icon: 'campaign' });
-      }
-      if (!websitePagePaths.some(path => this.isCareersItem(path))) {
-        children.push({ name: 'Careers', path: '/careers', icon: 'work' });
-      }
+        return {
+          ...item,
+          children
+        };
+      })
+    );
 
-      return {
-        ...item,
-        children
-      };
+    return migratedItems;
+  }
+
+  private normalizeLegacyQuestionManagementGroup(menuItems: MenuItem[]): MenuItem[] {
+    const legacyPaths = new Set(['/tag-master', '/questions-master', '/quizzes']);
+    const legacyNames = new Set(['Tag Master', 'Tag Management', 'Question Bank', 'Quiz Management', 'Manage Quiz']);
+
+    const hasGroupedQuestionMenu = menuItems.some(item =>
+      item.name === 'Question Management' || item.name === 'Question Management'
+    );
+
+    const legacyQuestionEntries = menuItems.filter(item => {
+      const matchesPath = legacyPaths.has(item.path);
+      const matchesName = legacyNames.has(item.name || '');
+      return matchesPath || matchesName;
     });
+
+    if (hasGroupedQuestionMenu || legacyQuestionEntries.length === 0) {
+      return menuItems;
+    }
+
+    const groupedChildren: MenuItem[] = legacyQuestionEntries.map(item => ({
+      ...item,
+      path: item.path || this.getLegacyQuestionPath(item.name || ''),
+      children: undefined
+    }));
+
+    const filteredMenuItems = menuItems.filter(item => {
+      if (!item.path) return true;
+      const matchesPath = legacyPaths.has(item.path);
+      const matchesName = legacyNames.has(item.name || '');
+      return !(matchesPath || matchesName);
+    });
+
+    const questionGroup: MenuItem = {
+      name: 'Question Management',
+      path: '',
+      icon: 'quiz',
+      children: groupedChildren
+    };
+
+    return [questionGroup, ...filteredMenuItems];
+  }
+
+  private getLegacyQuestionPath(name: string): string {
+    const normalizedName = name.toLowerCase();
+    if (normalizedName.includes('tag')) return '/tag-master';
+    if (normalizedName.includes('question')) return '/questions-master';
+    if (normalizedName.includes('quiz')) return '/quizzes';
+    return '';
   }
 
   private isAnnouncementItem(path: string): boolean {
