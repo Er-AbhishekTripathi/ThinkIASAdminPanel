@@ -196,12 +196,12 @@
 
 <!-- Modals -->
 <!-- Create Meeting Modal -->
-<div class="modal-overlay" *ngIf="showCreateModal">
-  <div class="modal">
+<ng-template #createMeetingDialog>
+  <div class="modal meeting-create-modal" *ngIf="showCreateModal">
     <div class="modal-header">
       <i class="fa fa-plus-circle modal-icon"></i>
       <h3>Create New Meeting</h3>
-      <button class="btn-close" (click)="showCreateModal = false">
+      <button class="btn-close" (click)="closeCreateModal()">
         <i class="fa fa-times"></i>
       </button>
     </div>
@@ -247,7 +247,7 @@
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn secondary" (click)="showCreateModal = false">
+      <button class="btn secondary" (click)="closeCreateModal()">
         Cancel
       </button>
       <button class="btn primary" (click)="createMeeting()" 
@@ -257,7 +257,7 @@
       </button>
     </div>
   </div>
-</div>
+</ng-template>
 
 <!-- Edit Meeting Modal -->
 <!-- Edit Meeting Modal -->

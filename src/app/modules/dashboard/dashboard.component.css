@@ -38,6 +38,10 @@
 .stat-card-students { border-color: #c6e8e1; border-top-color: #0f9f8f; box-shadow: 0 8px 20px rgba(15, 159, 143, 0.16), -6px 4px 16px rgba(37, 99, 235, 0.08), 6px -3px 14px rgba(224, 106, 59, 0.07); }
 .stat-card-results { border-color: #f1d4c8; border-top-color: #e06a3b; box-shadow: 0 8px 20px rgba(224, 106, 59, 0.16), -6px 4px 16px rgba(37, 99, 235, 0.08), 6px -3px 14px rgba(15, 159, 143, 0.07); }
 
+.stat-card-link { display: block; color: inherit; text-decoration: none; border-radius: 15px; }
+.stat-card-link .stat-card { height: 100%; cursor: pointer; }
+.stat-card-link:focus-visible { outline: 3px solid #2563eb; outline-offset: 3px; }
+
 .stat-card:hover {
   transform: translateY(-3px);
   box-shadow: 0 14px 28px rgba(37, 99, 235, 0.18), -8px 5px 20px rgba(15, 159, 143, 0.1), 8px -4px 18px rgba(224, 106, 59, 0.09);

@@ -74,18 +74,6 @@ interface FilterParams {
 // ============================================
 // VALIDATORS
 // ============================================
-const startTimeValidator = (control: AbstractControl): ValidationErrors | null => {
-  if (!control.value) return null;
-  const selectedDate = new Date(control.value);
-  const now = new Date();
-  const minDateTime = new Date(now.getTime() + 5 * 60000);
-
-  if (selectedDate < minDateTime) {
-    return { pastDate: true };
-  }
-  return null;
-};
-
 const endTimeValidator = (startTimeControl: AbstractControl) => {
   return (control: AbstractControl): ValidationErrors | null => {
     if (!control.value || !startTimeControl.value) return null;
@@ -259,7 +247,7 @@ export class AdminLiveTestComponent implements OnInit, OnDestroy {
       questions: this.fb.array([]),
       meetLink: ['', [Validators.required, meetLinkValidator]],
       instructions: [''],
-      startDateTime: ['', [Validators.required, startTimeValidator]],
+      startDateTime: ['', [Validators.required]],
       endDateTime: ['', [Validators.required]],
       order: [0],
       isActive: [true]
@@ -343,20 +331,17 @@ export class AdminLiveTestComponent implements OnInit, OnDestroy {
   // ============================================
   getDefaultStartDateTime(): string {
     const now = new Date();
-    const startDateTime = new Date(now.getTime() + 5 * 60000);
-    return startDateTime.toISOString().slice(0, 16);
+    now.setSeconds(0, 0);
+    now.setMinutes(now.getMinutes() + 1);
+    return this.formatDateTimeForInput(now);
   }
 
   getDefaultEndDateTime(): string {
-    const now = new Date();
-    const endDateTime = new Date(now.getTime() + 3 * 60 * 60000);
-    return endDateTime.toISOString().slice(0, 16);
-  }
-
-  getMinDateTime(): string {
-    const now = new Date();
-    const minDateTime = new Date(now.getTime() + 5 * 60000);
-    return minDateTime.toISOString().slice(0, 16);
+    const endDateTime = new Date();
+    endDateTime.setSeconds(0, 0);
+    endDateTime.setMinutes(endDateTime.getMinutes() + 1);
+    endDateTime.setHours(endDateTime.getHours() + 3);
+    return this.formatDateTimeForInput(endDateTime);
   }
 
   onDateTimeChange(): void {
@@ -384,7 +369,8 @@ export class AdminLiveTestComponent implements OnInit, OnDestroy {
   formatDateTimeForInput(date: Date | string): string {
     if (!date) return '';
     const d = new Date(date);
-    return d.toISOString().slice(0, 16);
+    const pad = (value: number) => value.toString().padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
   }
 
   // ============================================

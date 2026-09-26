@@ -139,9 +139,9 @@ export class AuthService {
           if (this.isAnnouncementItem(child.path)) {
             return { ...child, name: 'Announcement Master', path: '/announcement-master' };
           }
-          // if (this.isCareersItem(child.path)) {
-          //   return { ...child, name: 'Careers', path: '/careers' };
-          // }
+          if (this.isCareersItem(child.path)) {
+            return { ...child, name: 'Careers', path: '/careers' };
+          }
           return child;
         });
 
@@ -149,9 +149,9 @@ export class AuthService {
         if (!websitePagePaths.some(path => this.isAnnouncementItem(path))) {
           children.push({ name: 'Announcement Master', path: '/announcement-master', icon: 'campaign' });
         }
-        // if (!websitePagePaths.some(path => this.isCareersItem(path))) {
-        //   children.push({ name: 'Careers', path: '/careers', icon: 'work' });
-        // }
+        if (!websitePagePaths.some(path => this.isCareersItem(path))) {
+          children.push({ name: 'Careers', path: '/careers', icon: 'work' });
+        }
 
         return {
           ...item,
@@ -160,7 +160,7 @@ export class AuthService {
       })
     );
 
-    return migratedItems;
+    return migratedItems.filter(item => item.name !== 'Question Management');
   }
 
   private normalizeLegacyQuestionManagementGroup(menuItems: MenuItem[]): MenuItem[] {

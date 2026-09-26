@@ -55,8 +55,8 @@
   </div>
 
   <!-- Add/Edit Form Modal -->
-  <div class="modal" *ngIf="showForm" (click)="closeForm()">
-    <div class="modal-content" (click)="$event.stopPropagation()">
+  <ng-template #programFormDialog>
+    <div class="modal-content" *ngIf="showForm">
       <div class="modal-header">
         <h2>{{ isEditing ? 'Edit Program' : 'Add New Program' }}</h2>
         <button class="close-btn" (click)="closeForm()">&times;</button>
@@ -227,7 +227,7 @@
         </div>
       </form>
     </div>
-  </div>
+  </ng-template>
 
   <!-- Display Programs by Category -->
   <div class="programs-display">

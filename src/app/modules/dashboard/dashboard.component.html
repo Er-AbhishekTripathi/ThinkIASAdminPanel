@@ -332,14 +332,16 @@
   </div>
   <div *ngIf="!loading() && currentUser()?.role === 'admin' && !statisticsError()" class="admin-dashboard">
     <div class="stats-grid">
-      <mat-card class="stat-card stat-card-tests">
-        <div class="stat-card-topline">
-          <div class="stat-icon" aria-hidden="true"><mat-icon>quiz</mat-icon></div>
-          <span class="stat-label">Total Tests</span>
-          <mat-icon class="stat-arrow" aria-hidden="true">arrow_forward</mat-icon>
-        </div>
-        <div class="stat-value-row"><h2>{{ totalTestsCount() }}</h2><span class="stat-description">Tests created</span></div>
-      </mat-card>
+      <a class="stat-card-link" routerLink="/manage-tests" aria-label="View all tests">
+        <mat-card class="stat-card stat-card-tests">
+          <div class="stat-card-topline">
+            <div class="stat-icon" aria-hidden="true"><mat-icon>quiz</mat-icon></div>
+            <span class="stat-label">Total Tests</span>
+            <mat-icon class="stat-arrow" aria-hidden="true">arrow_forward</mat-icon>
+          </div>
+          <div class="stat-value-row"><h2>{{ totalTestsCount() }}</h2><span class="stat-description">Tests created</span></div>
+        </mat-card>
+      </a>
 
       <mat-card class="stat-card stat-card-students clickable-card" (click)="navigateToStudentsList()">
         <div class="stat-card-topline">
@@ -350,14 +352,16 @@
         <div class="stat-value-row"><h2>{{ totalStudentsCount() }}</h2><span class="stat-description">Registered students</span></div>
       </mat-card>
 
-      <mat-card class="stat-card stat-card-results">
-        <div class="stat-card-topline">
-          <div class="stat-icon" aria-hidden="true"><mat-icon>insights</mat-icon></div>
-          <span class="stat-label">Total Results</span>
-          <mat-icon class="stat-arrow" aria-hidden="true">arrow_forward</mat-icon>
-        </div>
-        <div class="stat-value-row"><h2>{{ totalResultsCount() }}</h2><span class="stat-description">Tests submitted</span></div>
-      </mat-card>
+      <a class="stat-card-link" routerLink="/admin-results" aria-label="View all test results">
+        <mat-card class="stat-card stat-card-results">
+          <div class="stat-card-topline">
+            <div class="stat-icon" aria-hidden="true"><mat-icon>insights</mat-icon></div>
+            <span class="stat-label">Total Results</span>
+            <mat-icon class="stat-arrow" aria-hidden="true">arrow_forward</mat-icon>
+          </div>
+          <div class="stat-value-row"><h2>{{ totalResultsCount() }}</h2><span class="stat-description">Tests submitted</span></div>
+        </mat-card>
+      </a>
     </div>
 
     <!-- Quick Stats -->
