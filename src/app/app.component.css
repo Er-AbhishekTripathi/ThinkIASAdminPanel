@@ -112,6 +112,18 @@
   box-shadow: 5px 0 18px rgba(28, 54, 94, 0.04);
   overflow-x: hidden;
 
+  /* Keep long menus scrollable without showing browser scrollbars. */
+  ::ng-deep .mat-drawer-inner-container {
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  ::ng-deep .mat-drawer-inner-container::-webkit-scrollbar {
+    display: none;
+  }
+
   /* Angular Material wraps list-item content internally. Keep icon and title in one row. */
   ::ng-deep .mat-mdc-list-item,
   ::ng-deep .mdc-list-item {

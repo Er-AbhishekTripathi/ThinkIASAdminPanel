@@ -1,7 +1,6 @@
 <!-- dashboard.component.html -->
 <div class="dashboard-container">
-  <h1>Welcome, {{ currentUser()?.fullName }}!</h1>
-  <p class="user-role">Role: {{ currentUser()?.role | titlecase }} - {{ currentUser()?.type | titlecase }}</p>
+  <!-- <h1>Welcome, {{ currentUser()?.fullName }}!</h1> -->
 
   <!-- Loading State -->
   <div *ngIf="loading()" class="loading">
@@ -333,39 +332,31 @@
   </div>
   <div *ngIf="!loading() && currentUser()?.role === 'admin' && !statisticsError()" class="admin-dashboard">
     <div class="stats-grid">
-      <mat-card class="stat-card">
-        <mat-card-header>
-          <mat-card-title>Total Tests</mat-card-title>
-          
-        </mat-card-header>
-        <mat-card-content>
-          <h2>{{ totalTestsCount() }}</h2>
-          <p>Tests Created</p>
-        </mat-card-content>
+      <mat-card class="stat-card stat-card-tests">
+        <div class="stat-card-topline">
+          <div class="stat-icon" aria-hidden="true"><mat-icon>quiz</mat-icon></div>
+          <span class="stat-label">Total Tests</span>
+          <mat-icon class="stat-arrow" aria-hidden="true">arrow_forward</mat-icon>
+        </div>
+        <div class="stat-value-row"><h2>{{ totalTestsCount() }}</h2><span class="stat-description">Tests created</span></div>
       </mat-card>
 
-      <mat-card class="stat-card clickable-card" (click)="navigateToStudentsList()">
-        <mat-card-header>
-          <mat-card-title>{{ 'Total Students' | t }}</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <h2>{{ totalStudentsCount() }}</h2>
-          <p>Registered Students</p>
-          <div class="click-hint">
-            <mat-icon>open_in_new</mat-icon>
-            <span>Click to view all</span>
-          </div>
-        </mat-card-content>
+      <mat-card class="stat-card stat-card-students clickable-card" (click)="navigateToStudentsList()">
+        <div class="stat-card-topline">
+          <div class="stat-icon" aria-hidden="true"><mat-icon>groups</mat-icon></div>
+          <span class="stat-label">{{ 'Total Students' | t }}</span>
+          <mat-icon class="stat-arrow" aria-hidden="true">arrow_forward</mat-icon>
+        </div>
+        <div class="stat-value-row"><h2>{{ totalStudentsCount() }}</h2><span class="stat-description">Registered students</span></div>
       </mat-card>
 
-      <mat-card class="stat-card">
-        <mat-card-header>
-          <mat-card-title>Total Results</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <h2>{{ totalResultsCount() }}</h2>
-          <p>Tests Submitted</p>
-        </mat-card-content>
+      <mat-card class="stat-card stat-card-results">
+        <div class="stat-card-topline">
+          <div class="stat-icon" aria-hidden="true"><mat-icon>insights</mat-icon></div>
+          <span class="stat-label">Total Results</span>
+          <mat-icon class="stat-arrow" aria-hidden="true">arrow_forward</mat-icon>
+        </div>
+        <div class="stat-value-row"><h2>{{ totalResultsCount() }}</h2><span class="stat-description">Tests submitted</span></div>
       </mat-card>
     </div>
 

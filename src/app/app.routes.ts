@@ -10,10 +10,10 @@ import { ManageCouponComponent } from './modules/admin/manage-coupon/manage-coup
 export const routes: Routes = [
   {path:'program-faqs',loadComponent:()=>import('./modules/admin/program-faqs/program-faqs.component').then(m=>m.ProgramFaqsComponent),canActivate:[authGuard,roleGuard],data:{role:'admin'}},
   { path: 'students/:id', loadComponent: () => import('./modules/admin/student-profile/student-profile.component').then(m => m.StudentProfileComponent), canActivate: [authGuard, roleGuard], data: { role: 'admin' } },
-  { path: 'careers', loadComponent: () => import('./modules/admin/careers/careers.component').then(m => m.CareersComponent), canActivate: [authGuard, roleGuard], data: { role: 'admin' } },
+  // { path: 'careers', loadComponent: () => import('./modules/admin/careers/careers.component').then(m => m.CareersComponent), canActivate: [authGuard, roleGuard], data: { role: 'admin' } },
   { path: '', redirectTo: '/login', pathMatch: 'full' },
   { path: 'notifications', loadComponent: () => import('./modules/admin/notifications/notifications.component').then(m => m.NotificationsComponent), canActivate: [authGuard, roleGuard], data: { role: 'admin' } },
-  { path: 'exam-monitoring', loadComponent: () => import('./modules/admin/exam-monitoring/exam-monitoring.component').then(m => m.ExamMonitoringComponent), canActivate: [authGuard, roleGuard], data: { role: 'admin' } },
+  // { path: 'exam-monitoring', loadComponent: () => import('./modules/admin/exam-monitoring/exam-monitoring.component').then(m => m.ExamMonitoringComponent), canActivate: [authGuard, roleGuard], data: { role: 'admin' } },
   { path: 'manage-plans', loadComponent: () => import('./modules/admin/manage-plans/manage-plans.component').then(m => m.ManagePlansComponent), canActivate: [authGuard, roleGuard], data: { role: 'admin' } },
   // { 
   //   path: 'landing-page', 

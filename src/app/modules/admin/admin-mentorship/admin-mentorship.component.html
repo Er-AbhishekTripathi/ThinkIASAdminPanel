@@ -1,8 +1,10 @@
 <div class="mentorship-admin-container">
   <div class="header">
-    <h1>{{ 'Mentorship Programs' | t }}</h1>
-    <p>{{ 'Manage mentorship programs for students' | t }}</p>
-    
+    <div class="header-title-wrap">
+      <span class="header-icon" aria-hidden="true"><mat-icon>school</mat-icon></span>
+      <h1>{{ 'Mentorship Programs' | t }}</h1>
+    </div>
+
     <div class="admin-actions">
       <button mat-raised-button color="primary" (click)="openCreateDialog()">
         <mat-icon>add</mat-icon>{{ 'Create New Program' | t }}</button>
