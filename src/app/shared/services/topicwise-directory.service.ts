@@ -92,7 +92,8 @@ export class TopicwiseDirectoryService {
     fileLink: string, 
     description: string = '', 
     duration: string = '', 
-    thumbnail: string = ''
+    thumbnail: string = '',
+    language: string = 'both'
   ): Observable<any> {
     return this.http.post(`${this.apiVideoUrl}/videos`, {
       category,
@@ -101,7 +102,8 @@ export class TopicwiseDirectoryService {
       fileLink,
       description,
       duration,
-      thumbnail
+      thumbnail,
+      language
     });
   }
 
@@ -112,14 +114,16 @@ export class TopicwiseDirectoryService {
     fileLink: string, 
     description: string = '', 
     duration: string = '', 
-    thumbnail: string = ''
+    thumbnail: string = '',
+    language: string = 'both'
   ): Observable<any> {
     return this.http.put(`${this.apiVideoUrl}/videos/${id}`, {
       name,
       fileLink,
       description,
       duration,
-      thumbnail
+      thumbnail,
+      language
     });
   }
 
