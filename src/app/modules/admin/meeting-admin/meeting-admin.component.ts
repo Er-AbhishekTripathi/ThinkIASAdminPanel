@@ -53,9 +53,11 @@ export class MeetingAdminComponent implements OnInit {
   constructor(private meetingService: MeetingService, private route: ActivatedRoute, private dialog: MatDialog) {}
   
   ngOnInit() {
-    this.audience = this.route.snapshot.data['audience'] === 'mains' ? 'mains' : 'pre';
-    this.newMeeting.audience = this.audience;
-    this.loadMeetings();
+    this.route.data.subscribe((data) => {
+      this.audience = data['audience'] === 'mains' ? 'mains' : 'pre';
+      this.newMeeting.audience = this.audience;
+      this.loadMeetings();
+    });
   }
   
   // Load meetings

@@ -34,6 +34,21 @@
       <span>{{ importFiles.length > 1 ? (language.hindi ? 'समान क्रम के प्रश्न bilingual बनेंगे' : 'Matching question numbers will be merged bilingually') : (language.hindi ? 'अधिकतम दो फ़ाइलें, हर फ़ाइल 5 MB तक' : 'Up to two files, 5 MB each') }}</span>
     </label>
 
+    <div class="sheet-import">
+      <div class="sheet-import-heading">
+        <mat-icon>table_chart</mat-icon>
+        <div>
+          <h3>{{ language.hindi ? 'Google Sheet से आयात' : 'Import from Google Sheet' }}</h3>
+          <p>{{ language.hindi ? 'Sheet लिंक जोड़ें (Anyone with the link can view) और Import data करें। कॉलम CSV टेम्पलेट जैसे होने चाहिए।' : 'Add the sheet link (Anyone with the link can view) and import data. Columns must match the CSV template.' }}</p>
+        </div>
+      </div>
+      <input class="sheet-input" type="url" [(ngModel)]="sheetUrl" [disabled]="importing" placeholder="https://docs.google.com/spreadsheets/d/...">
+      <button mat-stroked-button color="primary" type="button" [disabled]="importing || !sheetUrl.trim()" (click)="previewSheet()">
+        <mat-icon>link</mat-icon>
+        {{ language.hindi ? 'लिंक जोड़ें और प्रीव्यू' : 'Add link and preview' }}
+      </button>
+    </div>
+
     <p role="alert" class="import-message error" *ngIf="importError">{{ importError }}</p>
     <div class="import-message processing" *ngIf="importing"><mat-spinner diameter="20"></mat-spinner><span>{{ language.hindi ? 'फ़ाइल संसाधित हो रही है...' : 'Processing file...' }}</span></div>
 

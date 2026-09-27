@@ -61,6 +61,8 @@ export class QuestionsMasterComponent implements OnInit {
   importTags: string[] = [];
   importError = '';
   importing = false;
+  sheetUrl = '';
+  importSource: 'file' | 'sheet' = 'file';
   getImportFileNames(): string {
     return this.importFiles.map(file => file.name).join(' + ');
   }
@@ -69,7 +71,7 @@ export class QuestionsMasterComponent implements OnInit {
     const input = event.target as HTMLInputElement;
     this.importFiles = Array.from(input.files || []);
     this.importFile = this.importFiles[0] || null;
-    this.importPreview = []; this.importTags = []; this.importError = '';
+    this.importPreview = []; this.importTags = []; this.importError = ''; this.importSource = 'file'; this.sheetUrl = '';
     if (!this.importFile) return;
     if (this.importFiles.length > 2 || this.importFiles.some(file => !/\.(csv|json|docx)$/i.test(file.name) || file.size > 5 * 1024 * 1024)) {
       this.importError = this.language.hindi ? 'अधिकतम दो CSV, JSON या DOCX फ़ाइलें चुनें। हर फ़ाइल 5 MB तक होनी चाहिए।' : 'Select up to two CSV, JSON, or DOCX files. Each file must be up to 5 MB.';
@@ -86,15 +88,53 @@ export class QuestionsMasterComponent implements OnInit {
       error: e => { this.importError = e.error?.message || 'Unable to preview file.'; this.importing = false; }
     });
   }
+  previewSheet() {
+    const url = this.sheetUrl.trim();
+    if (!url || this.importing) return;
+    this.importFiles = [];
+    this.importFile = null;
+    this.importPreview = [];
+    this.importTags = [];
+    this.importError = '';
+    this.importSource = 'sheet';
+    this.importing = true;
+    this.http.post<any>(`${environment.apiUrl}/questions/import-sheet`, { url, preview: true }).subscribe({
+      next: r => { this.importPreview = r.questions || []; this.importing = false; },
+      error: e => { this.importError = e.error?.message || 'Unable to preview Google Sheet.'; this.importing = false; }
+    });
+  }
   confirmImport() {
-    if (!this.importFiles.length || !this.importPreview.length || !this.importTags.length || this.importing) return;
+    if (!this.importPreview.length || !this.importTags.length || this.importing) return;
+    if (this.importSource === 'sheet') {
+      const url = this.sheetUrl.trim();
+      if (!url) return;
+      this.importing = true;
+      this.http.post<any>(`${environment.apiUrl}/questions/import-sheet`, { url, importTags: this.importTags, preview: false }).subscribe({
+        next: r => { this.finishImport(r); },
+        error: e => { this.importError = e.error?.message || 'Import failed.'; this.importing = false; }
+      });
+      return;
+    }
+    if (!this.importFiles.length) return;
     const form = new FormData(); this.importFiles.forEach(file => form.append('file', file));
     form.append('importTags', JSON.stringify(this.importTags));
     this.importing = true;
     this.http.post<any>(`${environment.apiUrl}/questions/import`, form).subscribe({
-      next: r => { this.snackBar.open(this.language.hindi ? r.messageHindi : r.message, this.language.text('Close'), {duration: 5000}); this.importPreview = []; this.importFile = null; this.importFiles = []; this.importTags = []; this.importing = false; this.currentPage.set(0); this.loadQuestions(); },
+      next: r => { this.finishImport(r); },
       error: e => { this.importError = e.error?.message || 'Import failed.'; this.importing = false; }
     });
+  }
+  private finishImport(r: any) {
+    this.snackBar.open(this.language.hindi ? r.messageHindi : r.message, this.language.text('Close'), {duration: 5000});
+    this.importPreview = [];
+    this.importFile = null;
+    this.importFiles = [];
+    this.importTags = [];
+    this.sheetUrl = '';
+    this.importSource = 'file';
+    this.importing = false;
+    this.currentPage.set(0);
+    this.loadQuestions();
   }
   private questionService = inject(QuestionService);
   private tagService = inject(TagService);

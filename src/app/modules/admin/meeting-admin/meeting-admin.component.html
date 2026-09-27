@@ -1,9 +1,9 @@
-<div class="meeting-container">
+<div class="meeting-container" [class.mains-mentorship]="audience === 'mains'">
   <!-- Header -->
   <div class="meeting-header">
     <div class="header-content">
-      <i class="fa fa-calendar-alt header-icon"></i>
-      <h2>Meeting Planner</h2>
+      <i class="fa header-icon" [ngClass]="audience === 'mains' ? 'fa-file-alt' : 'fa-clipboard-list'"></i>
+      <h2>{{ audience === 'mains' ? 'Mains Mentorship Planner' : 'Prelims Mentorship Planner' }}</h2>
     </div>
     <div class="header-actions">
       <button class="btn btn-primary" (click)="openCreateModal()">

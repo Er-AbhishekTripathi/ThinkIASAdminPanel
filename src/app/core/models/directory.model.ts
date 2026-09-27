@@ -18,6 +18,7 @@ export interface DirectoryItem {
 export interface CreateFolderRequest {
   name: string;
   parentId?: string | null;
+  section?: 'pre' | 'mains';
 }
 
 export interface CreateFileRequest {
@@ -25,6 +26,7 @@ export interface CreateFileRequest {
   parentId?: string | null;
   fileLink: string;
   description?: string;
+  section?: 'pre' | 'mains';
 }
 
 export interface UpdateFileRequest {
