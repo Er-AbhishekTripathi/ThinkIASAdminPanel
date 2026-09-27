@@ -10,7 +10,7 @@ import { AdminBatchesComponent } from '../admin-batches/admin-batches.component'
 export interface Program {
   _id?: string;
   programName: string;
-  programNameHindi?: string; descriptionHindi?: string; durationHindi?: string; featuresHindi?: string[];
+  programNameHindi?: string; descriptionHindi?: string; durationHindi?: string; featuresHindi?: string[]; displayImageHindi?: string;
   programCategory: string;
   year: string;
   price: number;
@@ -52,8 +52,9 @@ export class ManageProgramsComponent implements OnInit {
     programCategory: 'Mentorship Course',
     year: '',
     price: 0,
-    displayImage: '',
-    description: '',
+      displayImage: '',
+      displayImageHindi: '',
+      description: '',
     features: [],
     duration: '',
     isActive: true,
@@ -386,6 +387,7 @@ export class ManageProgramsComponent implements OnInit {
       year: '',
       price: 0,
       displayImage: '',
+      displayImageHindi: '',
       description: '',
       features: [],
       startDate: '',
