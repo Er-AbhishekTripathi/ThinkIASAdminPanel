@@ -99,7 +99,13 @@ export const routes: Routes = [
   path: 'directory-master', 
   loadComponent: () => import('./modules/admin/directory-master/directory-master.component').then(m => m.DirectoryMasterComponent),
   canActivate: [authGuard, roleGuard],
-  data: { role: 'admin' }
+  data: { role: 'admin', section: 'pre' }
+  },
+  {
+  path: 'mains-directory-master',
+  loadComponent: () => import('./modules/admin/directory-master/directory-master.component').then(m => m.DirectoryMasterComponent),
+  canActivate: [authGuard, roleGuard],
+  data: { role: 'admin', section: 'mains' }
   },
   {
     path: 'support-tickets',
