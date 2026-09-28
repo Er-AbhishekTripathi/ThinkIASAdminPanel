@@ -31,6 +31,7 @@ import { debounceTime, distinctUntilChanged, Subject, takeUntil } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { LiveTestService } from '../../../shared/services/live-test.service';
 import { ConfirmDialogService } from '../../../shared/services/confirm-dialog.service';
+import { ReopenExamDialogComponent } from '../../tests/reopen-exam-dialog/reopen-exam-dialog.component';
 
 // ============================================
 // INTERFACES
@@ -569,13 +570,19 @@ export class AdminLiveTestComponent implements OnInit, OnDestroy {
   }
 
   reopenTest(test: LiveTest) {
-    const email = prompt('Student email');
-    if (!email) return;
-    const until = prompt('Reopen until (YYYY-MM-DDTHH:MM)', new Date(Date.now() + 2 * 3600000).toISOString().slice(0, 16));
-    if (!until) return;
-    this.liveTestService.reopenLiveTest(test._id, email, until).subscribe({
-      next: (response: any) => this.showSnackBar(response.message || `Exam reopened for ${response.student?.email || email}`),
-      error: (error) => this.snackBar.open(error.error?.message || 'Unable to reopen exam', 'Close', { duration: 4000 })
+    const dialogRef = this.dialog.open(ReopenExamDialogComponent, {
+      width: '480px',
+      maxWidth: 'calc(100vw - 32px)',
+      panelClass: 'reopen-exam-dialog-panel',
+      autoFocus: false,
+      data: { testTitle: test.title }
+    });
+    dialogRef.afterClosed().subscribe(details => {
+      if (!details) return;
+      this.liveTestService.reopenLiveTest(test._id, details.email, details.until).subscribe({
+        next: (response: any) => this.showSnackBar(response.message || `Exam reopened for ${response.student?.email || details.email}`),
+        error: (error) => this.snackBar.open(error.error?.message || 'Unable to reopen exam', 'Close', { duration: 4000 })
+      });
     });
   }
 

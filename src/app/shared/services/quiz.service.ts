@@ -84,6 +84,10 @@ export class QuizService {
     return this.http.get<Submission[]>(`${this.apiUrl}/admin/${id}/submissions`);
   }
 
+  getAllQuizSubmissions(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/admin/submissions`);
+  }
+
   // Public operations
   getActiveQuizzes(): Observable<Quiz[]> {
     return this.http.get<Quiz[]>(`${this.apiUrl}/active`);

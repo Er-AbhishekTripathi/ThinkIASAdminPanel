@@ -174,6 +174,24 @@ export const routes: Routes = [
   canActivate: [authGuard, roleGuard],
   data: { role: 'admin' }
   },
+  {
+    path: 'demo-test-admin/:id/results',
+    loadComponent: () => import('./modules/tests/demo-tests/demo-test-results.component').then(m => m.DemoTestResultsComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { role: 'admin' }
+  },
+  {
+    path: 'demo-test-attempts',
+    loadComponent: () => import('./modules/tests/demo-tests/demo-test-attempts.component').then(m => m.DemoTestAttemptsComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { role: 'admin', attemptType: 'demo' }
+  },
+  {
+    path: 'website-quiz-attempts',
+    loadComponent: () => import('./modules/tests/demo-tests/demo-test-attempts.component').then(m => m.DemoTestAttemptsComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { role: 'admin', attemptType: 'quiz' }
+  },
   { path: 'quizzes', component: QuizzesComponent, canActivate: [authGuard, roleGuard], data: { role: 'admin' } },
   { path: 'quizzes/:id', component: QuizDetailsComponent, canActivate: [authGuard, roleGuard], data: { role: 'admin' } },
   {
