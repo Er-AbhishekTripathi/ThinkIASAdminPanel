@@ -136,16 +136,31 @@ export class AdminLiveTestComponent implements OnInit, OnDestroy {
   readonly language = inject(LanguageService);
   openSubmissionFile(submissionId: string) { this.dialog.open(SubmissionPdfComponent, {data:{submissionId},width:'95vw',maxWidth:'1100px'}); }
   submissions: any[] = [];
+  submissionsPageSize = 5;
+  currentSubmissionsPage = 1;
   submissionsTitle = '';
   submissionsError = '';
   selectedTab = 0;
   submissionsLoading = false;
+  get submissionsTotalPages(): number { return Math.ceil(this.submissions.length / this.submissionsPageSize); }
+  get submissionsPages(): number[] { return Array.from({ length: this.submissionsTotalPages }, (_, index) => index + 1); }
+  get paginatedSubmissions(): any[] {
+    const start = (this.currentSubmissionsPage - 1) * this.submissionsPageSize;
+    return this.submissions.slice(start, start + this.submissionsPageSize);
+  }
+  get submissionsRangeStart(): number { return this.submissions.length ? (this.currentSubmissionsPage - 1) * this.submissionsPageSize + 1 : 0; }
+  get submissionsRangeEnd(): number { return Math.min(this.currentSubmissionsPage * this.submissionsPageSize, this.submissions.length); }
+  changeSubmissionsPage(page: number) {
+    if (page < 1 || page > this.submissionsTotalPages) return;
+    this.currentSubmissionsPage = page;
+  }
   loadAllSubmissions() { this.showSubmissions(); }
   showSubmissions(test?: LiveTest) {
     this.selectedTab = 1; this.submissionsLoading = true;
+    this.currentSubmissionsPage = 1;
     this.submissionsTitle = test ? this.language.content(test.title, test.titleHi) : 'All submissions';
     this.submissions = []; this.submissionsError = '';
-    this.http.get<any>(environment.apiUrl + '/live-tests/' + (test ? test._id + '/submissions' : 'admin/submissions')).subscribe({next: r => {this.submissions = r.data; if(test) test.submissionCount = r.data.length; this.submissionsLoading = false;}, error: e => {this.submissionsError = e.error?.message || 'Unable to load submissions.'; this.submissionsLoading = false;}});
+    this.http.get<any>(environment.apiUrl + '/live-tests/' + (test ? test._id + '/submissions' : 'admin/submissions')).subscribe({next: r => {this.submissions = r.data || []; if(test) test.submissionCount = this.submissions.length; this.submissionsLoading = false;}, error: e => {this.submissionsError = e.error?.message || 'Unable to load submissions.'; this.submissionsLoading = false;}});
   }
   // ============================================
   // VIEW CHILDREN
