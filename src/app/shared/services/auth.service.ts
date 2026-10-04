@@ -139,9 +139,12 @@ export class AuthService {
           if (this.isAnnouncementItem(child.path)) {
             return { ...child, name: 'Announcement Master', path: '/announcement-master' };
           }
-          // if (this.isCareersItem(child.path)) {
-          //   return { ...child, name: 'Careers', path: '/careers' };
-          // }
+          if (this.isCareersItem(child.path)) {
+            return { ...child, name: 'Careers', path: '/careers' };
+          }
+          if (this.isAppSettingsItem(child.path)) {
+            return { ...child, name: 'App Settings', path: '/app-settings', icon: 'phone_android' };
+          }
           return child;
         });
 
@@ -149,9 +152,12 @@ export class AuthService {
         if (!websitePagePaths.some(path => this.isAnnouncementItem(path))) {
           children.push({ name: 'Announcement Master', path: '/announcement-master', icon: 'campaign' });
         }
-        // if (!websitePagePaths.some(path => this.isCareersItem(path))) {
-        //   children.push({ name: 'Careers', path: '/careers', icon: 'work' });
-        // }
+        if (!websitePagePaths.some(path => this.isCareersItem(path))) {
+          children.push({ name: 'Careers', path: '/careers', icon: 'work' });
+        }
+        if (!websitePagePaths.some(path => this.isAppSettingsItem(path))) {
+          children.push({ name: 'App Settings', path: '/app-settings', icon: 'phone_android' });
+        }
 
         return {
           ...item,
@@ -160,7 +166,7 @@ export class AuthService {
       })
     );
 
-    return migratedItems;
+    return migratedItems.filter(item => item.name !== 'Question Management');
   }
 
   private normalizeLegacyQuestionManagementGroup(menuItems: MenuItem[]): MenuItem[] {
@@ -218,6 +224,10 @@ export class AuthService {
 
   private isCareersItem(path: string): boolean {
     return path === '/careers' || path === 'careers' || path === '/career' || path === 'career';
+  }
+
+  private isAppSettingsItem(path: string): boolean {
+    return path === '/app-settings' || path === 'app-settings';
   }
 
   private isWebsitePageItem(path: string): boolean {

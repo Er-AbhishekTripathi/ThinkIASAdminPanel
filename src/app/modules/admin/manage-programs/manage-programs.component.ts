@@ -1,7 +1,8 @@
 import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environment/environment';
 import { AdminBatchesComponent } from '../admin-batches/admin-batches.component';
@@ -9,7 +10,7 @@ import { AdminBatchesComponent } from '../admin-batches/admin-batches.component'
 export interface Program {
   _id?: string;
   programName: string;
-  programNameHindi?: string; descriptionHindi?: string; durationHindi?: string; featuresHindi?: string[];
+  programNameHindi?: string; descriptionHindi?: string; durationHindi?: string; featuresHindi?: string[]; displayImageHindi?: string;
   programCategory: string;
   year: string;
   price: number;
@@ -29,11 +30,14 @@ export interface Program {
 @Component({
   selector: 'app-manage-programs',
   standalone: true,
-  imports: [TranslatePipe, CommonModule, FormsModule, AdminBatchesComponent],
+  imports: [TranslatePipe, CommonModule, FormsModule, MatDialogModule, AdminBatchesComponent],
   templateUrl: './manage-programs.component.html',
   styleUrls: ['./manage-programs.component.css']
 })
 export class ManageProgramsComponent implements OnInit {
+  @ViewChild('programFormDialog') private programFormDialog!: TemplateRef<unknown>;
+  private programDialog?: MatDialogRef<unknown>;
+
   programs: Program[] = [];
   categories: string[] = ['Mentorship Course', 'Optional Mentorship Course', 'Test Series', 'Optional Test Series', 'Essay', 'Prelims Program', 'Mains Program', 'Interview Program'];
 
@@ -48,8 +52,9 @@ export class ManageProgramsComponent implements OnInit {
     programCategory: 'Mentorship Course',
     year: '',
     price: 0,
-    displayImage: '',
-    description: '',
+      displayImage: '',
+      displayImageHindi: '',
+      description: '',
     features: [],
     duration: '',
     isActive: true,
@@ -73,7 +78,7 @@ export class ManageProgramsComponent implements OnInit {
   // Toggle for inactive view
   showInactivePrograms = false;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private dialog: MatDialog) {}
 
   ngOnInit(): void {
     this.fetchPrograms();
@@ -199,6 +204,7 @@ export class ManageProgramsComponent implements OnInit {
     this.featuresHindiInput = '';
     this.errorMessage = '';
     this.successMessage = '';
+    this.openProgramDialog();
   }
 
   // Open form for editing program
@@ -224,6 +230,25 @@ export class ManageProgramsComponent implements OnInit {
     
     this.errorMessage = '';
     this.successMessage = '';
+    this.openProgramDialog();
+  }
+
+  private openProgramDialog(): void {
+    this.programDialog = this.dialog.open(this.programFormDialog, {
+      width: '920px',
+      maxWidth: 'calc(100vw - 32px)',
+      maxHeight: 'calc(100vh - 32px)',
+      panelClass: 'manage-program-dialog-panel',
+      autoFocus: false
+    });
+    this.programDialog.afterClosed().subscribe(() => {
+      this.programDialog = undefined;
+      this.showForm = false;
+      this.resetForm();
+      this.isEditing = false;
+      this.editingId = null;
+      this.errorMessage = '';
+    });
   }
 
   // Save program
@@ -362,6 +387,7 @@ export class ManageProgramsComponent implements OnInit {
       year: '',
       price: 0,
       displayImage: '',
+      displayImageHindi: '',
       description: '',
       features: [],
       startDate: '',
@@ -379,11 +405,7 @@ export class ManageProgramsComponent implements OnInit {
 
   // Close form
   closeForm(): void {
-    this.showForm = false;
-    this.resetForm();
-    this.isEditing = false;
-    this.editingId = null;
-    this.errorMessage = '';
+    this.programDialog?.close();
   }
 
   // Preview image
