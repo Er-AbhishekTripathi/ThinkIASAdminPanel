@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environment/environment';
 import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
+import { LanguageService } from '../../../shared/i18n/language.service';
 // mains-test-series.component.ts
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -74,6 +75,7 @@ export interface MainsTestSeries {
   styleUrl: './mains-test-series.component.css'
 })
 export class MainsTestSeriesComponent implements OnInit {
+  readonly language = inject(LanguageService);
   private http = inject(HttpClient);
   private api = `${environment.apiUrl}/mains-ts`;
   private fb = inject(FormBuilder);

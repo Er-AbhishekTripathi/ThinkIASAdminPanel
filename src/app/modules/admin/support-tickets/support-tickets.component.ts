@@ -1,8 +1,9 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { environment } from '../../../../environment/environment';
 
 @Component({
@@ -43,6 +44,8 @@ import { environment } from '../../../../environment/environment';
           <div class="ticket-info">
             <strong>{{ticket.subject}}</strong>
             <small>{{ticket.createdBy?.fullName || ticket.createdBy?.email}}</small>
+            <small *ngIf="ticket.createdBy?.email">{{ticket.createdBy.email}}</small>
+            <small *ngIf="ticket.createdBy?.phone">Contact No.: {{ticket.createdBy.phone}}</small>
           </div>
           <span class="status-badge" [ngClass]="statusClass(ticket.status)">{{statusLabel(ticket.status)}}</span>
         </li>
@@ -63,6 +66,12 @@ import { environment } from '../../../../environment/environment';
         </div>
       </div>
 
+      <div class="student-contact" *ngIf="selected.createdBy">
+        <div><span>Name</span><strong>{{selected.createdBy.fullName || 'Not provided'}}</strong></div>
+        <div><span>Email</span><strong>{{selected.createdBy.email || 'Not provided'}}</strong></div>
+        <div><span>Contact No.</span><strong>{{selected.createdBy.phone || 'Not provided'}}</strong></div>
+      </div>
+
       <div class="messages">
         <div class="message" *ngFor="let message of selected.messages" [class.admin]="message.role==='admin'">
           <div class="message-avatar">{{initials(message.role)}}</div>
@@ -72,6 +81,7 @@ import { environment } from '../../../../environment/environment';
             <div class="attachments" *ngIf="message.attachments?.length">
               <a *ngFor="let file of message.attachments" [href]="file.url" target="_blank" rel="noopener">📎 {{file.name}}</a>
             </div>
+            <small class="message-time" *ngIf="message.createdAt">{{message.createdAt | date:'dd/MM/yyyy hh:mma'}}</small>
           </div>
         </div>
       </div>
@@ -148,6 +158,10 @@ import { environment } from '../../../../environment/environment';
     .status-row button:hover{background:#dde5ec}
     .status-row button.active{background:#1d5374;color:#fff}
     .status-row button.close-btn.active{background:#be123c}
+    .student-contact{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;background:#f8fafc;border:1px solid #eef2f6;border-radius:10px;padding:12px 14px;margin:0 0 16px}
+    .student-contact div{display:flex;flex-direction:column;gap:4px;min-width:0}
+    .student-contact span{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.05em}
+    .student-contact strong{font-size:13px;color:#102a43;overflow-wrap:anywhere}
     .messages{flex:1;display:flex;flex-direction:column;gap:14px;overflow-y:auto;padding:4px 4px 12px;min-height:200px}
     .message{display:flex;gap:10px;max-width:85%}
     .message.admin{align-self:flex-end;flex-direction:row-reverse}
@@ -157,6 +171,7 @@ import { environment } from '../../../../environment/environment';
     .message.admin .message-bubble{background:#e8f6ee}
     .message-bubble b{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#64748b}
     .message-bubble p{margin:4px 0 0;font-size:14px;color:#1e293b;white-space:pre-wrap}
+    .message-time{display:block;margin-top:8px;text-align:right;font-size:10px;color:#64748b;white-space:nowrap}
     .attachments{display:flex;flex-direction:column;gap:4px;margin-top:8px}
     .attachments a{font-size:12px;color:#1d5374;text-decoration:none}
     .attachments a:hover{text-decoration:underline}
@@ -184,14 +199,23 @@ import { environment } from '../../../../environment/environment';
     .confirm-btn{background:#be123c;color:#fff;border:0;border-radius:8px;padding:10px 18px;cursor:pointer;font-size:14px;font-weight:600}
     .confirm-btn:hover{background:#9f0f32}
     @media (max-width:860px){.layout{grid-template-columns:1fr}.header-stats{width:100%;justify-content:flex-start}}
+    @media (max-width:560px){.student-contact{grid-template-columns:1fr}}
   `]
 })
-export class SupportTicketsComponent implements OnInit {
+export class SupportTicketsComponent implements OnInit, OnDestroy {
   private http = inject(HttpClient);
   private route = inject(ActivatedRoute);
   tickets: any[] = []; selected: any = null; status = ''; error = ''; replyBody = ''; files: File[] = [];
   showCloseConfirm = false;
-  ngOnInit() { this.load(); }
+  private routeSubscription?: Subscription;
+  ngOnInit() {
+    this.load();
+    this.routeSubscription = this.route.queryParamMap.subscribe(params => {
+      const id = params.get('id');
+      if (id) this.open(id);
+    });
+  }
+  ngOnDestroy() { this.routeSubscription?.unsubscribe(); }
   load() {
     const params: any = {}; if (this.status) params.status = this.status;
     this.http.get<any>(`${environment.apiUrl}/support-tickets`, { params }).subscribe({ next: r => this.tickets = r.data || [], error: e => this.error = e.error?.message || 'Unable to load tickets.' });

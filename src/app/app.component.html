@@ -13,6 +13,26 @@
       <span class="spacer"></span>
 
       <div class="toolbar-right"><app-language-toggle></app-language-toggle>
+        <div class="admin-notification-container" #notificationContainer>
+          <button mat-icon-button (click)="toggleNotifications()" aria-label="Notifications">
+            <mat-icon [matBadge]="notificationService.unread()" [matBadgeHidden]="!notificationService.unread()" matBadgeColor="warn">notifications</mat-icon>
+          </button>
+          <div class="admin-notification-dropdown" *ngIf="showNotifications()">
+            <div class="admin-notification-header">
+              <strong>Notifications</strong>
+              <span *ngIf="notificationService.unread()">{{notificationService.unread()}} new</span>
+            </div>
+            <div class="admin-notification-list">
+              <button type="button" *ngFor="let item of notificationService.notifications()"
+                [class.unread-notification]="!item.isRead" (click)="openNotification(item)">
+                <strong>{{item.title}}</strong>
+                <small>{{item.body}}</small>
+                <time>{{item.createdAt | date:'dd/MM/yyyy hh:mma'}}</time>
+              </button>
+              <p *ngIf="!notificationService.notifications().length">No notifications yet.</p>
+            </div>
+          </div>
+        </div>
         <!-- User Profile Badge -->
         
 

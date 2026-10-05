@@ -166,7 +166,19 @@ export class AuthService {
       })
     );
 
-    return migratedItems.filter(item => item.name !== 'Question Management');
+    const adminTools = migratedItems.map(item =>
+      item.path === '/exam-monitoring' || item.path === 'exam-monitoring'
+        ? { ...item, name: 'Exam Monitoring', path: '/exam-monitoring', icon: 'videocam' }
+        : item
+    );
+    if (!adminTools.some(item => this.isCareersItem(item.path)) && !hasWebsitePageManage) {
+      adminTools.push({ name: 'Careers', path: '/careers', icon: 'work' });
+    }
+    if (!adminTools.some(item => item.path === '/exam-monitoring' || item.path === 'exam-monitoring')) {
+      adminTools.push({ name: 'Exam Monitoring', path: '/exam-monitoring', icon: 'videocam' });
+    }
+
+    return adminTools.filter(item => item.name !== 'Question Management');
   }
 
   private normalizeLegacyQuestionManagementGroup(menuItems: MenuItem[]): MenuItem[] {

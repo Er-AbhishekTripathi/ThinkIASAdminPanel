@@ -212,8 +212,7 @@
     <mat-card *ngFor="let series of filteredTestSeries()" class="series-card">
       <mat-card-header>
         <mat-card-title>
-          {{ series.name }}
-          <span class="series-title-hi" *ngIf="series.nameHi">/ {{ series.nameHi }}</span>
+          {{ language.content(series.name, series.nameHi) }}
         </mat-card-title>
         <mat-card-subtitle>
           <div class="status-badge" [class.active]="series.isActive" [class.inactive]="!series.isActive">
@@ -228,8 +227,7 @@
       </mat-card-header>
       
       <mat-card-content>
-        <p class="description">{{ series.description }}</p>
-        <p class="description-hi" *ngIf="series.descriptionHi">{{ series.descriptionHi }}</p>
+        <p class="description">{{ language.content(series.description, series.descriptionHi) }}</p>
         
         <div class="series-details">
           <div class="detail-item">

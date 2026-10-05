@@ -62,6 +62,7 @@ export class QuestionsMasterComponent implements OnInit {
   questionImportTags: string[] = [];
   importError = '';
   importing = false;
+  private readonly maxImportFileSize = 20 * 1024 * 1024;
   getImportFileNames(): string {
     return this.importFiles.map(file => file.name).join(' + ');
   }
@@ -72,8 +73,8 @@ export class QuestionsMasterComponent implements OnInit {
     this.importFile = this.importFiles[0] || null;
     this.importPreview = []; this.duplicateQuestions = []; this.questionImportTags = []; this.importError = '';
     if (!this.importFile) return;
-    if (this.importFiles.length > 2 || this.importFiles.some(file => !/\.(csv|json|docx)$/i.test(file.name) || file.size > 5 * 1024 * 1024)) {
-      this.importError = this.language.hindi ? 'अधिकतम दो CSV, JSON या DOCX फ़ाइलें चुनें। हर फ़ाइल 5 MB तक होनी चाहिए।' : 'Select up to two CSV, JSON, or DOCX files. Each file must be up to 5 MB.';
+    if (this.importFiles.length > 2 || this.importFiles.some(file => !/\.(csv|json|docx)$/i.test(file.name) || file.size > this.maxImportFileSize)) {
+      this.importError = this.language.hindi ? 'अधिकतम दो CSV, JSON या DOCX फ़ाइलें चुनें। हर फ़ाइल 20 MB तक होनी चाहिए।' : 'Select up to two CSV, JSON, or DOCX files. Each file must be up to 20 MB.';
       this.importFile = null; this.importFiles = []; return;
     }
     if (this.importFiles.length === 2 && this.importFiles.some(file => !/\.docx$/i.test(file.name))) {

@@ -9,8 +9,10 @@ import { MatSidenavModule, MatSidenav } from '@angular/material/sidenav';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatBadgeModule } from '@angular/material/badge';
 import { filter, Subscription } from 'rxjs';
 import { AuthService } from './shared/services/auth.service';
+import { NotificationService, AdminNotification } from './shared/services/notification.service';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { MenuItem } from './core/models/user.model';
 
@@ -40,7 +42,8 @@ interface User {
     MatSidenavModule,
     MatListModule,
     MatIconModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatBadgeModule
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
@@ -50,14 +53,17 @@ export class AppComponent implements OnInit, OnDestroy {
   authService = inject(AuthService);
   router = inject(Router);
   breakpointObserver = inject(BreakpointObserver);
+  notificationService = inject(NotificationService);
   
   @ViewChild('sidenav') sidenav!: MatSidenav;
   @ViewChild('profileContainer') profileContainer!: ElementRef;
+  @ViewChild('notificationContainer') notificationContainer!: ElementRef;
   
   currentRoute = signal('');
   isMobile = signal(false);
   sidenavOpen = signal(true);
   showProfileDropdown = signal(false);
+  showNotifications = signal(false);
   private expandedMenus = signal<Set<string>>(new Set(['Website Page Manage']));
   
   private breakpointSubscription!: Subscription;
@@ -68,6 +74,10 @@ export class AppComponent implements OnInit, OnDestroy {
       filter(event => event instanceof NavigationEnd)
     ).subscribe((event: NavigationEnd) => {
       this.currentRoute.set(event.url);
+      if (this.authService.isLoggedIn()) {
+        this.notificationService.startPolling();
+        if (!this.notificationService.notifications().length) this.notificationService.load();
+      }
       // Close sidenav on mobile after navigation
       if (this.isMobile()) {
         this.closeSidenav();
@@ -79,6 +89,8 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     if (this.authService.isLoggedIn()) {
+      this.notificationService.load();
+      this.notificationService.startPolling();
       this.authService.refreshUser().subscribe({ error: error => console.error('Unable to refresh navigation:', error) });
     }
     // Watch for screen size changes
@@ -108,8 +120,25 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.notificationService.stopPolling();
     if (this.breakpointSubscription) {
       this.breakpointSubscription.unsubscribe();
+    }
+  }
+
+  toggleNotifications() { this.showNotifications.update(value => !value); }
+
+  openNotification(item: AdminNotification) {
+    this.notificationService.markRead(item);
+    this.showNotifications.set(false);
+    if (item.link) this.router.navigateByUrl(item.link).catch(error => console.error('Unable to open notification link:', error));
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    if (this.showNotifications() && this.notificationContainer &&
+      !this.notificationContainer.nativeElement.contains(event.target)) {
+      this.showNotifications.set(false);
     }
   }
 
@@ -341,6 +370,8 @@ export class AppComponent implements OnInit, OnDestroy {
 
   logout() {
     // this.closeProfileDropdown();
+    this.notificationService.stopPolling();
+    this.notificationService.clear();
     this.authService.logout();
     // Exit fullscreen if active
     

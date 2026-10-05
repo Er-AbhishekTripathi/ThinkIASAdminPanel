@@ -31,7 +31,7 @@
       <input type="file" accept=".csv,.json,.docx" multiple [disabled]="importing" (change)="previewImport($event)">
       <mat-icon>{{ importFiles.length ? 'task' : 'cloud_upload' }}</mat-icon>
       <strong>{{ importFiles.length ? getImportFileNames() : (language.hindi ? 'English और Hindi DOCX चुनें' : 'Choose English and Hindi DOCX files') }}</strong>
-      <span>{{ importFiles.length > 1 ? (language.hindi ? 'समान क्रम के प्रश्न bilingual बनेंगे' : 'Matching question numbers will be merged bilingually') : (language.hindi ? 'अधिकतम दो फ़ाइलें, हर फ़ाइल 5 MB तक' : 'Up to two files, 5 MB each') }}</span>
+      <span>{{ importFiles.length > 1 ? (language.hindi ? 'समान क्रम के प्रश्न bilingual बनेंगे' : 'Matching question numbers will be merged bilingually') : (language.hindi ? 'अधिकतम दो फ़ाइलें, हर फ़ाइल 20 MB तक' : 'Up to two files, 20 MB each') }}</span>
     </label>
 
     <p role="alert" class="import-message error" *ngIf="importError">{{ importError }}</p>

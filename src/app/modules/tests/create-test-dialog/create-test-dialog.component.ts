@@ -11,6 +11,8 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
 import { TestService } from '../../../shared/services/test.service';
 import { QuestionService } from '../../../shared/services/question.service';
 import { FormsModule } from '@angular/forms';
@@ -61,7 +63,9 @@ interface Tag {
     MatSnackBarModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
-    MatCheckboxModule
+    MatCheckboxModule,
+    MatDatepickerModule,
+    MatNativeDateModule
   ],
   templateUrl: './create-test-dialog.component.html',
   styleUrl: './create-test-dialog.component.css'
@@ -97,6 +101,8 @@ export class CreateTestDialogComponent implements OnInit {
   // Question selection
   selectedQuestions = signal<Question[]>([]);
   temporarilySelectedUids = signal<string[]>([]);
+  readonly hours = Array.from({ length: 24 }, (_, hour) => this.padZero(hour));
+  readonly minutes = Array.from({ length: 60 }, (_, minute) => this.padZero(minute));
 
   constructor() {
     this.isEdit.set(!!this.data?.test);
@@ -108,15 +114,65 @@ export class CreateTestDialogComponent implements OnInit {
   now.setSeconds(0, 0);
   const startTime = now;
   const endTime = new Date(startTime.getTime() + 60 * 60 * 1000); // 1 hour duration
-  
-  const formattedStartDate = this.formatDateTimeForInput(startTime);
-  const formattedEndDate = this.formatDateTimeForInput(endTime);
-  
-  this.testForm.patchValue({ 
-    startTime: formattedStartDate,
-    endTime: formattedEndDate 
-  });
+
+  this.setScheduleValues(startTime, endTime);
 }
+
+  private setScheduleValues(startTime: Date, endTime: Date) {
+    this.testForm.patchValue({
+      startTime: this.formatDateTimeForInput(startTime),
+      startDate: this.dateOnly(startTime),
+      startHour: this.padZero(startTime.getHours()),
+      startMinute: this.padZero(startTime.getMinutes()),
+      endTime: this.formatDateTimeForInput(endTime),
+      endDate: this.dateOnly(endTime),
+      endHour: this.padZero(endTime.getHours()),
+      endMinute: this.padZero(endTime.getMinutes())
+    });
+  }
+
+  private dateOnly(date: Date): Date {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  }
+
+  getToday(): Date {
+    return this.dateOnly(new Date());
+  }
+
+  getMinStartDate(): Date | null {
+    return this.isEdit() || this.data?.startTime ? null : this.getToday();
+  }
+
+  getMinEndDate(): Date | null {
+    const startDate = this.testForm?.get('startDate')?.value;
+    return startDate instanceof Date ? this.dateOnly(startDate) : null;
+  }
+
+  private updateCombinedDateTime(kind: 'start' | 'end') {
+    const prefix = kind === 'start' ? 'start' : 'end';
+    const date = this.testForm.get(`${prefix}Date`)?.value;
+    const hour = this.testForm.get(`${prefix}Hour`)?.value;
+    const minute = this.testForm.get(`${prefix}Minute`)?.value;
+
+    if (!(date instanceof Date) || hour === null || minute === null || hour === '' || minute === '') {
+      this.testForm.get(`${prefix}Time`)?.setValue('', { emitEvent: false });
+      return;
+    }
+
+    const selectedDateTime = new Date(date);
+    selectedDateTime.setHours(Number(hour), Number(minute), 0, 0);
+    this.testForm.get(`${prefix}Time`)?.setValue(this.formatDateTimeForInput(selectedDateTime), { emitEvent: false });
+  }
+
+  onStartScheduleChange() {
+    this.updateCombinedDateTime('start');
+    this.onDateTimeChange();
+  }
+
+  onEndScheduleChange() {
+    this.updateCombinedDateTime('end');
+    this.testForm.get('endTime')?.updateValueAndValidity();
+  }
 
   private formatDateTimeForInput(date: Date): string {
     const year = date.getFullYear();
@@ -125,13 +181,6 @@ export class CreateTestDialogComponent implements OnInit {
     const hours = this.padZero(date.getHours());
     const minutes = this.padZero(date.getMinutes());
     return `${year}-${month}-${day}T${hours}:${minutes}`;
-  }
-
-  getMinDateTime(): string {
-    if (this.isEdit() || this.data?.startTime) {
-      return '';
-    }
-    return this.formatDateTimeForInput(new Date());
   }
 
   private padZero(num: number): string {
@@ -157,10 +206,7 @@ export class CreateTestDialogComponent implements OnInit {
     this.snackBar.open('Start time cannot be in the past', 'Close', { duration: 3000 });
     const minTime = new Date();
     minTime.setSeconds(0, 0);
-    this.testForm.patchValue({ 
-      startTime: this.formatDateTimeForInput(minTime),
-      endTime: this.formatDateTimeForInput(new Date(minTime.getTime() + 60 * 60 * 1000)) // Set default end time
-    });
+    this.setScheduleValues(minTime, new Date(minTime.getTime() + 60 * 60 * 1000));
   }
   
   // Trigger endTime validation when startTime changes
@@ -175,6 +221,12 @@ export class CreateTestDialogComponent implements OnInit {
     description: [''],
     startTime: ['', [Validators.required, this.futureDateValidator.bind(this)]],
     endTime: ['', [Validators.required, this.endTimeValidator.bind(this)]], // Add this
+    startDate: [null, Validators.required],
+    startHour: ['', Validators.required],
+    startMinute: ['', Validators.required],
+    endDate: [null, Validators.required],
+    endHour: ['', Validators.required],
+    endMinute: ['', Validators.required],
     duration: ['', [Validators.required, Validators.min(1)]],
     marksPerQuestion: [1, [Validators.required, Validators.min(1)]],
     negativeMarks: [0, [Validators.min(0)]]
@@ -204,7 +256,8 @@ endTimeValidator(control: FormControl): { [key: string]: any } | null {
         if (this.data.startTime) {
           const start = new Date(this.data.startTime);
           const end = new Date(this.data.endTime || start.getTime() + (this.data.duration || 60) * 60000);
-          this.testForm.patchValue({ startTime: this.formatDateTimeForInput(start), endTime: this.formatDateTimeForInput(end), duration: this.data.duration || 60, title: this.data.title || '' });
+          this.setScheduleValues(start, end);
+          this.testForm.patchValue({ duration: this.data.duration || 60, title: this.data.title || '' });
         } else {
           this.setDefaultDateTime();
         }
@@ -251,17 +304,14 @@ endTimeValidator(control: FormControl): { [key: string]: any } | null {
   }
 
   populateForm(test: any) {
-  const startTime = new Date(test.startTime);
-  const endTime = new Date(test.endTime);
-  const formattedStartDate = this.formatDateTimeForInput(startTime);
-  const formattedEndDate = this.formatDateTimeForInput(endTime);
+    const startTime = new Date(test.startTime);
+    const endTime = new Date(test.endTime);
+    this.setScheduleValues(startTime, endTime);
 
-  this.testForm.patchValue({
-    title: test.title,
-    description: test.description,
-    startTime: formattedStartDate,
-    endTime: formattedEndDate, // Add this
-    duration: test.duration,
+    this.testForm.patchValue({
+      title: test.title,
+      description: test.description,
+      duration: test.duration,
     marksPerQuestion: test.marksPerQuestion || 1,
     negativeMarks: test.negativeMarks || 0
   });
@@ -619,13 +669,4 @@ isQuestionSelected(uid: string): boolean {
          this.selectedQuestions().some(q => q.uid === uid);
 }
 
-getMinEndTime(): string {
-  const startTimeValue = this.testForm.get('startTime')?.value;
-  if (startTimeValue) {
-    const startTime = new Date(startTimeValue);
-    const minEndTime = new Date(startTime.getTime() + 5 * 60 * 1000); // At least 5 minutes after start
-    return this.formatDateTimeForInput(minEndTime);
-  }
-  return this.getMinDateTime();
-}
 }

@@ -27,34 +27,91 @@
             <mat-icon matSuffix>description</mat-icon>
           </mat-form-field>
 
-          <div class="row">
-            <mat-form-field appearance="outline" class="half-width">
-              <mat-label>Start Time</mat-label>
-              <input matInput type="datetime-local" formControlName="startTime" [min]="getMinDateTime()"
-                (change)="onDateTimeChange()" required>
-              <mat-icon matSuffix>schedule</mat-icon>
-              <mat-hint>Can start immediately or be scheduled for later</mat-hint>
-              <mat-error *ngIf="testForm.get('startTime')?.hasError('pastDate')">
+          <div class="schedule-grid">
+            <section class="schedule-card start-card">
+              <div class="schedule-card-heading">
+                <span class="schedule-icon"><mat-icon>play_arrow</mat-icon></span>
+                <div>
+                  <h4>Start Time</h4>
+                  <p>Choose when the exam opens</p>
+                </div>
+              </div>
+              <div class="schedule-fields">
+                <mat-form-field appearance="outline" class="schedule-date">
+                  <mat-label>Start date</mat-label>
+                  <input matInput [matDatepicker]="startDatePicker" formControlName="startDate" readonly
+                    [min]="getMinStartDate()" (dateChange)="onStartScheduleChange()">
+                  <mat-datepicker-toggle matIconSuffix [for]="startDatePicker"></mat-datepicker-toggle>
+                  <mat-datepicker #startDatePicker></mat-datepicker>
+                </mat-form-field>
+                <div class="schedule-time">
+                  <mat-form-field appearance="outline">
+                    <mat-label>Hour</mat-label>
+                    <mat-select formControlName="startHour" (selectionChange)="onStartScheduleChange()">
+                      <mat-option *ngFor="let hour of hours" [value]="hour">{{ hour }}</mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                  <span class="time-separator">:</span>
+                  <mat-form-field appearance="outline">
+                    <mat-label>Minute</mat-label>
+                    <mat-select formControlName="startMinute" (selectionChange)="onStartScheduleChange()">
+                      <mat-option *ngFor="let minute of minutes" [value]="minute">{{ minute }}</mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+              </div>
+              <p class="schedule-hint">Date and time are selected from the pickers</p>
+              <mat-error class="schedule-error" *ngIf="testForm.get('startTime')?.hasError('pastDate')">
                 Start time cannot be in the past
               </mat-error>
-              <mat-error *ngIf="testForm.get('startTime')?.hasError('required')">
-                Start time is required
+              <mat-error class="schedule-error" *ngIf="testForm.get('startTime')?.hasError('required')">
+                Select a start date and time
               </mat-error>
-            </mat-form-field>
+            </section>
 
-            <mat-form-field appearance="outline" class="half-width">
-              <mat-label>End Time</mat-label>
-              <input matInput type="datetime-local" formControlName="endTime" [min]="getMinDateTime()" required>
-              <mat-icon matSuffix>schedule</mat-icon>
-              <mat-hint>Must be after start time</mat-hint>
-              <mat-error *ngIf="testForm.get('endTime')?.hasError('invalidEndTime')">
+            <section class="schedule-card end-card">
+              <div class="schedule-card-heading">
+                <span class="schedule-icon"><mat-icon>stop</mat-icon></span>
+                <div>
+                  <h4>End Time</h4>
+                  <p>Choose when the exam closes</p>
+                </div>
+              </div>
+              <div class="schedule-fields">
+                <mat-form-field appearance="outline" class="schedule-date">
+                  <mat-label>End date</mat-label>
+                  <input matInput [matDatepicker]="endDatePicker" formControlName="endDate" readonly
+                    [min]="getMinEndDate()" (dateChange)="onEndScheduleChange()">
+                  <mat-datepicker-toggle matIconSuffix [for]="endDatePicker"></mat-datepicker-toggle>
+                  <mat-datepicker #endDatePicker></mat-datepicker>
+                </mat-form-field>
+                <div class="schedule-time">
+                  <mat-form-field appearance="outline">
+                    <mat-label>Hour</mat-label>
+                    <mat-select formControlName="endHour" (selectionChange)="onEndScheduleChange()">
+                      <mat-option *ngFor="let hour of hours" [value]="hour">{{ hour }}</mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                  <span class="time-separator">:</span>
+                  <mat-form-field appearance="outline">
+                    <mat-label>Minute</mat-label>
+                    <mat-select formControlName="endMinute" (selectionChange)="onEndScheduleChange()">
+                      <mat-option *ngFor="let minute of minutes" [value]="minute">{{ minute }}</mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+              </div>
+              <p class="schedule-hint">Must be after the start time</p>
+              <mat-error class="schedule-error" *ngIf="testForm.get('endTime')?.hasError('invalidEndTime')">
                 End time must be after start time
               </mat-error>
-              <mat-error *ngIf="testForm.get('endTime')?.hasError('required')">
-                End time is required
+              <mat-error class="schedule-error" *ngIf="testForm.get('endTime')?.hasError('required')">
+                Select an end date and time
               </mat-error>
-            </mat-form-field>
+            </section>
+          </div>
 
+          <div class="row duration-row">
             <mat-form-field appearance="outline" class="half-width">
               <mat-label>Duration (minutes)</mat-label>
               <input matInput type="number" formControlName="duration" min="1">

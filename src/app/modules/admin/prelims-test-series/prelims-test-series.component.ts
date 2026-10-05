@@ -1,4 +1,5 @@
 import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
+import { LanguageService } from '../../../shared/i18n/language.service';
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
@@ -47,6 +48,7 @@ import { ReopenExamDialogComponent } from '../../tests/reopen-exam-dialog/reopen
   styleUrls: ['./prelims-test-series.component.css']
 })
 export class PrelimsTestSeriesComponent implements OnInit {
+  readonly language = inject(LanguageService);
   private fb = inject(FormBuilder);
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
