@@ -9,6 +9,8 @@ export interface ModelAnswerData {
   answerHindi: string;
   modelAnswerPDF: string;
   modelAnswerPDFHi: string;
+  releaseStartAt: string;
+  releaseEndAt: string;
   isActive: boolean;
 }
 

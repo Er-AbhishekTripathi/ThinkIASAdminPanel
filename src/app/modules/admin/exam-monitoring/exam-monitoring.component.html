@@ -21,13 +21,21 @@
       <h2>{{ (item.student?.fullName||'Student') | t }}</h2>
       <p>{{item.student?.email}}</p>
       <strong>{{item.test?.title||'Exam'}}</strong>
+      <div class="exam-time" *ngIf="item.test?.startTime || item.test?.startDateTime">
+        <span><b>Exam:</b> {{(item.test?.startTime || item.test?.startDateTime) | date:'medium'}}</span>
+        <span *ngIf="item.test?.endTime || item.test?.endDateTime"><b>Ends:</b> {{(item.test?.endTime || item.test?.endDateTime) | date:'shortTime'}}</span>
+      </div>
+      <div class="exam-time">
+        <span *ngIf="item.consentedAt || item.createdAt"><b>Session started:</b> {{(item.consentedAt || item.createdAt) | date:'medium'}}</span>
+        <span *ngIf="item.completedAt"><b>Completed:</b> {{item.completedAt | date:'medium'}}</span>
+      </div>
       <div class="meta">
         <span>{{item.snapshotCount||0}} snapshots</span>
         <span>{{item.violations.length||0}} flags</span>
       </div>
       <div class="card-actions">
         <button class="watch" type="button" *ngIf="item.online" (click)="watch(item)">{{ '▶ Watch Live' | t }}</button>
-        <button type="button" *ngIf="item.recordingUrl" (click)="viewRecording(item)">{{ 'View recording' | t }}</button>
+        <button type="button" class="recording" *ngIf="item.recordingUrl" (click)="viewRecording(item)">{{ '▶ Watch recording' | t }}</button>
         <button class="delete" type="button" (click)="deleteSession(item,$event)">Delete</button>
       </div>
       <p *ngIf="item.status === 'completed' && !item.recordingUrl">{{ 'Recording upload pending' | t }}</p>
@@ -39,6 +47,16 @@
       <header>
         <div>
           <h2>{{item.student?.fullName}} — {{item.test?.title}}</h2>
+          <small class="viewer-time" *ngIf="item.test?.startTime || item.test?.startDateTime">
+            Exam: {{(item.test?.startTime || item.test?.startDateTime) | date:'medium'}}
+            <span *ngIf="item.test?.endTime || item.test?.endDateTime"> – {{(item.test?.endTime || item.test?.endDateTime) | date:'shortTime'}}</span>
+          </small>
+          <small class="viewer-time" *ngIf="item.consentedAt || item.createdAt">
+            Session started: {{(item.consentedAt || item.createdAt) | date:'medium'}}
+          </small>
+          <small class="viewer-time" *ngIf="item.completedAt">
+            Completed: {{item.completedAt | date:'medium'}}
+          </small>
           <span [class.connected]="liveStatus()==='LIVE'">{{liveStatus()}}</span>
         </div>
         <div class="viewer-actions">

@@ -16,6 +16,11 @@ interface BreadcrumbItem {
   item?: Module;
 }
 
+export function findOwningModule(currentItem: Module | null, navigationHistory: Module[]): Module | null {
+  if (currentItem?.type === 'module') return currentItem;
+  return [...navigationHistory].reverse().find(item => item.type === 'module') || null;
+}
+
 @Component({
   selector: 'app-study-module',
   standalone: true,
@@ -143,7 +148,7 @@ export class StudyModuleComponent implements OnInit {
 
   // Load test count for a single module
   loadModuleTestCount(moduleId: string) {
-    this.moduleTestService.getModuleTestsByModule(moduleId).subscribe({
+    this.moduleTestService.getAdminModuleTestsByModule(moduleId).subscribe({
       next: (tests) => {
         this.moduleTestCounts[moduleId] = tests.length;
         // If this is the current module's tests, update moduleTests
@@ -194,14 +199,21 @@ export class StudyModuleComponent implements OnInit {
 
   // ============ Test Management Functions ============
   openTestManagement(module: Module) {
-    this.currentModuleForTests = module;
-    this.loadModuleTests(module._id);
+    const owningModule = module.type === 'module'
+      ? module
+      : findOwningModule(this.currentItem, this.navigationHistory);
+    if (!owningModule) {
+      this.snackBar.open('Open a study module before managing its tests', 'Close', { duration: 3000 });
+      return;
+    }
+    this.currentModuleForTests = owningModule;
+    this.loadModuleTests(owningModule._id);
     this.showTestManagementModal = true;
   }
 
   loadModuleTests(moduleId: string) {
     this.loading = true;
-    this.moduleTestService.getModuleTestsByModule(moduleId).subscribe({
+    this.moduleTestService.getAdminModuleTestsByModule(moduleId).subscribe({
       next: (tests) => {
         this.moduleTests = tests;
         // Update the count in the map
@@ -216,6 +228,14 @@ export class StudyModuleComponent implements OnInit {
   }
 
   openCreateTestModalForModule() {
+    const module = findOwningModule(this.currentItem, this.navigationHistory)
+      || (this.showTestManagementModal ? this.currentModuleForTests : null);
+    if (!module) {
+      this.snackBar.open('Open a study module before creating a test', 'Close', { duration: 3000 });
+      return;
+    }
+    this.currentModuleForTests = module;
+
     const dialogRef = this.dialog.open(ModuleTestDialogComponent, {
       width: '90vw',
       maxWidth: '1200px',
@@ -224,17 +244,17 @@ export class StudyModuleComponent implements OnInit {
       panelClass: 'module-test-dialog-panel',
       autoFocus: false,
       data: {
-        moduleId: this.currentModuleForTests?._id,
+        moduleId: module._id,
         test: null
       }
     });
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        if (this.currentModuleForTests) {
-          this.loadModuleTests(this.currentModuleForTests._id);
+        if (module) {
+          this.loadModuleTests(module._id);
           // Also update the count
-          this.loadModuleTestCount(this.currentModuleForTests._id);
+          this.loadModuleTestCount(module._id);
         }
         this.snackBar.open('Test created successfully', 'Close', { duration: 3000 });
       }

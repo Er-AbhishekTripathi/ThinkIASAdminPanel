@@ -478,6 +478,11 @@ export class ModuleTestDialogComponent implements OnInit {
   }
 
 onSubmit() {
+  if (!this.data.moduleId) {
+    this.snackBar.open('Select a study module before creating a test', 'Close', { duration: 3000 });
+    return;
+  }
+
   if (this.testForm.valid && this.selectedQuestions().length > 0) {
     this.loading.set(true);
     

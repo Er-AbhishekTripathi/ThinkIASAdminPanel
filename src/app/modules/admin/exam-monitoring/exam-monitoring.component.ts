@@ -5,7 +5,21 @@ import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../../environment/environment';
 
-interface Session { _id:string; status:string; online:boolean; lastHeartbeatAt:string; latestSnapshotUrl?:string; recordingUrl?:string; snapshotCount:number; violations:any[]; student?:{fullName:string;email:string}; test?:{title:string}; }
+interface Session {
+  _id: string;
+  status: string;
+  online: boolean;
+  lastHeartbeatAt: string;
+  consentedAt?: string;
+  completedAt?: string;
+  createdAt?: string;
+  latestSnapshotUrl?: string;
+  recordingUrl?: string;
+  snapshotCount: number;
+  violations: any[];
+  student?: { fullName: string; email: string };
+  test?: { title: string; startTime?: string; endTime?: string; startDateTime?: string; endDateTime?: string };
+}
 @Component({
   selector:'app-exam-monitoring',
   standalone:true,
@@ -38,13 +52,21 @@ interface Session { _id:string; status:string; online:boolean; lastHeartbeatAt:s
       <h2>{{ (item.student?.fullName||'Student') | t }}</h2>
       <p>{{item.student?.email}}</p>
       <strong>{{item.test?.title||'Exam'}}</strong>
+      <div class="exam-time" *ngIf="item.test?.startTime || item.test?.startDateTime">
+        <span><b>Exam:</b> {{(item.test?.startTime || item.test?.startDateTime) | date:'medium'}}</span>
+        <span *ngIf="item.test?.endTime || item.test?.endDateTime"><b>Ends:</b> {{(item.test?.endTime || item.test?.endDateTime) | date:'shortTime'}}</span>
+      </div>
+      <div class="exam-time">
+        <span *ngIf="item.consentedAt || item.createdAt"><b>Session started:</b> {{(item.consentedAt || item.createdAt) | date:'medium'}}</span>
+        <span *ngIf="item.completedAt"><b>Completed:</b> {{item.completedAt | date:'medium'}}</span>
+      </div>
       <div class="meta">
         <span>{{item.snapshotCount||0}} snapshots</span>
         <span>{{item.violations.length||0}} flags</span>
       </div>
       <div class="card-actions">
         <button class="watch" type="button" *ngIf="item.online" (click)="watch(item)">{{ '▶ Watch Live' | t }}</button>
-        <button type="button" *ngIf="item.recordingUrl" (click)="viewRecording(item)">{{ 'View recording' | t }}</button>
+        <button type="button" class="recording" *ngIf="item.recordingUrl" (click)="viewRecording(item)">{{ '▶ Watch recording' | t }}</button>
         <button class="delete" type="button" (click)="deleteSession(item,$event)">Delete</button>
       </div>
       <p *ngIf="item.status === 'completed' && !item.recordingUrl">{{ 'Recording upload pending' | t }}</p>
@@ -56,6 +78,16 @@ interface Session { _id:string; status:string; online:boolean; lastHeartbeatAt:s
       <header>
         <div>
           <h2>{{item.student?.fullName}} — {{item.test?.title}}</h2>
+          <small class="viewer-time" *ngIf="item.test?.startTime || item.test?.startDateTime">
+            Exam: {{(item.test?.startTime || item.test?.startDateTime) | date:'medium'}}
+            <span *ngIf="item.test?.endTime || item.test?.endDateTime"> – {{(item.test?.endTime || item.test?.endDateTime) | date:'shortTime'}}</span>
+          </small>
+          <small class="viewer-time" *ngIf="item.consentedAt || item.createdAt">
+            Session started: {{(item.consentedAt || item.createdAt) | date:'medium'}}
+          </small>
+          <small class="viewer-time" *ngIf="item.completedAt">
+            Completed: {{item.completedAt | date:'medium'}}
+          </small>
           <span [class.connected]="liveStatus()==='LIVE'">{{liveStatus()}}</span>
         </div>
         <div class="viewer-actions">
@@ -84,12 +116,15 @@ button,a{background:#3f51b5;color:#fff;border:0;border-radius:7px;padding:10px 1
 .grid h2{margin:12px 0 2px}
 .grid p{margin:0 0 10px;color:#667}
 .meta{display:flex;justify-content:space-between;margin:14px 0}
+.exam-time{display:grid;gap:4px;margin-top:8px;color:#475569;font-size:12px}
+.exam-time b{color:#1e293b}
 .tabs{display:flex;gap:8px;margin:22px 0}
 .tabs button{background:#e8edf5;color:#334155}
 .tabs button.active{background:#3f51b5;color:#fff}
 .card-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
 .card-actions button{flex:1;min-width:120px}
 .watch{background:#c62828}
+.recording{background:#087f5b}
 .delete{background:#e53935!important;color:#fff!important;font-weight:800}
 .overlay-delete{position:absolute;left:8px;bottom:8px;z-index:3;padding:8px 14px}
 .viewer-actions{display:flex;gap:8px;flex-wrap:wrap}
@@ -97,6 +132,7 @@ button,a{background:#3f51b5;color:#fff;border:0;border-radius:7px;padding:10px 1
 .viewer{width:min(1000px,96vw);background:#101317;color:#fff;border-radius:14px;padding:18px;box-shadow:0 20px 80px #000}
 .viewer header{gap:20px}
 .viewer h2{margin:0 0 5px}
+.viewer-time{display:block;margin-top:5px;color:#cbd5e1}
 .viewer header span{color:#ffca28}
 .viewer header span.connected{color:#5cff79}
 .viewer video{display:block;width:100%;max-height:72vh;margin-top:16px;background:#000;border-radius:9px}

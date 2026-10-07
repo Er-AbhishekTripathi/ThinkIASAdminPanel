@@ -78,6 +78,10 @@ createModuleTest(data: any): Observable<any> {
     return this.http.get<ModuleTest[]>(`${this.apiUrl}/module/${moduleId}/tests`);
   }
 
+  getAdminModuleTestsByModule(moduleId: string): Observable<ModuleTest[]> {
+    return this.http.get<ModuleTest[]>(`${this.apiUrl}/admin/module/${moduleId}/tests`);
+  }
+
   // ============ Public Operations ============
   getActiveModuleTests(): Observable<ModuleTest[]> {
     return this.http.get<ModuleTest[]>(`${this.apiUrl}/active`);

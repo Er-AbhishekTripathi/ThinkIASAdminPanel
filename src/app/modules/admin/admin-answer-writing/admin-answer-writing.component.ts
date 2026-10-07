@@ -57,6 +57,8 @@ interface ModelAnswerData {
   answerHindi: string;
   modelAnswerPDF: string;
   modelAnswerPDFHi: string;
+  releaseStartAt: string;
+  releaseEndAt: string;
   isActive: boolean;
 }
 
@@ -144,6 +146,8 @@ export class AdminAnswerWritingComponent implements OnInit, OnDestroy {
     answerHindi: '',
     modelAnswerPDF: '',
     modelAnswerPDFHi: '',
+    releaseStartAt: '',
+    releaseEndAt: '',
     isActive: true
   };
 
@@ -706,6 +710,8 @@ export class AdminAnswerWritingComponent implements OnInit, OnDestroy {
             answerHindi: response.data.answerHindi || '',
             modelAnswerPDF: response.data.modelAnswerPDF || '',
             modelAnswerPDFHi: response.data.modelAnswerPDFHi || '',
+            releaseStartAt: this.toDateTimeLocal(response.data.releaseStartAt),
+            releaseEndAt: this.toDateTimeLocal(response.data.releaseEndAt),
             isActive: response.data.isActive !== undefined ? response.data.isActive : true
           };
         }
@@ -718,10 +724,42 @@ export class AdminAnswerWritingComponent implements OnInit, OnDestroy {
           answerHindi: '',
           modelAnswerPDF: '',
           modelAnswerPDFHi: '',
+          releaseStartAt: '',
+          releaseEndAt: '',
           isActive: true
         };
       }
     });
+  }
+
+  saveModelAnswerWindow(): void {
+    if (!this.selectedExercise || !this.modelAnswerData.releaseStartAt || !this.modelAnswerData.releaseEndAt) {
+      this.showSnackBar('Select both model answer release dates.');
+      return;
+    }
+
+    const startAt = new Date(this.modelAnswerData.releaseStartAt);
+    const endAt = new Date(this.modelAnswerData.releaseEndAt);
+    if (Number.isNaN(startAt.getTime()) || Number.isNaN(endAt.getTime()) || startAt >= endAt) {
+      this.showSnackBar('The end date and time must be after the start date and time.');
+      return;
+    }
+
+    this.answerWritingService.updateModelAnswer(this.selectedExercise._id, {
+      releaseStartAt: startAt.toISOString(),
+      releaseEndAt: endAt.toISOString()
+    }).subscribe({
+      next: () => this.showSnackBar('Model answer availability dates saved successfully.'),
+      error: error => this.showSnackBar(error.error?.message || 'Failed to save model answer availability dates.')
+    });
+  }
+
+  private toDateTimeLocal(value: string | Date | null | undefined): string {
+    if (!value) return '';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+    return localDate.toISOString().slice(0, 16);
   }
 
   submitRemark() {

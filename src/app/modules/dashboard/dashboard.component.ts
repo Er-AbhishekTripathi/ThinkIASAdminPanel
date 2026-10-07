@@ -152,23 +152,26 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewChecked {
     
     this.testService.getPlatformStatistics().subscribe({
       next: (stats) => {
-        if (![stats?.totalStudents, stats?.totalResults, stats?.totalTests, stats?.prelimsTests, stats?.mainsTests, stats?.totalQuestions, stats?.newSupportRequests, stats?.openSupportRequests, stats?.quizAttempts, stats?.recentQuizAttempts, stats?.demoAttempts, stats?.recentDemoAttempts].every(value => Number.isInteger(value) && value >= 0)) {
+        if (![stats?.totalStudents, stats?.totalResults, stats?.totalTests].every(value => Number.isInteger(value) && value >= 0)) {
           this.statisticsError.set('Dashboard counts could not be loaded. Please retry.');
           this.loading.set(false);
           return;
         }
+        const optionalCount = (value: unknown): number =>
+          typeof value === 'number' && Number.isInteger(value) && value >= 0 ? value : 0;
+
         this.totalStudentsCount.set(stats.totalStudents);
         this.totalResultsCount.set(stats.totalResults);
         this.totalTestsCount.set(stats.totalTests);
-        this.prelimsTestsCount.set(stats.prelimsTests);
-        this.mainsTestsCount.set(stats.mainsTests);
-        this.questionBankCount.set(stats.totalQuestions);
-        this.newSupportRequestsCount.set(stats.newSupportRequests);
-        this.openSupportRequestsCount.set(stats.openSupportRequests);
-        this.quizAttemptsCount.set(stats.quizAttempts);
-        this.recentQuizAttemptsCount.set(stats.recentQuizAttempts);
-        this.demoAttemptsCount.set(stats.demoAttempts);
-        this.recentDemoAttemptsCount.set(stats.recentDemoAttempts);
+        this.prelimsTestsCount.set(optionalCount(stats.prelimsTests));
+        this.mainsTestsCount.set(optionalCount(stats.mainsTests));
+        this.questionBankCount.set(optionalCount(stats.totalQuestions));
+        this.newSupportRequestsCount.set(optionalCount(stats.newSupportRequests));
+        this.openSupportRequestsCount.set(optionalCount(stats.openSupportRequests));
+        this.quizAttemptsCount.set(optionalCount(stats.quizAttempts));
+        this.recentQuizAttemptsCount.set(optionalCount(stats.recentQuizAttempts));
+        this.demoAttemptsCount.set(optionalCount(stats.demoAttempts));
+        this.recentDemoAttemptsCount.set(optionalCount(stats.recentDemoAttempts));
         this.loading.set(false);
         this.loadAdminChartData();
       },
