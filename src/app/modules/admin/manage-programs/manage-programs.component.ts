@@ -4,8 +4,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { HttpClient } from '@angular/common/http';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { environment } from '../../../../environment/environment';
 import { AdminBatchesComponent } from '../admin-batches/admin-batches.component';
+import { AdminExam, ExamAdminService } from '../../../shared/services/exam-admin.service';
+import { AdminProgramStage, ProgramStageAdminService } from '../../../shared/services/program-stage-admin.service';
+import { ConfirmDialogService } from '../../../shared/services/confirm-dialog.service';
 
 export interface Program {
   _id?: string;
@@ -13,6 +17,7 @@ export interface Program {
   programNameHindi?: string; descriptionHindi?: string; durationHindi?: string; featuresHindi?: string[]; displayImageHindi?: string;
   programCategory: string;
   examination?: string;
+  examId?: string | AdminExam | null;
   programStage?: string;
   paperVariant?: string;
   year: string;
@@ -33,7 +38,7 @@ export interface Program {
 @Component({
   selector: 'app-manage-programs',
   standalone: true,
-  imports: [TranslatePipe, CommonModule, FormsModule, MatDialogModule, AdminBatchesComponent],
+  imports: [TranslatePipe, CommonModule, FormsModule, MatDialogModule, AdminBatchesComponent, RouterLink],
   templateUrl: './manage-programs.component.html',
   styleUrls: ['./manage-programs.component.css']
 })
@@ -43,8 +48,13 @@ export class ManageProgramsComponent implements OnInit {
 
   programs: Program[] = [];
   categories: string[] = ['Mentorship Course', 'Optional Mentorship Course', 'Test Series', 'Optional Test Series', 'Essay', 'Qualifying Paper', 'Prelims Program', 'Mains Program', 'Interview Program'];
-  examinations: string[] = ['UPSC', 'UPPSC', 'APSC', 'EPFO'];
-  stages: string[] = ['Prelims', 'Mains', 'Interview', 'Combo I', 'Combo II'];
+  exams: AdminExam[] = [];
+  stages: AdminProgramStage[] = [];
+  stageEditing = false;
+  stageCreating = false;
+  stageForm: AdminProgramStage = { name: '', nameHindi: '', displayOrder: 0, isActive: true };
+  viewing = false;
+  selectedExamId = '';
 
   startDateInput: string = '';
   endDateInput: string = '';
@@ -55,7 +65,8 @@ export class ManageProgramsComponent implements OnInit {
   currentProgram: Program = {
     programName: '',
     programCategory: 'Mentorship Course',
-    examination: 'UPSC',
+    examination: '',
+    examId: '',
     programStage: 'Prelims',
     paperVariant: '',
     year: '',
@@ -86,10 +97,132 @@ export class ManageProgramsComponent implements OnInit {
   // Toggle for inactive view
   showInactivePrograms = false;
 
-  constructor(private http: HttpClient, private dialog: MatDialog) {}
+  constructor(
+    private http: HttpClient,
+    private dialog: MatDialog,
+    private examService: ExamAdminService,
+    private stageService: ProgramStageAdminService,
+    private confirmDialog: ConfirmDialogService,
+    private route: ActivatedRoute,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
+    this.fetchExams();
+    this.fetchStages();
     this.fetchPrograms();
+    this.route.queryParamMap.subscribe((params) => {
+      this.selectedExamId = params.get('examId') || '';
+    });
+  }
+
+  fetchExams(): void {
+    this.examService.getAll().subscribe({
+      next: (response) => { this.exams = response.data || []; },
+      error: () => { this.exams = []; }
+    });
+  }
+
+  fetchStages(): void {
+    this.stageService.getAll().subscribe({
+      next: (response) => {
+        this.stages = response.data || [];
+        if (!this.currentProgram.programStage && this.stages[0]?.name) {
+          this.currentProgram.programStage = this.stages[0].name;
+        }
+      },
+      error: () => { this.stages = []; }
+    });
+  }
+
+  selectedStage(): AdminProgramStage | undefined {
+    return this.stages.find((stage) => stage.name === this.currentProgram.programStage);
+  }
+
+  startAddStage(): void {
+    this.stageCreating = true;
+    this.stageEditing = true;
+    this.stageForm = { name: '', nameHindi: '', displayOrder: this.stages.length + 1, isActive: true };
+  }
+
+  startEditStage(): void {
+    const stage = this.selectedStage();
+    if (!stage) return;
+    this.stageCreating = false;
+    this.stageEditing = true;
+    this.stageForm = { ...stage };
+  }
+
+  cancelStage(): void {
+    this.stageEditing = false;
+    this.stageCreating = false;
+  }
+
+  saveStage(): void {
+    if (!this.stageForm.name?.trim()) {
+      this.errorMessage = 'Program type name is required.';
+      return;
+    }
+    const request = this.stageCreating
+      ? this.stageService.create(this.stageForm)
+      : this.stageService.update(this.stageForm);
+    request.subscribe({
+      next: (response) => {
+        const saved = response.data;
+        this.cancelStage();
+        this.fetchStages();
+        if (saved?.name) this.currentProgram.programStage = saved.name;
+      },
+      error: (error) => {
+        this.errorMessage = error?.error?.message || 'Program type could not be saved.';
+      }
+    });
+  }
+
+  deleteStage(): void {
+    const stage = this.selectedStage();
+    if (!stage?._id) return;
+    this.confirmDialog.ask({
+      title: 'Delete this program type?',
+      message: `Delete "${stage.name}"? Programs already using it must be changed first.`,
+      confirmText: 'Delete',
+      icon: 'delete_outline'
+    }).subscribe(() => {
+      this.stageService.delete(stage._id!).subscribe({
+        next: () => {
+          this.cancelStage();
+          this.currentProgram.programStage = '';
+          this.fetchStages();
+        },
+        error: (error) => {
+          this.errorMessage = error?.error?.message || 'Program type could not be deleted.';
+        }
+      });
+    });
+  }
+
+  examIdValue(value: string | AdminExam | null | undefined): string {
+    if (!value) return '';
+    return typeof value === 'string' ? value : (value._id || '');
+  }
+
+  onExamFilter(): void {
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { examId: this.selectedExamId || null },
+      queryParamsHandling: 'merge'
+    });
+  }
+
+  matchesExam(program: Program): boolean {
+    if (!this.selectedExamId) return true;
+    return this.examIdValue(program.examId) === this.selectedExamId;
+  }
+
+  examName(program: Program): string {
+    const mapped = program.examId;
+    if (mapped && typeof mapped === 'object' && mapped.name) return mapped.name;
+    return program.examination || '—';
   }
 
   // Fetch all programs
@@ -204,7 +337,13 @@ export class ManageProgramsComponent implements OnInit {
 
   // Open form for adding new program
   openAddForm(): void {
+    if (!this.selectedExamId && !this.exams.length) {
+      this.errorMessage = 'Create an exam first, then map programs to it.';
+      return;
+    }
     this.resetForm();
+    if (this.selectedExamId) this.currentProgram.examId = this.selectedExamId;
+    this.viewing = false;
     this.showForm = true;
     this.isEditing = false;
     this.editingId = null;
@@ -216,10 +355,17 @@ export class ManageProgramsComponent implements OnInit {
   }
 
   // Open form for editing program
+  viewProgram(program: Program): void {
+    this.editProgram(program);
+    this.viewing = true;
+  }
+
   editProgram(program: Program): void {
+    this.viewing = false;
     this.currentProgram = {
       ...program,
-      examination: program.examination || 'UPSC',
+      examId: this.examIdValue(program.examId),
+      examination: program.examination || '',
       programStage: program.programStage || 'Prelims',
       paperVariant: program.paperVariant || ''
     };
@@ -259,6 +405,7 @@ export class ManageProgramsComponent implements OnInit {
       this.showForm = false;
       this.resetForm();
       this.isEditing = false;
+      this.viewing = false;
       this.editingId = null;
       this.errorMessage = '';
     });
@@ -266,6 +413,15 @@ export class ManageProgramsComponent implements OnInit {
 
   // Save program
   saveProgram(): void {
+    if (this.viewing) return;
+    if (!this.examIdValue(this.currentProgram.examId)) {
+      this.errorMessage = 'Map this program to an exam.';
+      return;
+    }
+    if (!this.currentProgram.programStage?.trim()) {
+      this.errorMessage = 'Select a program type.';
+      return;
+    }
     if (!this.currentProgram.programName.trim()) {
       this.errorMessage = 'Program name is required';
       return;
@@ -297,6 +453,9 @@ export class ManageProgramsComponent implements OnInit {
     
     this.currentProgram.startDate = this.startDateInput;
     this.currentProgram.endDate = this.endDateInput;
+    this.currentProgram.examId = this.examIdValue(this.currentProgram.examId);
+    const mappedExam = this.exams.find((exam) => exam._id === this.currentProgram.examId);
+    if (mappedExam) this.currentProgram.examination = mappedExam.name;
     if (!this.isTestSeries(this.currentProgram.programCategory)) {
       this.currentProgram.paperVariant = '';
     } else if (!this.currentProgram.paperVariant) {
@@ -406,7 +565,8 @@ export class ManageProgramsComponent implements OnInit {
     this.currentProgram = {
       programName: '',
       programCategory: 'Mentorship Course',
-      examination: 'UPSC',
+      examination: '',
+      examId: '',
       programStage: 'Prelims',
       paperVariant: '',
       year: '',
@@ -475,43 +635,40 @@ export class ManageProgramsComponent implements OnInit {
   }
 
   getProgramsByCategoryForTab(category: string): Program[] {
+    const rows = this.programs.filter((program) => this.matchesExam(program) && program.programCategory === category);
     switch (this.activeTab) {
       case 'active':
-        return this.programs.filter(program => 
-          program.programCategory === category && program.isActive === true
-        );
+        return rows.filter(program => program.isActive === true);
       case 'inactive':
-        return this.programs.filter(program => 
-          program.programCategory === category && program.isActive === false
-        );
+        return rows.filter(program => program.isActive === false);
       default:
-        return this.programs.filter(program => 
-          program.programCategory === category
-        );
+        return rows;
     }
   }
 
   // Get count for tab and category
   getCountForTab(category: string, tab: string): number {
+    const rows = this.programs.filter((p) => this.matchesExam(p) && p.programCategory === category);
     switch (tab) {
       case 'active':
-        return this.programs.filter(p => p.programCategory === category && p.isActive === true).length;
+        return rows.filter(p => p.isActive === true).length;
       case 'inactive':
-        return this.programs.filter(p => p.programCategory === category && p.isActive === false).length;
+        return rows.filter(p => p.isActive === false).length;
       default:
-        return this.programs.filter(p => p.programCategory === category).length;
+        return rows.length;
     }
   }
 
   // Get total counts for tabs
   getTotalCountForTab(tab: string): number {
+    const rows = this.programs.filter((p) => this.matchesExam(p));
     switch (tab) {
       case 'active':
-        return this.programs.filter(p => p.isActive === true).length;
+        return rows.filter(p => p.isActive === true).length;
       case 'inactive':
-        return this.programs.filter(p => p.isActive === false).length;
+        return rows.filter(p => p.isActive === false).length;
       default:
-        return this.programs.length;
+        return rows.length;
     }
   }
 

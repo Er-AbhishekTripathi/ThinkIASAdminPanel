@@ -1,4 +1,13 @@
 <div class="manage-programs-container">
+  <nav class="catalog-chain">
+    <a routerLink="/manage-exams">Exams</a>
+    <span>→</span>
+    <strong>Programs</strong>
+    <span>→</span>
+    <a routerLink="/manage-plans" [queryParams]="selectedExamId ? { examId: selectedExamId } : {}">Plans</a>
+    <span>→</span>
+    <a routerLink="/manage-batches" [queryParams]="selectedExamId ? { examId: selectedExamId } : {}">Batches</a>
+  </nav>
   <!-- Header -->
   <div class="header">
     <h1>
@@ -6,6 +15,10 @@
       Program Management System
     </h1>
     <div class="header-actions">
+      <select class="exam-filter" [(ngModel)]="selectedExamId" (ngModelChange)="onExamFilter()">
+        <option value="">All exams</option>
+        <option *ngFor="let exam of exams" [value]="exam._id">{{ exam.name }}</option>
+      </select>
       <button class="btn btn-primary" (click)="openAddForm()">
         <i class="fas fa-plus"></i> Add New Program
       </button>
@@ -58,12 +71,13 @@
   <ng-template #programFormDialog>
     <div class="modal-content" *ngIf="showForm">
       <div class="modal-header">
-        <h2>{{ isEditing ? 'Edit Program' : 'Add New Program' }}</h2>
+        <h2>{{ viewing ? 'View Program' : (isEditing ? 'Edit Program' : 'Add New Program') }}</h2>
         <button class="close-btn" (click)="closeForm()">&times;</button>
       </div>
       
       <form (ngSubmit)="saveProgram()">
         <div *ngIf="errorMessage" class="form-alert form-alert-error" role="alert"><i class="fas fa-circle-exclamation"></i><span>{{ errorMessage | t }}</span></div>
+        <fieldset [disabled]="viewing" class="program-lock">
         <section class="language-section english-section">
           <div class="language-section-header"><span class="language-badge">EN</span><div><h3>English Details</h3><p>Enter the primary program information.</p></div></div>
         <div class="form-group">
@@ -79,16 +93,29 @@
 
         <div class="form-row">
           <div class="form-group">
-            <label><i class="fas fa-university"></i> Examination *</label>
-            <select [(ngModel)]="currentProgram.examination" name="examination">
-              <option *ngFor="let exam of examinations" [value]="exam">{{ exam }}</option>
+            <label><i class="fas fa-university"></i> Map exam *</label>
+            <select [(ngModel)]="currentProgram.examId" name="examId" [disabled]="viewing" required>
+              <option value="">Select exam</option>
+              <option *ngFor="let exam of exams" [value]="exam._id">{{ exam.name }}</option>
             </select>
           </div>
           <div class="form-group">
             <label><i class="fas fa-route"></i> Program *</label>
-            <select [(ngModel)]="currentProgram.programStage" name="programStage">
-              <option *ngFor="let stage of stages" [value]="stage">{{ stage }}</option>
-            </select>
+            <div class="catalog-select-row">
+              <select [(ngModel)]="currentProgram.programStage" name="programStage" required>
+                <option value="">Select program type</option>
+                <option *ngFor="let stage of stages" [value]="stage.name">{{ stage.name }}</option>
+              </select>
+              <button type="button" class="catalog-mini" *ngIf="!viewing" (click)="startAddStage()">Add</button>
+              <button type="button" class="catalog-mini" *ngIf="!viewing" (click)="startEditStage()" [disabled]="!selectedStage()">Edit</button>
+              <button type="button" class="catalog-mini catalog-mini-danger" *ngIf="!viewing" (click)="deleteStage()" [disabled]="!selectedStage()">Delete</button>
+            </div>
+            <div class="stage-editor" *ngIf="stageEditing && !viewing">
+              <input name="stageName" [(ngModel)]="stageForm.name" placeholder="Program type name">
+              <input name="stageNameHindi" [(ngModel)]="stageForm.nameHindi" placeholder="Hindi name">
+              <button type="button" class="catalog-mini" (click)="saveStage()">Save</button>
+              <button type="button" class="catalog-mini catalog-mini-muted" (click)="cancelStage()">Cancel</button>
+            </div>
           </div>
         </div>
 
@@ -249,9 +276,10 @@
           </div>
         </div>
 
+        </fieldset>
         <div class="form-actions">
-          <button type="button" class="btn btn-secondary" (click)="closeForm()">{{ 'Cancel' | t }}</button>
-          <button type="submit" class="btn btn-primary" [disabled]="isLoading">
+          <button type="button" class="btn btn-secondary" (click)="closeForm()">{{ viewing ? 'Close' : ('Cancel' | t) }}</button>
+          <button type="submit" class="btn btn-primary" *ngIf="!viewing" [disabled]="isLoading">
             <i class="fas" [class.fa-save]="!isEditing" [class.fa-edit]="isEditing"></i>
             {{ isEditing ? 'Update Program' : 'Create Program' }}
           </button>
@@ -302,7 +330,7 @@
           <div class="card-body">
             <h3>{{ program.programName }}</h3>
             <div class="program-meta">
-              <span class="year-badge" *ngIf="program.examination">{{ program.examination }}</span>
+              <span class="year-badge">{{ examName(program) }}</span>
               <span class="year-badge" *ngIf="program.programStage">{{ program.programStage }}</span>
               <span class="year-badge" *ngIf="program.paperVariant">{{ program.paperVariant }}</span>
               <span class="year-badge">
@@ -333,6 +361,12 @@
             </div>
           </div>
           <div class="card-actions">
+            <a class="btn-icon btn-edit" [routerLink]="['/manage-batches']" [queryParams]="{ examId: examIdValue(program.examId), programId: program._id }">
+              Batches
+            </a>
+            <button class="btn-icon btn-edit" (click)="viewProgram(program)" title="View Program">
+              <i class="fas fa-eye"></i> View
+            </button>
             <button class="btn-icon btn-edit" (click)="editProgram(program)" title="Edit Program">
               <i class="fas fa-edit"></i> {{ 'Edit' | t }}
             </button>

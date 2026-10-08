@@ -1,3 +1,8 @@
+.catalog-chain { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:16px; font-size:13px; font-weight:700; }
+.catalog-chain a { color:#1c365e; text-decoration:none; }
+.catalog-chain strong { color:#17683f; }
+.exam-filter { padding:10px 12px; border:1px solid #d5dee8; border-radius:8px; }
+.plan-lock { border:0; padding:0; margin:0; min-inline-size:0; }
 .manage-plans-refinement {}
 .plan .delete-plan-button{margin-top:10px;background:#c62828;color:#fff;box-shadow:0 5px 12px rgba(198,40,40,.16)}.plan .delete-plan-button:hover:not(:disabled){background:#a91f1f}.plan .delete-plan-button:disabled{opacity:.6;cursor:wait}
 :host { display:block; background:#f4f7fb; color:#172b4d; }

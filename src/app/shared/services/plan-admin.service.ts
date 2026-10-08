@@ -17,6 +17,8 @@ export interface AdminPlan {
   nameHindi?: string; subtitleHindi?: string; badgeHindi?: string; durationHindi?: string; featuresHindi?: string[];
   displayOrder: number;
   isActive: boolean;
+  examIds?: any[];
+  programIds?: any[];
 }
 
 @Injectable({ providedIn: 'root' })
