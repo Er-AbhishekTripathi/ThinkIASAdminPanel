@@ -120,6 +120,9 @@ import { BatchService, Batch, CreateBatchDto, UpdateBatchDto } from '../../../sh
                   </span>
                 </td>
                 <td class="actions-cell">
+                  <button mat-icon-button (click)="openViewDialog(batch)" matTooltip="View batch">
+                    <i class="fas fa-eye"></i>
+                  </button>
                   <button mat-icon-button color="primary" (click)="openEditDialog(batch)" matTooltip="Edit batch">
                     <i class="fas fa-edit"></i>
                   </button>
@@ -141,10 +144,11 @@ import { BatchService, Batch, CreateBatchDto, UpdateBatchDto } from '../../../sh
 
     <!-- Create/Edit Dialog -->
     <ng-template #batchDialog>
-      <h2 mat-dialog-title>{{ editingBatch ? 'Edit' : 'Create' }} Batch</h2>
+      <h2 mat-dialog-title>{{ viewingBatch ? 'View' : (editingBatch ? 'Edit' : 'Create') }} Batch</h2>
 
       <form [formGroup]="batchForm" (ngSubmit)="onSubmit()">
         <mat-dialog-content class="dialog-content">
+          <fieldset [disabled]="viewingBatch" class="plan-lock">
           <div class="form-grid">
             <section class="language-section english-section">
               <div class="language-section-header"><span class="language-badge">EN</span><h3>English Details</h3></div>
@@ -209,11 +213,12 @@ import { BatchService, Batch, CreateBatchDto, UpdateBatchDto } from '../../../sh
               Active Batch
             </mat-checkbox>
           </div>
+          </fieldset>
         </mat-dialog-content>
 
         <mat-dialog-actions align="end">
-          <button mat-button type="button" (click)="closeDialog()">{{ 'Cancel' | t }}</button>
-          <button mat-raised-button color="primary" type="submit" [disabled]="!batchForm.valid || submitting()">
+          <button mat-button type="button" (click)="closeDialog()">{{ viewingBatch ? 'Close' : ('Cancel' | t) }}</button>
+          <button mat-raised-button color="primary" type="submit" *ngIf="!viewingBatch" [disabled]="!batchForm.valid || submitting()">
             {{ submitting() ? 'Saving...' : (editingBatch ? 'Update' : 'Create') }}
           </button>
         </mat-dialog-actions>
@@ -238,6 +243,7 @@ export class AdminBatchesComponent implements OnInit {
   
   selectedStatus = '';
   editingBatch: Batch | null = null;
+  viewingBatch = false;
   dialogRef!: MatDialogRef<any>;
 
   batchForm: FormGroup;
@@ -278,6 +284,8 @@ export class AdminBatchesComponent implements OnInit {
 
   openCreateDialog() {
     this.editingBatch = null;
+    this.viewingBatch = false;
+    this.batchForm.enable();
     this.batchForm.reset({
       batchName: '',
       batchNameHindi: '',
@@ -296,8 +304,16 @@ export class AdminBatchesComponent implements OnInit {
     });
   }
 
+  openViewDialog(batch: Batch) {
+    this.openEditDialog(batch);
+    this.viewingBatch = true;
+    this.batchForm.disable();
+  }
+
   openEditDialog(batch: Batch) {
     this.editingBatch = batch;
+    this.viewingBatch = false;
+    this.batchForm.enable();
     this.batchForm.patchValue({
       batchName: batch.batchName, batchNameHindi: batch.batchNameHindi, durationHindi: batch.durationHindi,
       startDate: new Date(batch.startDate),
@@ -321,7 +337,7 @@ export class AdminBatchesComponent implements OnInit {
   }
 
   onSubmit() {
-    if (this.batchForm.invalid) return;
+    if (this.viewingBatch || this.batchForm.invalid) return;
 
     this.submitting.set(true);
     

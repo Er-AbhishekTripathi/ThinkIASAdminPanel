@@ -1,0 +1,69 @@
+<div class="page">
+  <nav class="catalog-chain">
+    <strong>Exams</strong>
+    <span>→</span>
+    <a routerLink="/manage-program">Programs</a>
+    <span>→</span>
+    <a routerLink="/manage-plans">Plans</a>
+    <span>→</span>
+    <a routerLink="/manage-batches">Batches</a>
+  </nav>
+  <div class="page-header">
+    <div class="catalog-label">
+      <span class="catalog-dot"></span>
+      Examination catalogue
+      <span class="catalog-note">{{ exams.length }} exams</span>
+    </div>
+    <button class="add-plan-button" type="button" (click)="add()"><span>+</span> Add Exam</button>
+  </div>
+  <p class="error" *ngIf="error">{{ error }}</p>
+  <div class="state" *ngIf="loading">Loading exams...</div>
+  <div class="grid" *ngIf="!loading">
+    <article class="plan" *ngFor="let exam of exams">
+      <div class="plan-topline">
+        <span class="plan-kind">{{ exam.code }}</span>
+        <span class="status" [class.off]="!exam.isActive">{{ exam.isActive ? 'Active' : 'Hidden' }}</span>
+      </div>
+      <h3>{{ exam.name }}</h3>
+      <p class="plan-subtitle">{{ exam.nameHindi || '—' }}</p>
+      <p class="duration" *ngIf="exam.description">{{ exam.description }}</p>
+      <p class="duration">{{ exam.programsCount || 0 }} programs · {{ exam.plansCount || 0 }} plans · {{ exam.batchesCount || 0 }} batches</p>
+      <div class="card-actions">
+        <a class="edit-plan-button" [routerLink]="['/manage-program']" [queryParams]="{ examId: exam._id }">Programs</a>
+        <a class="edit-plan-button" [routerLink]="['/manage-plans']" [queryParams]="{ examId: exam._id }">Plans</a>
+        <a class="edit-plan-button" [routerLink]="['/manage-batches']" [queryParams]="{ examId: exam._id }">Batches</a>
+        <button type="button" class="edit-plan-button" (click)="view(exam)">View</button>
+        <button type="button" class="edit-plan-button" (click)="edit(exam)">Edit</button>
+        <button type="button" class="delete-plan-button" (click)="deleteExam(exam)" [disabled]="deletingId === exam._id">
+          {{ deletingId === exam._id ? 'Deleting...' : 'Delete' }}
+        </button>
+      </div>
+    </article>
+  </div>
+
+  <ng-template #editorTemplate>
+    <form class="editor" *ngIf="editing as exam" #examForm="ngForm" (ngSubmit)="!viewing && examForm.valid && save()">
+      <div class="editor-title">
+        <h3>{{ viewing ? 'View exam' : (creating ? 'Add exam' : 'Edit exam') }}</h3>
+        <button type="button" (click)="cancel()">×</button>
+      </div>
+      <p class="error" *ngIf="error">{{ error }}</p>
+      <div class="bilingual-fields">
+        <div class="bilingual-row">
+          <label>Name<input name="name" [(ngModel)]="exam.name" required [disabled]="viewing"></label>
+          <label>Name (Hindi)<input name="nameHindi" [(ngModel)]="exam.nameHindi" [disabled]="viewing"></label>
+        </div>
+        <label>Code<input name="code" [(ngModel)]="exam.code" [disabled]="viewing || !creating" placeholder="auto from name if blank"></label>
+        <label>Description<textarea name="description" rows="3" [(ngModel)]="exam.description" [disabled]="viewing"></textarea></label>
+      </div>
+      <div class="row">
+        <label>Display order<input name="displayOrder" type="number" min="0" [(ngModel)]="exam.displayOrder" [disabled]="viewing"></label>
+        <label class="check"><input name="active" type="checkbox" [(ngModel)]="exam.isActive" [disabled]="viewing"> Active</label>
+      </div>
+      <div class="actions">
+        <button type="button" class="secondary" (click)="cancel()">{{ viewing ? 'Close' : 'Cancel' }}</button>
+        <button type="submit" *ngIf="!viewing" [disabled]="saving || examForm.invalid">{{ saving ? 'Saving...' : 'Save exam' }}</button>
+      </div>
+    </form>
+  </ng-template>
+</div>

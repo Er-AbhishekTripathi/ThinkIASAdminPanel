@@ -54,6 +54,13 @@ export class BatchService {
     return this.http.get(url);
   }
 
+  getCatalogBatches(filters: { examId?: string; programId?: string; planId?: string; status?: string } = {}): Observable<any> {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => { if (value) params.set(key, value); });
+    const query = params.toString();
+    return this.http.get(`${this.apiUrl}/batches/admin${query ? '?' + query : ''}`);
+  }
+
   createBatch(programId: string, data: CreateBatchDto): Observable<any> {
     return this.http.post(`${this.apiUrl}/programs/${programId}/batches`, data);
   }

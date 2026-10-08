@@ -1,5 +1,16 @@
 /* manage-programs.component.css */
 
+.catalog-chain { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:16px; font-size:13px; font-weight:700; }
+.catalog-chain a { color:#1c365e; text-decoration:none; }
+.catalog-chain strong { color:#17683f; }
+.exam-filter { padding:10px 12px; border:1px solid #d5dee8; border-radius:8px; margin-right:8px; min-width:180px; }
+.program-lock {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-inline-size: 0;
+}
+
 .manage-programs-container {
   max-width: 1400px;
   margin: 0 auto;
@@ -303,6 +314,39 @@ form {
   resize: vertical;
   font-family: inherit;
 }
+
+.catalog-select-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: stretch;
+}
+.catalog-select-row select {
+  flex: 1 1 160px;
+  min-width: 0;
+}
+.catalog-mini {
+  border: 0;
+  border-radius: 8px;
+  padding: 0 12px;
+  background: #4f46e5;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+.catalog-mini:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+.catalog-mini-danger { background: #c62828; }
+.catalog-mini-muted { background: #64748b; }
+.stage-editor {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+.stage-editor input { flex: 1 1 140px; }
 
 .form-row {
   display: grid;

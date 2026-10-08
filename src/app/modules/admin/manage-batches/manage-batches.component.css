@@ -1,0 +1,30 @@
+:host { display:block; background:#f4f7fb; color:#172b4d; }
+.page { max-width:1200px; margin:auto; padding:6px 4px 50px; }
+.catalog-chain { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:16px; font-size:13px; font-weight:700; }
+.catalog-chain a { color:#1c365e; text-decoration:none; }
+.catalog-chain strong { color:#17683f; }
+.page-header { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:16px; padding:13px 16px; border:1px solid #e2e9f1; border-radius:12px; background:#fff; }
+.catalog-label { display:flex; align-items:center; gap:8px; color:#1c365e; font-size:13px; font-weight:800; text-transform:uppercase; }
+.catalog-dot { width:8px; height:8px; border-radius:50%; background:#e8793d; }
+.catalog-note { color:#8391a1; font-size:11px; text-transform:none; }
+.filters { display:flex; flex-wrap:wrap; gap:16px; margin-bottom:18px; }
+.filters label { display:flex; flex-direction:column; gap:6px; font-weight:700; font-size:12px; }
+.filters select { min-width:220px; padding:10px; border:1px solid #d5dee8; border-radius:8px; }
+.add-plan-button, .edit-plan-button, .delete-plan-button, .actions button { border:0; border-radius:8px; padding:10px 14px; cursor:pointer; color:#fff; background:#1c365e; }
+.delete-plan-button { background:#c62828; }
+.secondary { background:#64748b !important; }
+.grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:18px; }
+.plan { display:flex; flex-direction:column; padding:22px; border:1px solid #e2e9f1; border-top:4px solid #5f86a8; border-radius:16px; background:#fff; }
+.plan-topline { display:flex; justify-content:space-between; }
+.plan-kind { font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:#6b7a90; }
+.status { padding:5px 10px; border-radius:20px; background:#eef8f3; color:#37755f; font-size:12px; }
+.status.off { background:#fff5ed; color:#a06b48; }
+.card-actions { display:flex; gap:8px; margin-top:auto; padding-top:16px; }
+.editor { background:#fff; padding:22px; border-radius:14px; }
+.editor-title, .row, .actions { display:flex; gap:16px; justify-content:space-between; }
+.editor label { display:flex; flex-direction:column; gap:6px; margin:12px 0; flex:1; font-weight:600; }
+.editor input { padding:10px; border:1px solid #ccd5e0; border-radius:7px; }
+.plan-lock { border:0; margin:0; padding:0; min-inline-size:0; }
+.check { flex-direction:row !important; align-items:center; }
+.error { color:#b91c1c; }
+.hint { color:#64748b; }

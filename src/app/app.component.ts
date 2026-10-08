@@ -291,8 +291,10 @@ export class AppComponent implements OnInit, OnDestroy {
       'meeting-admin': 'Prelims Mentorship',
       'mains-meeting-admin': 'Mains Mentorship',
       'admin-mentorship': 'Mentorship Programs',
+      'manage-exams': 'Manage Exams',
       'manage-plans': 'Manage Plans',
       'manage-program': 'Manage Programs',
+      'manage-batches': 'Manage Batches',
       'manage-coupon': 'Coupon Management',
       'manage-tests': 'Test Management',
       'prelims-tests': 'Prelims Tests',
@@ -319,7 +321,9 @@ export class AppComponent implements OnInit, OnDestroy {
       'students-list': 'Search, review, and manage your student community.',
       'program-faqs': 'Keep program questions and answers accurate and useful.',
       'announcement-master': 'Publish important updates across the student experience.',
-      'manage-plans': 'Configure plans, pricing, and access for your programs.'
+      'manage-exams': 'Create examinations. Programs, plans and batches depend on these.',
+      'manage-plans': 'Map plans to exams and their programs.',
+      'manage-batches': 'Create batches under an exam and program.',
     };
     const route = this.currentRoute().split('?')[0].split('/')[1] || 'dashboard';
     return subtitles[route] || 'Manage your ThinkCivil IAS platform from one workspace.';
@@ -346,8 +350,10 @@ export class AppComponent implements OnInit, OnDestroy {
       [['exam monitoring', 'monitoring'], 'monitor_heart'],
       [['meeting'], 'event'],
       [['mentorship'], 'diversity_3'],
+      [['exam'], 'school'],
       [['plan'], 'payments'],
       [['coupon'], 'local_offer'],
+      [['batch'], 'layers'],
       [['program'], 'school'],
       [['answer writing'], 'edit_note'],
       [['test series'], 'fact_check'],

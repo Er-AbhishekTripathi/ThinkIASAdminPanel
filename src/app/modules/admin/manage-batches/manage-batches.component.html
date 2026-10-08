@@ -1,0 +1,88 @@
+<div class="page">
+  <nav class="catalog-chain">
+    <a routerLink="/manage-exams">Exams</a>
+    <span>→</span>
+    <a routerLink="/manage-program" [queryParams]="selectedExamId ? { examId: selectedExamId } : {}">Programs</a>
+    <span>→</span>
+    <a routerLink="/manage-plans" [queryParams]="selectedExamId ? { examId: selectedExamId } : {}">Plans</a>
+    <span>→</span>
+    <strong>Batches</strong>
+  </nav>
+
+  <div class="page-header">
+    <div class="catalog-label">
+      <span class="catalog-dot"></span>
+      Batches depend on exam → program
+      <span class="catalog-note">{{ batches.length }} batches</span>
+    </div>
+    <button class="add-plan-button" type="button" (click)="add()">+ Add Batch</button>
+  </div>
+
+  <div class="filters">
+    <label>Exam
+      <select [(ngModel)]="selectedExamId" (ngModelChange)="onExamChange()">
+        <option value="">Select exam</option>
+        <option *ngFor="let exam of exams" [value]="exam._id">{{ exam.name }}</option>
+      </select>
+    </label>
+    <label>Program
+      <select [(ngModel)]="selectedProgramId" (ngModelChange)="onProgramChange()" [disabled]="!selectedExamId">
+        <option value="">All programs in this exam</option>
+        <option *ngFor="let program of examPrograms()" [value]="program._id">{{ program.programName }}</option>
+      </select>
+    </label>
+    <label>Plan
+      <select [(ngModel)]="selectedPlanId" (ngModelChange)="onPlanChange()" [disabled]="!selectedExamId">
+        <option value="">All plans</option>
+        <option *ngFor="let plan of examPlans()" [value]="plan.id">{{ plan.name }}</option>
+      </select>
+    </label>
+  </div>
+
+  <p class="error" *ngIf="error">{{ error }}</p>
+  <p class="hint" *ngIf="!selectedExamId">Select an exam to load dependent programs, plans and batches.</p>
+  <div class="state" *ngIf="loading">Loading batches...</div>
+
+  <div class="grid" *ngIf="!loading && selectedExamId">
+    <article class="plan" *ngFor="let batch of batches">
+      <div class="plan-topline">
+        <span class="plan-kind">{{ programName(batch) }}</span>
+        <span class="status" [class.off]="!batch.isActive">{{ batch.isActive ? 'Active' : 'Hidden' }}</span>
+      </div>
+      <h3>{{ batch.batchName }}</h3>
+      <p class="plan-subtitle">{{ batch.startDate | date }} — {{ batch.endDate | date }}</p>
+      <p class="duration" *ngIf="batch.duration">{{ batch.duration }}</p>
+      <div class="card-actions">
+        <button type="button" class="edit-plan-button" (click)="view(batch)">View</button>
+        <button type="button" class="edit-plan-button" (click)="edit(batch)">Edit</button>
+        <button type="button" class="delete-plan-button" (click)="deleteBatch(batch)">Delete</button>
+      </div>
+    </article>
+  </div>
+
+  <ng-template #editorTemplate>
+    <form class="editor" *ngIf="editing as batch" (ngSubmit)="!viewing && save()">
+      <div class="editor-title">
+        <h3>{{ viewing ? 'View batch' : (creating ? 'Add batch' : 'Edit batch') }}</h3>
+        <button type="button" (click)="cancel()">×</button>
+      </div>
+      <p class="error" *ngIf="error">{{ error }}</p>
+      <fieldset [disabled]="viewing" class="plan-lock">
+        <label>Batch name<input name="batchName" [(ngModel)]="batch.batchName" required></label>
+        <label>Batch name (Hindi)<input name="batchNameHindi" [(ngModel)]="batch.batchNameHindi"></label>
+        <div class="row">
+          <label>Start date<input type="date" name="startDate" [(ngModel)]="batch.startDate" required></label>
+          <label>End date<input type="date" name="endDate" [(ngModel)]="batch.endDate" required></label>
+        </div>
+        <label>English brochure<input name="brochureEnglish" [(ngModel)]="batch.brochureEnglish"></label>
+        <label>Hindi brochure<input name="brochureHindi" [(ngModel)]="batch.brochureHindi"></label>
+        <label>Display order<input type="number" name="order" [(ngModel)]="batch.order"></label>
+        <label class="check" *ngIf="!creating"><input type="checkbox" name="isActive" [(ngModel)]="batch.isActive"> Active</label>
+      </fieldset>
+      <div class="actions">
+        <button type="button" class="secondary" (click)="cancel()">{{ viewing ? 'Close' : 'Cancel' }}</button>
+        <button type="submit" *ngIf="!viewing" [disabled]="saving">{{ saving ? 'Saving...' : 'Save batch' }}</button>
+      </div>
+    </form>
+  </ng-template>
+</div>
