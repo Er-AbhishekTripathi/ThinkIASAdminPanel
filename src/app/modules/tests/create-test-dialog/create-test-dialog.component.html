@@ -21,11 +21,15 @@
             </mat-error>
           </mat-form-field>
 
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Description</mat-label>
-            <textarea matInput formControlName="description" placeholder="Enter test description" rows="3"></textarea>
-            <mat-icon matSuffix>description</mat-icon>
-          </mat-form-field>
+          <div class="description-field full-width">
+            <label class="description-editor-label">Description</label>
+            <ckeditor
+              [editor]="Editor"
+              [config]="editorConfig"
+              formControlName="description"
+              class="description-editor">
+            </ckeditor>
+          </div>
 
           <div class="schedule-grid">
             <section class="schedule-card start-card">

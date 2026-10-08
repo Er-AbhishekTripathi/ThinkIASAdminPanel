@@ -4,6 +4,8 @@ import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
+import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 import { AdminExam, ExamAdminService } from '../../../shared/services/exam-admin.service';
 import { ConfirmDialogService } from '../../../shared/services/confirm-dialog.service';
 import { RouterLink } from '@angular/router';
@@ -11,13 +13,27 @@ import { RouterLink } from '@angular/router';
 @Component({
   selector: 'app-manage-exams',
   standalone: true,
-  imports: [TranslatePipe, CommonModule, FormsModule, MatDialogModule, MatSnackBarModule, RouterLink],
+  imports: [TranslatePipe, CommonModule, FormsModule, MatDialogModule, MatSnackBarModule, CKEditorModule, RouterLink],
   templateUrl: './manage-exams.component.html',
   styleUrls: ['./manage-exams.component.css']
 })
 export class ManageExamsComponent implements OnInit {
   @ViewChild('editorTemplate') private editorTemplate!: TemplateRef<unknown>;
   private editorDialog?: MatDialogRef<unknown>;
+
+  public Editor = ClassicEditor;
+  public editorConfig = {
+    toolbar: [
+      'heading', '|',
+      'bold', 'italic', '|',
+      'bulletedList', 'numberedList', '|',
+      'insertTable', 'blockQuote', '|',
+      'undo', 'redo'
+    ],
+    table: {
+      contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells']
+    }
+  };
 
   exams: AdminExam[] = [];
   editing: AdminExam | null = null;
@@ -49,21 +65,29 @@ export class ManageExamsComponent implements OnInit {
   add(): void {
     this.creating = true;
     this.viewing = false;
-    this.editing = { code: '', name: '', nameHindi: '', description: '', displayOrder: this.exams.length + 1, isActive: true };
+    this.editing = {
+      code: '',
+      name: '',
+      nameHindi: '',
+      description: '',
+      displayOrder: this.exams.length + 1,
+      isActive: true,
+      isVisibleOnWebsite: true
+    };
     this.openEditor();
   }
 
   view(exam: AdminExam): void {
     this.creating = false;
     this.viewing = true;
-    this.editing = { ...exam };
+    this.editing = { ...exam, isVisibleOnWebsite: exam.isVisibleOnWebsite !== false };
     this.openEditor();
   }
 
   edit(exam: AdminExam): void {
     this.creating = false;
     this.viewing = false;
-    this.editing = { ...exam };
+    this.editing = { ...exam, isVisibleOnWebsite: exam.isVisibleOnWebsite !== false };
     this.openEditor();
   }
 
@@ -111,10 +135,15 @@ export class ManageExamsComponent implements OnInit {
     if (!this.editing.name.trim()) { this.error = 'Exam name is required.'; return; }
     this.saving = true;
     this.error = '';
-    const request = this.creating ? this.service.create(this.editing) : this.service.update(this.editing);
+    const exam = this.editing;
+    const request = this.creating ? this.service.create(exam) : this.service.update(exam);
     request.subscribe({
-      next: () => {
+      next: (response) => {
         this.saving = false;
+        if (response.data?.isVisibleOnWebsite !== exam.isVisibleOnWebsite) {
+          this.error = 'Website visibility was not saved. Please restart or update the API server, then try again.';
+          return;
+        }
         this.editorDialog?.close();
         this.snackBar.open(this.creating ? 'Exam created.' : 'Exam updated.', 'Close', { duration: 4000 });
         this.load();

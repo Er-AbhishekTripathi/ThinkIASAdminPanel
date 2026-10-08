@@ -29,7 +29,7 @@
         </mat-card-subtitle>
       </mat-card-header>
       <mat-card-content>
-        <div class="test-description"><mat-icon aria-hidden="true">description</mat-icon><div><span>Description</span><p>{{ test.description || 'No description added.' }}</p></div></div>
+        <div class="test-description"><mat-icon aria-hidden="true">description</mat-icon><div><span>Description</span><div [innerHTML]="test.description || 'No description added.'"></div></div></div>
         <div class="test-stats">
           <div class="test-stat"><mat-icon aria-hidden="true">quiz</mat-icon><div><span>Total Questions</span><strong>{{ test.questionUids?.length || test.totalQuestions }}</strong></div></div>
           <div class="test-stat"><mat-icon aria-hidden="true">star</mat-icon><div><span>Marks Per Question</span><strong>{{ test.marksPerQuestion }}</strong></div></div>

@@ -1,7 +1,8 @@
 .test-description { display:flex; align-items:flex-start; gap:11px; margin:2px 0 18px; padding:12px 13px; border:1px solid #e2e9f1; border-radius:10px; color:#52657d; background:#f8fafc; }
 .test-description > mat-icon { flex:0 0 22px; color:#5f86a8; font-size:21px; }
 .test-description span,.test-stat span { display:block; color:#8290a1; font-size:11px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; }
-.test-description p { margin:4px 0 0; color:#52657d; font-size:13px; line-height:1.45; }
+.test-description > div > div { margin:4px 0 0; color:#52657d; font-size:13px; line-height:1.45; }
+.test-description > div > div p { margin:0 0 6px; }
 .test-stats { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:10px; }
 .test-stat { display:flex; flex-direction:column; align-items:flex-start; gap:6px; min-width:0; padding:12px 10px; border:1px solid #e2e9f1; border-radius:10px; background:#fff; }
 .test-stat > div { min-width:0; flex:1 1 auto; }

@@ -82,6 +82,16 @@
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
+.test-description {
+  margin: 4px 0 12px;
+  color: #666;
+  line-height: 1.5;
+}
+
+.test-description p {
+  margin: 0 0 8px;
+}
+
 .status-badge {
   display: inline-flex;
   align-items: center;

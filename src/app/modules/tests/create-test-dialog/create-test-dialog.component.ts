@@ -13,6 +13,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
+import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
+import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 import { TestService } from '../../../shared/services/test.service';
 import { QuestionService } from '../../../shared/services/question.service';
 import { FormsModule } from '@angular/forms';
@@ -65,7 +67,8 @@ interface Tag {
     MatTooltipModule,
     MatCheckboxModule,
     MatDatepickerModule,
-    MatNativeDateModule
+    MatNativeDateModule,
+    CKEditorModule
   ],
   templateUrl: './create-test-dialog.component.html',
   styleUrl: './create-test-dialog.component.css'
@@ -103,6 +106,19 @@ export class CreateTestDialogComponent implements OnInit {
   temporarilySelectedUids = signal<string[]>([]);
   readonly hours = Array.from({ length: 24 }, (_, hour) => this.padZero(hour));
   readonly minutes = Array.from({ length: 60 }, (_, minute) => this.padZero(minute));
+  public Editor = ClassicEditor;
+  public editorConfig = {
+    toolbar: [
+      'heading', '|',
+      'bold', 'italic', '|',
+      'bulletedList', 'numberedList', '|',
+      'insertTable', 'blockQuote', '|',
+      'undo', 'redo'
+    ],
+    table: {
+      contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells']
+    }
+  };
 
   constructor() {
     this.isEdit.set(!!this.data?.test);

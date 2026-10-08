@@ -69,7 +69,7 @@
       </mat-card-header>
       
       <mat-card-content>
-        <p><strong>Description:</strong> {{ test.description || 'No description' }}</p>
+        <div class="test-description"><strong>Description:</strong><div [innerHTML]="test.description || 'No description'"></div></div>
         <div class="test-details">
           <div class="detail-item">
             <mat-icon>quiz</mat-icon>

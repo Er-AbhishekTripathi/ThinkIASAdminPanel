@@ -11,6 +11,7 @@ export interface AdminExam {
   description?: string;
   displayOrder: number;
   isActive: boolean;
+  isVisibleOnWebsite: boolean;
   programsCount?: number;
   plansCount?: number;
   batchesCount?: number;

@@ -11,6 +11,8 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
+import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 import { DemoTestService } from '../../../../shared/services/demo-test.service';
 import { QuestionService } from '../../../../shared/services/question.service';
 import { FormsModule } from '@angular/forms';
@@ -61,7 +63,8 @@ interface Tag {
     MatSnackBarModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
-    MatCheckboxModule
+    MatCheckboxModule,
+    CKEditorModule
   ],
   templateUrl: './demo-test-dialog.component.html',
   styleUrl: './demo-test-dialog.component.css'
@@ -97,6 +100,19 @@ export class DemoTestDialogComponent implements OnInit {
   // Question selection
   selectedQuestions = signal<Question[]>([]);
   temporarilySelectedUids = signal<string[]>([]);
+  public Editor = ClassicEditor;
+  public editorConfig = {
+    toolbar: [
+      'heading', '|',
+      'bold', 'italic', '|',
+      'bulletedList', 'numberedList', '|',
+      'insertTable', 'blockQuote', '|',
+      'undo', 'redo'
+    ],
+    table: {
+      contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells']
+    }
+  };
 
   constructor() {
     this.testForm = this.createTestForm();
