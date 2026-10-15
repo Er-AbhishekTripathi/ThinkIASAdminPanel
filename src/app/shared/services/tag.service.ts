@@ -19,23 +19,27 @@ export class TagService {
   private http = inject(HttpClient);
   private apiUrl = `${environment.apiUrl}/tags`;
 
-  getTags(): Observable<Tag[]> {
-    return this.http.get<Tag[]>(this.apiUrl);
+  private endpoint(section: 'prelims' | 'mains' = 'prelims'): string {
+    return section === 'mains' ? `${environment.apiUrl}/mains-tags` : this.apiUrl;
   }
 
-  getCategories(): Observable<string[]> {
-    return this.http.get<string[]>(`${this.apiUrl}/categories`);
+  getTags(section: 'prelims' | 'mains' = 'prelims'): Observable<Tag[]> {
+    return this.http.get<Tag[]>(this.endpoint(section));
   }
 
-  createTag(tagData: { category: string; subCategory: string; topic: string }): Observable<Tag> {
-    return this.http.post<Tag>(this.apiUrl, tagData);
+  getCategories(section: 'prelims' | 'mains' = 'prelims'): Observable<string[]> {
+    return this.http.get<string[]>(`${this.endpoint(section)}/categories`);
   }
 
-  updateTag(tagId: string, tagData: { category: string; subCategory: string; topic: string }): Observable<Tag> {
-    return this.http.put<Tag>(`${this.apiUrl}/${tagId}`, tagData);
+  createTag(tagData: { category: string; subCategory: string; topic: string }, section: 'prelims' | 'mains' = 'prelims'): Observable<Tag> {
+    return this.http.post<Tag>(this.endpoint(section), tagData);
   }
 
-  deleteTag(tagId: string): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${tagId}`);
+  updateTag(tagId: string, tagData: { category: string; subCategory: string; topic: string }, section: 'prelims' | 'mains' = 'prelims'): Observable<Tag> {
+    return this.http.put<Tag>(`${this.endpoint(section)}/${tagId}`, tagData);
+  }
+
+  deleteTag(tagId: string, section: 'prelims' | 'mains' = 'prelims'): Observable<any> {
+    return this.http.delete(`${this.endpoint(section)}/${tagId}`);
   }
 }

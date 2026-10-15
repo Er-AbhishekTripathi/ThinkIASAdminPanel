@@ -15,7 +15,7 @@
     <div class="listing-section">
       <div class="section-header">
         <div>
-          <h3>All Tags</h3>
+          <h3>{{ isMains ? 'Mains Tags' : 'All Tags' }}</h3>
           <span class="tag-count">{{ tags.length }} tag(s)</span>
         </div>
         <div>
@@ -86,7 +86,7 @@
 <ng-template #tagDialogTemplate>
   <div class="tag-dialog">
     <div class="dialog-header">
-      <h2 mat-dialog-title>{{ editingTag ? 'Edit Tag' : 'Create New Tag' }}</h2>
+      <h2 mat-dialog-title>{{ editingTag ? 'Edit Tag' : 'Create New Tag' }}{{ isMains ? ' · Mains' : '' }}</h2>
       <button mat-icon-button (click)="closeDialog()" class="close-button">
         <mat-icon>close</mat-icon>
       </button>

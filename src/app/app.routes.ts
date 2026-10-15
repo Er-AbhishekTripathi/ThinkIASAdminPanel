@@ -92,8 +92,20 @@ export const routes: Routes = [
   data: { role: 'admin' }
   },
   {
+  path: 'mains-tag-master',
+  loadComponent: () => import('./modules/admin/tag-master/tag-master.component').then(m => m.TagMasterComponent),
+  canActivate: [authGuard, roleGuard],
+  data: { role: 'admin', section: 'mains' }
+  },
+  {
   path: 'questions-master', 
   loadComponent: () => import('./modules/admin/questions-master/questions-master.component').then(m => m.QuestionsMasterComponent),
+  canActivate: [authGuard, roleGuard],
+  data: { role: 'admin' }
+  },
+  {
+  path: 'mains-questions-master',
+  loadComponent: () => import('./modules/admin/mains-questions-master/mains-questions-master.component').then(m => m.MainsQuestionsMasterComponent),
   canActivate: [authGuard, roleGuard],
   data: { role: 'admin' }
   },

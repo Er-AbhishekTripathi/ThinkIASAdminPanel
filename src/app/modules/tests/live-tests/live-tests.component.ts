@@ -66,6 +66,10 @@ export class LiveTestsComponent implements OnInit {
   showIntroModal = false;
   showViewIntroModal = false;
   introContent = new FormControl('');
+  introContentHi = new FormControl('');
+  introFontSize = 18;
+  readonly introFontSizes = [14, 16, 18, 20, 22, 24, 28];
+  introPreviewLanguage: 'english' | 'hindi' = 'english';
   updatingIntro = false;
 
   // CKEditor configuration
@@ -288,6 +292,10 @@ export class LiveTestsComponent implements OnInit {
   openIntroModal(test: any) {
     this.selectedTest = test;
     this.introContent.setValue(test.introPage || '');
+    this.introContentHi.setValue(test.introPageHi || '');
+    this.introFontSize = this.introFontSizes.includes(Number(test.introFontSize))
+      ? Number(test.introFontSize)
+      : 18;
     this.showIntroModal = true;
   }
 
@@ -295,6 +303,8 @@ export class LiveTestsComponent implements OnInit {
     this.showIntroModal = false;
     this.selectedTest = null;
     this.introContent.setValue('');
+    this.introContentHi.setValue('');
+    this.introFontSize = 18;
     this.updatingIntro = false;
   }
 
@@ -302,23 +312,20 @@ export class LiveTestsComponent implements OnInit {
     if (!this.selectedTest) return;
 
     const introPage = this.introContent.value?.trim() || '';
-    
-    console.log('Saving introPage for test:', this.selectedTest._id);
-    console.log('introPage content:', introPage);
+    const introPageHi = this.introContentHi.value?.trim() || '';
+    const introFontSize = this.introFontSize;
     
     this.updatingIntro = true;
     
-    // Use the updateTest API with only introPage field
-    this.testService.updateTest(this.selectedTest._id, { introPage }).subscribe({
+    this.testService.updateTest(this.selectedTest._id, { introPage, introPageHi, introFontSize }).subscribe({
       next: (updatedTest) => {
-        // Update the test in the local array
         const updatedTests = this.tests().map(t => 
-          t._id === this.selectedTest._id ? { ...t, introPage } : t
+          t._id === this.selectedTest._id ? { ...t, introPage, introPageHi, introFontSize } : t
         );
         this.tests.set(updatedTests);
         
         this.snackBar.open(
-          introPage ? 'Intro saved successfully!' : 'Intro removed!',
+          introPage || introPageHi ? 'Intro saved successfully!' : 'Intro removed!',
           'Close', 
           { duration: 3000 }
         );
@@ -340,6 +347,7 @@ export class LiveTestsComponent implements OnInit {
   // View Intro Modal Methods - UPDATED to use introPage
   openViewIntroModal(test: any) {
     this.selectedTest = test;
+    this.introPreviewLanguage = 'english';
     this.showViewIntroModal = true;
   }
 

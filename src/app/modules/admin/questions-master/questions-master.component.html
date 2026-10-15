@@ -28,7 +28,7 @@
     </div>
 
     <label class="import-dropzone" [class.has-file]="importFile" [class.disabled]="importing">
-      <input type="file" accept=".csv,.json,.docx" multiple [disabled]="importing" (change)="previewImport($event)">
+      <input #importFileInput type="file" accept=".csv,.json,.docx" multiple [disabled]="importing" (change)="previewImport($event)">
       <mat-icon>{{ importFiles.length ? 'task' : 'cloud_upload' }}</mat-icon>
       <strong>{{ importFiles.length ? getImportFileNames() : (language.hindi ? 'English और Hindi DOCX चुनें' : 'Choose English and Hindi DOCX files') }}</strong>
       <span>{{ importFiles.length > 1 ? (language.hindi ? 'समान क्रम के प्रश्न bilingual बनेंगे' : 'Matching question numbers will be merged bilingually') : (language.hindi ? 'अधिकतम दो फ़ाइलें, हर फ़ाइल 20 MB तक' : 'Up to two files, 20 MB each') }}</span>
@@ -38,7 +38,20 @@
     <div class="import-message processing" *ngIf="importing"><mat-spinner diameter="20"></mat-spinner><span>{{ language.hindi ? 'फ़ाइल संसाधित हो रही है...' : 'Processing file...' }}</span></div>
 
     <div class="import-preview" *ngIf="importPreview.length || duplicateQuestions.length">
-      <div class="preview-heading"><div><span class="preview-label">{{ language.hindi ? 'Preview ready' : 'Preview ready' }}</span><h3>{{ importPreview.length ? importPreview.length + (language.hindi ? ' प्रश्न आयात के लिए तैयार हैं' : ' questions ready to import') : (language.hindi ? 'कोई नया प्रश्न आयात के लिए नहीं है' : 'No new questions to import') }}</h3></div><mat-icon>fact_check</mat-icon></div>
+      <div class="preview-heading">
+        <div>
+          <span class="preview-label">{{ language.hindi ? 'Preview ready' : 'Preview ready' }}</span>
+          <h3>{{ importPreview.length ? importPreview.length + (language.hindi ? ' प्रश्न आयात के लिए तैयार हैं' : ' questions ready to import') : (language.hindi ? 'कोई नया प्रश्न आयात के लिए नहीं है' : 'No new questions to import') }}</h3>
+        </div>
+        <div class="preview-heading-actions">
+          <button *ngIf="!importPreview.length && duplicateQuestions.length" type="button" mat-stroked-button color="warn"
+            class="cancel-import-btn" [disabled]="importing" (click)="cancelDuplicateImport(importFileInput)">
+            <mat-icon>close</mat-icon>
+            {{ language.hindi ? 'रद्द करें' : 'Cancel' }}
+          </button>
+          <mat-icon aria-hidden="true">fact_check</mat-icon>
+        </div>
+      </div>
       <div class="duplicate-report" *ngIf="duplicateQuestions.length" role="status">
         <div class="duplicate-report-heading">
           <mat-icon>content_copy</mat-icon>

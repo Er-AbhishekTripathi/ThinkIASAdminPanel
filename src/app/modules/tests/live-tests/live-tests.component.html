@@ -174,14 +174,33 @@
       <p><strong>Test:</strong> {{ selectedTest.title }}</p>
 
       <div class="form-group">
-        <label class="ckeditor-label">Introduction Text *</label>
+        <label class="ckeditor-label">Introduction Text (English)</label>
         <ckeditor
           [editor]="Editor"
           [config]="editorConfig"
           [formControl]="introContent"
           class="ckeditor-full-width">
         </ckeditor>
-        <small class="form-text">Add introduction/instructions for this test. Leave empty to remove.</small>
+        <small class="form-text">Add English introduction/instructions for this test.</small>
+      </div>
+
+      <div class="form-group">
+        <label class="ckeditor-label">परिचय (Hindi)</label>
+        <ckeditor
+          [editor]="Editor"
+          [config]="editorConfig"
+          [formControl]="introContentHi"
+          class="ckeditor-full-width">
+        </ckeditor>
+        <small class="form-text">हिंदी में परिचय/निर्देश लिखें। खाली छोड़ने पर हिंदी परिचय नहीं दिखेगा।</small>
+      </div>
+
+      <div class="form-group intro-font-size-control">
+        <label for="introFontSize">Introduction font size</label>
+        <select id="introFontSize" name="introFontSize" [(ngModel)]="introFontSize">
+          <option *ngFor="let size of introFontSizes" [ngValue]="size">{{ size }} px</option>
+        </select>
+        <small class="form-text">Applied to the introduction shown to students.</small>
       </div>
     </div>
 
@@ -210,7 +229,16 @@
     </div>
 
     <div class="video-link-modal-body intro-content-container">
-      <div class="intro-content" [innerHTML]="getSafeIntroHtml(selectedTest.introPage)"></div>
+      <div class="intro-preview-language">
+        <button type="button" [class.active]="introPreviewLanguage === 'english'"
+          (click)="introPreviewLanguage = 'english'">English</button>
+        <button type="button" [class.active]="introPreviewLanguage === 'hindi'"
+          (click)="introPreviewLanguage = 'hindi'">हिन्दी</button>
+      </div>
+      <div class="intro-content" [style.fontSize.px]="selectedTest.introFontSize || 18"
+        [innerHTML]="getSafeIntroHtml(introPreviewLanguage === 'hindi'
+          ? (selectedTest.introPageHi || selectedTest.introPage)
+          : selectedTest.introPage)"></div>
     </div>
 
     <div class="video-link-modal-footer">

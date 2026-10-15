@@ -23,6 +23,9 @@ export interface Test {
   _id: string;
   title: string;
   description: string;
+  introPage?: string;
+  introPageHi?: string;
+  introFontSize?: number;
   startTime: string;
   duration: number;
   questions: Question[];

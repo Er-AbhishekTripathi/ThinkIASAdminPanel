@@ -1201,3 +1201,36 @@
     flex: 1 1 calc(50% - 5px);
   }
 }
+.intro-font-size-control select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d5dee8;
+  border-radius: 8px;
+  background: #fff;
+  color: #172b4d;
+}
+
+.intro-preview-language {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.intro-preview-language button {
+  padding: 8px 14px;
+  border: 1px solid #d5dee8;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #1c365e;
+  cursor: pointer;
+}
+
+.intro-preview-language button.active {
+  border-color: #1c365e;
+  background: #1c365e;
+  color: #fff;
+}
+
+.intro-content ::ng-deep * {
+  font-size: inherit !important;
+}

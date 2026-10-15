@@ -20,11 +20,16 @@
 .status { padding:5px 10px; border-radius:20px; background:#eef8f3; color:#37755f; font-size:12px; }
 .status.off { background:#fff5ed; color:#a06b48; }
 .card-actions { display:flex; gap:8px; margin-top:auto; padding-top:16px; }
-.editor { background:#fff; padding:22px; border-radius:14px; }
+.editor { min-width:0; background:#fff; padding:22px; border-radius:14px; }
 .editor-title, .row, .actions { display:flex; gap:16px; justify-content:space-between; }
 .editor label { display:flex; flex-direction:column; gap:6px; margin:12px 0; flex:1; font-weight:600; }
-.editor input { padding:10px; border:1px solid #ccd5e0; border-radius:7px; }
+.editor input { width:100%; min-width:0; padding:10px; border:1px solid #ccd5e0; border-radius:7px; }
+.row > label { min-width:0; }
 .plan-lock { border:0; margin:0; padding:0; min-inline-size:0; }
 .check { flex-direction:row !important; align-items:center; }
 .error { color:#b91c1c; }
 .hint { color:#64748b; }
+
+@media (max-width:600px) {
+  .row { flex-direction:column; gap:0; }
+}

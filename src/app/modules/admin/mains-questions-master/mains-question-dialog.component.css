@@ -1,0 +1,103 @@
+.question-dialog {
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+}
+
+.dialog-heading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0;
+  padding: 20px 24px 14px;
+}
+
+.dialog-heading h2,
+.dialog-heading p {
+  margin: 0;
+}
+
+.dialog-heading h2 {
+  color: #172554;
+  font-size: 1.2rem;
+}
+
+.dialog-heading p {
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 0.85rem;
+  font-weight: 400;
+}
+
+.heading-icon {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border-radius: 12px;
+  background: #e0e7ff;
+  color: #4338ca;
+}
+
+.dialog-heading button {
+  margin-left: auto;
+}
+
+mat-dialog-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 8px;
+}
+
+.field-label {
+  color: #334155;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.field-label span,
+.field-error {
+  color: #b91c1c;
+}
+
+.hindi-label {
+  margin-top: 18px;
+}
+
+.tag-field {
+  width: 100%;
+  margin-top: 14px;
+}
+
+mat-dialog-actions {
+  padding: 12px 24px 20px;
+}
+
+mat-dialog-actions button mat-icon {
+  margin-right: 5px;
+}
+
+mat-dialog-actions mat-spinner {
+  display: inline-block;
+  margin-right: 8px;
+}
+
+.field-error {
+  margin: 0;
+  font-size: 0.8rem;
+}
+
+@media (max-width: 600px) {
+  .dialog-heading {
+    padding: 16px;
+  }
+
+  mat-dialog-content {
+    padding: 8px 16px;
+  }
+
+  mat-dialog-actions {
+    padding: 10px 16px 16px;
+  }
+}

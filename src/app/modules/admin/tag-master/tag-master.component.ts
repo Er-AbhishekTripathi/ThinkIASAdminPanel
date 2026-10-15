@@ -10,6 +10,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { TagService } from '../../../shared/services/tag.service';
 import { Tag } from '../../../core/models/tag.model';
 import { ConfirmDialogService } from '../../../shared/services/confirm-dialog.service';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-tag-master',
@@ -46,9 +47,18 @@ export class TagMasterComponent implements OnInit {
     private fb: FormBuilder,
     private tagService: TagService,
     private dialog: MatDialog
-    , private confirmDialog: ConfirmDialogService
+    , private confirmDialog: ConfirmDialogService,
+    private route: ActivatedRoute
   ) {
     this.tagForm = this.createForm();
+  }
+
+  get isMains(): boolean {
+    return this.route.snapshot.data['section'] === 'mains';
+  }
+
+  private get section(): 'prelims' | 'mains' {
+    return this.isMains ? 'mains' : 'prelims';
   }
 
   ngOnInit() {
@@ -66,7 +76,7 @@ export class TagMasterComponent implements OnInit {
 
   loadTags(): void {
     this.isLoading = true;
-    this.tagService.getTags().subscribe({
+    this.tagService.getTags(this.section).subscribe({
       next: (tags) => {
         this.tags = tags;
         this.isLoading = false;
@@ -80,7 +90,7 @@ export class TagMasterComponent implements OnInit {
   }
 
   loadCategories(): void {
-    this.tagService.getCategories().subscribe({
+    this.tagService.getCategories(this.section).subscribe({
       next: (categories) => {
         this.categorySuggestions = categories;
       },
@@ -132,7 +142,7 @@ export class TagMasterComponent implements OnInit {
 
       if (this.editingTag) {
         // Update existing tag
-        this.tagService.updateTag(this.editingTag._id, formData).subscribe({
+        this.tagService.updateTag(this.editingTag._id, formData, this.section).subscribe({
           next: (response) => {
             this.showMessage('Tag updated successfully!', 'success');
             this.loadTags();
@@ -147,7 +157,7 @@ export class TagMasterComponent implements OnInit {
         });
       } else {
         // Create new tag
-        this.tagService.createTag(formData).subscribe({
+        this.tagService.createTag(formData, this.section).subscribe({
           next: (response) => {
             this.showMessage('Tag created successfully!', 'success');
             this.loadTags();
@@ -170,7 +180,7 @@ export class TagMasterComponent implements OnInit {
 
   deleteTag(tag: Tag): void {
     this.confirmDialog.ask({title: 'Delete tag?', message: `Are you sure you want to delete "${tag.tag}"? This action cannot be undone.`}).subscribe(() => {
-      this.tagService.deleteTag(tag._id).subscribe({
+      this.tagService.deleteTag(tag._id, this.section).subscribe({
         next: (response) => {
           this.showMessage('Tag deleted successfully!', 'success');
           this.loadTags();

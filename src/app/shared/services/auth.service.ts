@@ -171,14 +171,30 @@ export class AuthService {
         ? { ...item, name: 'Exam Monitoring', path: '/exam-monitoring', icon: 'videocam' }
         : item
     );
-    if (!adminTools.some(item => this.isCareersItem(item.path)) && !hasWebsitePageManage) {
-      adminTools.push({ name: 'Careers', path: '/careers', icon: 'work' });
+    const adminMenu = this.currentUserSignal()?.role === 'admin'
+      ? adminTools.map(item => {
+          if (item.name !== 'Mains Section') return item;
+          const children = [...(item.children || [])];
+          const mainsQuestionItems: MenuItem[] = [
+            { name: 'Mains Tag Management', path: '/mains-tag-master', icon: 'local_offer' },
+            { name: 'Mains Question Bank', path: '/mains-questions-master', icon: 'edit_note' }
+          ];
+          for (const mainsItem of mainsQuestionItems) {
+            if (!children.some(child => child.path === mainsItem.path)) {
+              children.push(mainsItem);
+            }
+          }
+          return { ...item, children };
+        })
+      : adminTools;
+    if (!adminMenu.some(item => this.isCareersItem(item.path)) && !hasWebsitePageManage) {
+      adminMenu.push({ name: 'Careers', path: '/careers', icon: 'work' });
     }
-    if (!adminTools.some(item => item.path === '/exam-monitoring' || item.path === 'exam-monitoring')) {
-      adminTools.push({ name: 'Exam Monitoring', path: '/exam-monitoring', icon: 'videocam' });
+    if (!adminMenu.some(item => item.path === '/exam-monitoring' || item.path === 'exam-monitoring')) {
+      adminMenu.push({ name: 'Exam Monitoring', path: '/exam-monitoring', icon: 'videocam' });
     }
 
-    return adminTools.filter(item => item.name !== 'Question Management');
+    return adminMenu.filter(item => item.name !== 'Question Management');
   }
 
   private normalizeLegacyQuestionManagementGroup(menuItems: MenuItem[]): MenuItem[] {

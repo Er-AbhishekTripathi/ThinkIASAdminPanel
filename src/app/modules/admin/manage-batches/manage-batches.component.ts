@@ -155,8 +155,10 @@ export class ManageBatchesComponent implements OnInit {
 
   private openEditor(): void {
     this.editorDialog = this.dialog.open(this.editorTemplate, {
-      width: '720px',
+      width: '920px',
       maxWidth: 'calc(100vw - 32px)',
+      maxHeight: 'calc(100vh - 32px)',
+      panelClass: 'manage-plan-dialog-panel',
       autoFocus: false
     });
   }

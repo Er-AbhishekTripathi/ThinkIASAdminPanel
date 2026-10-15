@@ -205,9 +205,24 @@
   font-size: 16px;
 }
 
-.preview-heading > mat-icon {
+.preview-heading-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.preview-heading-actions > mat-icon {
   color: #16a34a;
   font-size: 28px;
+}
+
+.cancel-import-btn {
+  color: #b91c1c;
+  border-color: #fca5a5;
+}
+
+.cancel-import-btn mat-icon {
+  margin-right: 4px;
 }
 
 .duplicate-report {
@@ -1442,4 +1457,3 @@ mat-paginator {
     grid-template-columns: 1fr;
   }
 }
-

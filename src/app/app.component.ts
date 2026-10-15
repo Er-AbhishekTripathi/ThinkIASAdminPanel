@@ -97,7 +97,6 @@ export class AppComponent implements OnInit, OnDestroy {
     this.breakpointSubscription = this.breakpointObserver
       .observe([
         Breakpoints.Handset,
-        Breakpoints.TabletPortrait,
         '(max-width: 768px)'
       ])
       .subscribe(result => {

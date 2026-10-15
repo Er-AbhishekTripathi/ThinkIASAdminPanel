@@ -67,6 +67,16 @@ export class QuestionsMasterComponent implements OnInit {
     return this.importFiles.map(file => file.name).join(' + ');
   }
 
+  cancelDuplicateImport(fileInput: HTMLInputElement): void {
+    this.importFiles = [];
+    this.importFile = null;
+    this.importPreview = [];
+    this.duplicateQuestions = [];
+    this.questionImportTags = [];
+    this.importError = '';
+    fileInput.value = '';
+  }
+
   previewImport(event: Event) {
     const input = event.target as HTMLInputElement;
     this.importFiles = Array.from(input.files || []);
