@@ -145,6 +145,17 @@ td {
 }
 
 /* Badge styles */
+.types-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
 .category-badge {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
@@ -536,6 +547,10 @@ tbody tr:hover {
 
 .topic-badge {
   background: linear-gradient(135deg, var(--workspace-green), #16a05a);
+}
+
+.types-badge {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
 }
 
 .btn-edit,

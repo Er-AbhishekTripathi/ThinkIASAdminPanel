@@ -391,6 +391,31 @@
                             </div>
                         </div>
 
+                        <!-- Qualifying Paper -->
+                        <div class="paper-display" *ngIf="mainsData.qualifying">
+                            <h4>Qualifying Paper</h4>
+                            <div class="paper-content">
+                                <div class="language-version" *ngIf="mainsData.qualifying.fileNameEnglish">
+                                    <h5>English Version</h5>
+                                    <p><strong>File:</strong> {{ mainsData.qualifying.fileNameEnglish }}</p>
+                                    <p><strong>Link:</strong>
+                                        <a [href]="mainsData.qualifying.fileLinkEnglish" target="_blank" class="file-link">
+                                            {{ mainsData.qualifying.fileLinkEnglish }}
+                                        </a>
+                                    </p>
+                                </div>
+                                <div class="language-version" *ngIf="mainsData.qualifying.fileNameHindi">
+                                    <h5>Hindi Version</h5>
+                                    <p><strong>File:</strong> {{ mainsData.qualifying.fileNameHindi }}</p>
+                                    <p><strong>Link:</strong>
+                                        <a [href]="mainsData.qualifying.fileLinkHindi" target="_blank" class="file-link">
+                                            {{ mainsData.qualifying.fileLinkHindi }}
+                                        </a>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Optional Subjects -->
                         <div class="paper-display optional-display"
                             *ngIf="mainsData.optionalSubjects && mainsData.optionalSubjects.length > 0">
@@ -618,6 +643,54 @@
                             </div>
                         </div>
 
+                        <!-- Qualifying Paper -->
+                        <div class="form-section">
+                            <div class="section-header">
+                                <h3>Qualifying Paper</h3>
+                                <span class="section-badge">Qualifying</span>
+                            </div>
+                            <div formGroupName="qualifying" class="section-content">
+                                <div class="language-section">
+                                    <h4>English Version</h4>
+                                    <div class="form-group">
+                                        <label for="mainsQualifyingFileNameEnglish">File Name (English)</label>
+                                        <input type="text" id="mainsQualifyingFileNameEnglish"
+                                            formControlName="fileNameEnglish" class="form-control">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="mainsQualifyingFileLinkEnglish">File Link (English)</label>
+                                        <input type="url" id="mainsQualifyingFileLinkEnglish"
+                                            formControlName="fileLinkEnglish" class="form-control"
+                                            placeholder="https://drive.google.com/...">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="mainsQualifyingDescriptionEnglish">Description (English)</label>
+                                        <textarea id="mainsQualifyingDescriptionEnglish"
+                                            formControlName="descriptionEnglish" rows="2" class="form-control"></textarea>
+                                    </div>
+                                </div>
+                                <div class="language-section">
+                                    <h4>Hindi Version</h4>
+                                    <div class="form-group">
+                                        <label for="mainsQualifyingFileNameHindi">File Name (Hindi)</label>
+                                        <input type="text" id="mainsQualifyingFileNameHindi"
+                                            formControlName="fileNameHindi" class="form-control">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="mainsQualifyingFileLinkHindi">File Link (Hindi)</label>
+                                        <input type="url" id="mainsQualifyingFileLinkHindi"
+                                            formControlName="fileLinkHindi" class="form-control"
+                                            placeholder="https://drive.google.com/...">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="mainsQualifyingDescriptionHindi">Description (Hindi)</label>
+                                        <textarea id="mainsQualifyingDescriptionHindi"
+                                            formControlName="descriptionHindi" rows="2" class="form-control"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Optional Subjects -->
                         <div class="form-section optional-section">
                             <div class="section-header">
@@ -784,6 +857,10 @@
                 (click)="switchTopicwiseSubTab('optional')">
                 Optional
             </button>
+            <button class="subtab-button" [class.active]="topicwiseSubTab === 'qualifying'"
+                (click)="switchTopicwiseSubTab('qualifying')">
+                Qualifying Paper
+            </button>
         </div>
 
         <!-- Dynamic Directory Explorer for each subtab -->
@@ -831,6 +908,12 @@
                 <app-directory-explorer [category]="'optional-subjects'" [categoryName]="'Optional Subjects'">
                 </app-directory-explorer>
             </div>
+
+            <!-- Qualifying Paper -->
+            <div *ngIf="topicwiseSubTab === 'qualifying'" class="tab-content">
+                <app-directory-explorer [category]="'qualifying-paper'" [categoryName]="'Qualifying Paper'">
+                </app-directory-explorer>
+            </div>
         </div>
     </div>
     <div *ngIf="activeTab === 'videos'" class="tab-content">
@@ -850,6 +933,10 @@
             </button>
             <button class="subtab-button" [class.active]="videoSubTab === 'essay'" (click)="switchVideoSubTab('essay')">
                 Essay Writing Videos
+            </button>
+            <button class="subtab-button" [class.active]="videoSubTab === 'qualifying'"
+                (click)="switchVideoSubTab('qualifying')">
+                Qualifying Paper Videos
             </button>
             <button class="subtab-button" [class.active]="videoSubTab === 'strategy'"
                 (click)="switchVideoSubTab('strategy')">
@@ -897,6 +984,13 @@
             <!-- Essay Writing Videos -->
             <div *ngIf="videoSubTab === 'essay'" class="tab-content">
                 <app-directory-explorer [category]="'essay-videos'" [categoryName]="'Essay Writing Videos'"
+                    [resourceType]="'video'">
+                </app-directory-explorer>
+            </div>
+
+            <!-- Qualifying Paper Videos -->
+            <div *ngIf="videoSubTab === 'qualifying'" class="tab-content">
+                <app-directory-explorer [category]="'qualifying-paper-videos'" [categoryName]="'Qualifying Paper Videos'"
                     [resourceType]="'video'">
                 </app-directory-explorer>
             </div>

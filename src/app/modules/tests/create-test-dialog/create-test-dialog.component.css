@@ -237,10 +237,11 @@
 /* Filter by Tag Section */
 .filter-by-tag-section {
   margin: 20px 0;
-  padding: 20px;
-  background: #f8f9fa;
-  border-radius: 8px;
-  border: 1px solid #e0e0e0;
+  padding: 18px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border-radius: 12px;
+  border: 1px solid #dfe6ef;
+  box-shadow: 0 3px 14px rgba(15, 23, 42, 0.06);
 }
 
 .filter-header {
@@ -254,7 +255,7 @@
   margin: 0;
   color: #333;
   font-size: 1.1em;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .filter-actions {
@@ -264,6 +265,7 @@
 
 .tags-container {
   min-height: 60px;
+  width: 100%;
 }
 
 .tags-loading {
@@ -277,36 +279,66 @@
 
 .tags-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 12px;
+  align-items: stretch;
 }
 
 .tag-button {
   display: flex !important;
   justify-content: space-between !important;
   align-items: center !important;
-  padding: 8px 12px !important;
-  border-radius: 6px !important;
-  border: 1px solid #e0e0e0 !important;
+  gap: 10px;
+  min-height: 48px;
+  height: 48px;
+  width: 100%;
+  padding: 8px 10px 8px 14px !important;
+  border-radius: 10px !important;
+  border: 1px solid #dce3ec !important;
   background: white !important;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.tag-button:hover {
+  transform: translateY(-1px);
+  border-color: #3f51b5 !important;
+  box-shadow: 0 5px 12px rgba(63, 81, 181, 0.12);
 }
 
 .tag-button.active {
   border-color: #3f51b5 !important;
   background: #3f51b5 !important;
   color: white !important;
+  box-shadow: 0 6px 14px rgba(63, 81, 181, 0.22);
 }
 
 .tag-name {
+  min-width: 0;
   font-size: 0.9em;
+  line-height: 1.25;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .tag-count {
+  flex: 0 0 auto;
+  min-width: 28px;
   background: #e3f2fd;
   color: #1976d2;
-  padding: 2px 6px;
-  border-radius: 10px;
+  padding: 3px 7px;
+  border-radius: 999px;
   font-size: 0.8em;
+  font-weight: 600;
+  text-align: center;
+}
+
+.tag-button.active .tag-count {
+  background: rgba(255, 255, 255, 0.18);
+  color: white;
 }
 
 .no-tags {
@@ -442,6 +474,17 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+.question-text-preview.question-text-english {
+  color: #1f2937;
+}
+
+.question-text-preview.question-text-hindi {
+  margin-top: 4px;
+  padding-top: 6px;
+  border-top: 1px solid #e8edf3;
+  color: #475569;
 }
 
 /* .question-text-preview {
@@ -731,7 +774,30 @@
   }
   
   .tags-grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .tag-button {
+    height: 46px;
+    min-height: 46px;
+    padding-left: 10px !important;
+    padding-right: 8px !important;
+  }
+
+  .filter-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .filter-actions {
+    width: 100%;
+  }
+
+  .filter-actions button {
+    flex: 1 1 0;
+    min-width: 0;
   }
   
   .uid-section-actions {

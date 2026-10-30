@@ -9,6 +9,25 @@
   font-family: 'Trebuchet MS', 'Segoe UI', sans-serif;
 }
 
+.app-sidenav .submenu .nav-parent.exam-section-parent,
+.app-sidenav .submenu .nav-parent.exam-section-parent.active-parent {
+  background: #3978d4 !important;
+  color: #fff !important;
+}
+
+.app-sidenav .submenu .nav-parent.exam-section-parent,
+.app-sidenav .nav-parent.exam-section-parent {
+  border: 0;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(22, 78, 155, .18);
+}
+
+.app-sidenav .submenu .nav-item.active-link {
+  background: #07508c !important;
+  color: #fff !important;
+  box-shadow: 0 3px 8px rgba(7, 80, 140, .22);
+}
+
 /* ============================
    TOOLBAR STYLING
 ============================ */
@@ -309,6 +328,13 @@
     &.active-parent {
       background: #dce8f2;
       color: #1c365e;
+
+      .nav-text,
+      .nav-icon,
+      .expand-icon {
+        color: #1c365e !important;
+        font-weight: 700;
+      }
     }
 
     &:hover:not(.active-parent) {
@@ -318,13 +344,33 @@
 
   .submenu {
     padding-bottom: 0.25rem;
+    border-left: 2px solid #d9e4ef;
+    margin-left: 1.05rem;
   }
 
   .submenu-item {
-    margin-left: 1.8rem;
+    margin-left: 1.1rem;
     margin-right: 0.8rem;
     width: calc(100% - 2.6rem);
     font-size: 0.9rem;
+  }
+
+  .submenu .nav-parent {
+    margin-left: 1.1rem;
+    width: calc(100% - 2.6rem);
+    background: transparent;
+
+    &.active-parent {
+      background: #dff4ef;
+      color: #166b5a;
+
+      .nav-text,
+      .nav-icon,
+      .expand-icon {
+        color: #166b5a !important;
+        font-weight: 700;
+      }
+    }
   }
 
   /* Active Link */
@@ -339,7 +385,7 @@
 
     .nav-text {
       color: #fff !important;
-      font-weight: 600;
+      font-weight: 700;
     }
 
     &:hover {
@@ -358,6 +404,42 @@
   background: var(--admin-canvas, #f4f7fb);
   overflow-y: auto;
   transition: all 0.3s ease;
+}
+
+.app-sidenav .submenu button.nav-parent.exam-section-parent,
+.app-sidenav .submenu button.nav-parent.exam-section-parent.active-parent {
+  background: #3978d4 !important;
+  background-image: none !important;
+  color: #fff !important;
+}
+
+.app-sidenav .submenu button.nav-parent.exam-section-parent .nav-text,
+.app-sidenav .submenu button.nav-parent.exam-section-parent .nav-icon,
+.app-sidenav .submenu button.nav-parent.exam-section-parent .expand-icon {
+  color: #fff !important;
+}
+
+.app-sidenav .submenu .nav-item.active-link {
+  background: #07508c !important;
+  background-image: none !important;
+  color: #fff !important;
+}
+
+.app-sidenav mat-nav-list .submenu button.nav-item.nav-parent.exam-section-parent,
+.app-sidenav mat-nav-list .submenu button.nav-item.nav-parent.exam-section-parent.active-parent,
+.app-sidenav mat-nav-list .submenu button.nav-item.nav-parent.exam-section-parent:hover {
+  background-color: #3977d6 !important;
+  background-image: none !important;
+  background: #3977d6 !important;
+  color: #fff !important;
+}
+
+.app-sidenav mat-nav-list .submenu a.nav-item.active-link,
+.app-sidenav mat-nav-list .submenu a.nav-item.active-link:hover {
+  background-color: #075a91 !important;
+  background-image: none !important;
+  background: #075a91 !important;
+  color: #fff !important;
 }
 
 .content-wrapper {

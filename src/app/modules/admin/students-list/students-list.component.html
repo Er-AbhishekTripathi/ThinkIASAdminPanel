@@ -21,7 +21,18 @@
   <div *ngIf="loading()" class="loading"><mat-spinner></mat-spinner><p>{{ 'Loading students...' | t }}</p></div>
 
   <div *ngIf="!loading() && students().length > 0" class="students-content">
-    <div class="list-toolbar"><div><h2>Student directory</h2><p>{{ filteredStudents().length }} of {{ students().length }} students</p></div><label class="search-box"><mat-icon>search</mat-icon><input type="search" placeholder="Search name, email, phone or plan" [value]="searchQuery()" (input)="searchQuery.set($any($event.target).value)"><button type="button" *ngIf="searchQuery()" (click)="searchQuery.set('')" aria-label="Clear search">&times;</button></label></div>
+    <div class="list-toolbar">
+      <div class="directory-heading"><h2>Student directory</h2><p>{{ filteredStudents().length }} of {{ students().length }} students</p></div>
+      <div class="status-filters" role="group" aria-label="Filter students by status">
+        <button type="button" *ngFor="let status of ['All', 'Active', 'Inactive', 'Blocked']"
+          [class.active]="statusFilter() === status" (click)="setStatusFilter($any(status))">{{ status }}</button>
+      </div>
+      <label class="search-box">
+        <mat-icon>search</mat-icon>
+        <input type="search" placeholder="Search name, email, phone or plan" [value]="searchQuery()" (input)="searchQuery.set($any($event.target).value)">
+        <button type="button" *ngIf="searchQuery()" (click)="searchQuery.set('')" aria-label="Clear search">&times;</button>
+      </label>
+    </div>
     <mat-card class="table-card"><mat-card-content class="table-card-content"><div class="table-scroll">
       <table mat-table [dataSource]="filteredStudents()" class="students-table">
         <ng-container matColumnDef="fullName"><th mat-header-cell *matHeaderCellDef>{{ 'Name' | t }}</th><td mat-cell *matCellDef="let student"><div class="student-name"><span class="student-avatar">{{ student.fullName?.charAt(0) | uppercase }}</span><div><strong>{{ student.fullName }}</strong><small>{{ student.role | titlecase }}</small></div></div></td></ng-container>
@@ -29,11 +40,35 @@
         <ng-container matColumnDef="phone"><th mat-header-cell *matHeaderCellDef>{{ 'Phone' | t }}</th><td mat-cell *matCellDef="let student">{{ student.phone }}</td></ng-container>
         <ng-container matColumnDef="plan"><th mat-header-cell *matHeaderCellDef>{{ 'Plan' | t }}</th><td mat-cell *matCellDef="let student"><span class="plan-badge">{{ student.type | uppercase }}</span></td></ng-container>
         <ng-container matColumnDef="joinedDate"><th mat-header-cell *matHeaderCellDef>{{ 'Joined Date' | t }}</th><td mat-cell *matCellDef="let student">{{ student.createdAt | date:'mediumDate' }}</td></ng-container>
-        <ng-container matColumnDef="status"><th mat-header-cell *matHeaderCellDef>{{ 'Status' | t }}</th><td mat-cell *matCellDef="let student"><button mat-stroked-button role="switch" [attr.aria-checked]="student.isActive !== false" [attr.aria-label]="'Account active: ' + student.fullName" [disabled]="updatingStatus.has(student._id)" (click)="openStatusConfirmation(student)">{{ (student.isActive === false ? 'Inactive' : 'Active') | t }}</button></td></ng-container>
+        <ng-container matColumnDef="status"><th mat-header-cell *matHeaderCellDef>{{ 'Status' | t }}</th><td mat-cell *matCellDef="let student"><button mat-stroked-button role="switch" [attr.aria-checked]="student.isActive !== false && !isStudentBlocked(student)" [attr.aria-label]="'Account status: ' + student.fullName" [disabled]="updatingStatus.has(student._id)" (click)="openStatusConfirmation(student)">{{ (isStudentBlocked(student) ? 'Blocked' : (student.isActive === false ? 'Inactive' : 'Active')) | t }}</button></td></ng-container>
         <ng-container matColumnDef="actions"><th mat-header-cell *matHeaderCellDef>{{ 'Actions' | t }}</th><td mat-cell *matCellDef="let student" class="actions-cell"><button mat-button (click)="viewStudentProfile(student)"><mat-icon>person</mat-icon>{{ 'Profile' | t }}</button><button mat-button color="primary" (click)="viewStudentResults(student._id)"><mat-icon>visibility</mat-icon>{{ 'View Results' | t }}</button></td></ng-container>
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr><tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
       </table>
-    </div></mat-card-content></mat-card>
+    </div>
+      <div class="student-mobile-list">
+        <article class="student-mobile-card" *ngFor="let student of filteredStudents()">
+          <div class="student-mobile-header">
+            <div class="student-name">
+              <span class="student-avatar">{{ student.fullName?.charAt(0) | uppercase }}</span>
+              <div><strong>{{ student.fullName }}</strong><small>{{ student.role | titlecase }}</small></div>
+            </div>
+            <span class="plan-badge">{{ student.type | uppercase }}</span>
+          </div>
+          <dl>
+            <div><dt>Email</dt><dd>{{ student.email }}</dd></div>
+            <div><dt>Phone</dt><dd>{{ student.phone }}</dd></div>
+            <div><dt>Joined</dt><dd>{{ student.createdAt | date:'mediumDate' }}</dd></div>
+          </dl>
+          <div class="student-mobile-actions">
+            <button mat-stroked-button (click)="openStatusConfirmation(student)" [disabled]="updatingStatus.has(student._id)">
+              {{ isStudentBlocked(student) ? 'Blocked' : (student.isActive === false ? 'Inactive' : 'Active') }}
+            </button>
+            <button mat-button (click)="viewStudentProfile(student)"><mat-icon>person</mat-icon>Profile</button>
+            <button mat-button color="primary" (click)="viewStudentResults(student._id)"><mat-icon>visibility</mat-icon>Results</button>
+          </div>
+        </article>
+      </div>
+    </mat-card-content></mat-card>
     <mat-card class="summary-card">
       <mat-card-header>
         <mat-card-title>{{ 'Summary' | t }}</mat-card-title>

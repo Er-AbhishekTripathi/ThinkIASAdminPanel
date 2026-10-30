@@ -70,7 +70,8 @@ export class TagMasterComponent implements OnInit {
     return this.fb.group({
       category: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
       subCategory: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
-      topic: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]]
+      topic: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
+      types: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]]
     });
   }
 
@@ -111,7 +112,8 @@ export class TagMasterComponent implements OnInit {
     this.tagForm.patchValue({
       category: tag.category,
       subCategory: tag.subCategory,
-      topic: tag.topic
+      topic: tag.topic,
+      types: tag.types
     });
     this.openDialog();
   }

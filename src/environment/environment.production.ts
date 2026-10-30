@@ -1,4 +1,5 @@
 export const environment = {
-  //iUrl: 'https://bytestech.online/api',
-  //apiUrl: 'https://bytestech.online/api'
+  iUrl: 'http://localhost:5000/api',
+  apiUrl: 'http://localhost:5000/api',
+  appVersion: '1.0.0'
 };

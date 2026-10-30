@@ -46,6 +46,10 @@ export class MainsQuestionService {
     return this.http.get<MainsQuestionsResponse>(this.apiUrl, { params });
   }
 
+  getAllQuestions(): Observable<{ questions: MainsQuestion[]; totalCount: number }> {
+    return this.http.get<{ questions: MainsQuestion[]; totalCount: number }>(`${this.apiUrl}/all`);
+  }
+
   createQuestion(question: MainsQuestionInput): Observable<{ question: MainsQuestion }> {
     return this.http.post<{ question: MainsQuestion }>(this.apiUrl, question);
   }

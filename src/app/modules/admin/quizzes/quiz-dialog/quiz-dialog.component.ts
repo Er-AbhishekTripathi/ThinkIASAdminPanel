@@ -42,6 +42,7 @@ interface Question {
 interface Tag {
   _id: string;
   tag: string;
+  types?: string;
   questionCount: number;
 }
 
@@ -93,6 +94,10 @@ export class QuizDialogComponent implements OnInit {
   showAddByUid = signal(false);
   uidTextareaValue = signal('');
   uidProcessingStatus = signal<'idle' | 'loading' | 'success' | 'error'>('idle');
+
+  // Add by Type functionality
+  showAddByType = signal(false);
+  selectedQuestionType = signal('');
   
   // Question selection
   selectedQuestions = signal<Question[]>([]);
@@ -114,11 +119,11 @@ export class QuizDialogComponent implements OnInit {
 
   ngOnInit() {
     this.loadAvailableQuestions().then(() => {
+      this.loadTags();
       if (this.isEdit()) {
         this.populateForm(this.data.quiz);
       }
     });
-    this.loadTags();
   }
 
   loadAvailableQuestions(): Promise<void> {
@@ -187,9 +192,11 @@ export class QuizDialogComponent implements OnInit {
     this.tagsLoading.set(true);
     this.questionService.getTags().subscribe({
       next: (response: any) => {
-        const tags: Tag[] = (response || []).map((tag: any) => ({
+        const tagRows = Array.isArray(response) ? response : (response?.data || []);
+        const tags: Tag[] = tagRows.map((tag: any) => ({
           _id: tag._id,
           tag: tag.tag,
+          types: tag.types || '',
           questionCount: 0
         }));
         this.calculateTagQuestionCounts(tags);
@@ -209,8 +216,10 @@ export class QuizDialogComponent implements OnInit {
       const count = allQuestions.filter(q => 
         q.tags && Array.isArray(q.tags) && 
         q.tags.some((t: any) => {
-          if (typeof t === 'object') return t._id === tag._id || t.tag === tag.tag;
-          return t === tag._id;
+          if (typeof t === 'object') {
+            return String(t._id || '') === String(tag._id) || t.tag === tag.tag;
+          }
+          return String(t) === String(tag._id);
         })
       ).length;
       tag.questionCount = count;
@@ -238,8 +247,10 @@ export class QuizDialogComponent implements OnInit {
       filtered = allQuestions.filter(q => 
         q.tags && Array.isArray(q.tags) && 
         q.tags.some((t: any) => {
-          if (typeof t === 'object') return t._id === tag._id || t.tag === tag.tag;
-          return t === tag._id;
+          if (typeof t === 'object') {
+            return String(t._id || '') === String(tag._id) || t.tag === tag.tag;
+          }
+          return String(t) === String(tag._id);
         })
       );
     }
@@ -278,9 +289,72 @@ export class QuizDialogComponent implements OnInit {
   // Add by UID functionality
   toggleAddByUid() {
     this.showAddByUid.set(!this.showAddByUid());
+    if (this.showAddByUid()) this.showAddByType.set(false);
     if (!this.showAddByUid()) {
       this.uidTextareaValue.set('');
     }
+  }
+
+  questionTypes(): string[] {
+    return [...new Set(
+      this.tags()
+        .map(tag => String(tag.types || '').trim())
+        .filter(type => type.length > 0)
+    )].sort((a, b) => a.localeCompare(b));
+  }
+
+  toggleAddByType() {
+    this.showAddByType.set(!this.showAddByType());
+    if (this.showAddByType()) this.showAddByUid.set(false);
+    if (!this.showAddByType()) this.selectedQuestionType.set('');
+  }
+
+  getQuestionCountByType(): number {
+    const type = this.selectedQuestionType();
+    if (!type) return 0;
+    return this.getQuestionsByType(type).length;
+  }
+
+  getQuestionsByType(type: string): Question[] {
+    return this.allQuestions().filter(question =>
+      question.tags && question.tags.some((tagRef: any) => {
+        if (typeof tagRef === 'object') {
+          const objectType = String(tagRef.types || '').trim();
+          if (objectType) return objectType === type;
+        }
+
+        const tagId = typeof tagRef === 'object'
+          ? String(tagRef._id || '')
+          : String(tagRef || '');
+        const tagName = typeof tagRef === 'object' ? String(tagRef.tag || '') : '';
+        const matchedTag = this.tags().find(tag =>
+          String(tag._id) === tagId || (!!tagName && tag.tag === tagName)
+        );
+        return matchedTag?.types === type;
+      })
+    );
+  }
+
+  processQuestionsByType() {
+    const type = this.selectedQuestionType();
+    if (!type) return;
+
+    const matchingQuestions = this.getQuestionsByType(type);
+    const existingUids = new Set(this.selectedQuestions().map(question => question.uid));
+    const newQuestions = matchingQuestions.filter(question => !existingUids.has(question.uid));
+
+    this.selectedQuestions.set([...this.selectedQuestions(), ...newQuestions]);
+    this.updateQuestionUidsFormControl();
+    this.snackBar.open(
+      `Added ${newQuestions.length} question(s) for type: ${type}`,
+      'Close',
+      { duration: 4000 }
+    );
+
+    if (newQuestions.length === 0) {
+      return;
+    }
+    this.toggleAddByType();
   }
 
   onUidTextareaChange(event: Event) {

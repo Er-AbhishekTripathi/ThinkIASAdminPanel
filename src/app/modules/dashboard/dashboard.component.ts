@@ -39,10 +39,10 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewChecked {
   upcomingTests = signal<any[]>([]);
   recentResults = signal<any[]>([]);
   completedTestsCount = signal<number>(0);
-  totalTestsCount = signal<number>(0);
   prelimsTestsCount = signal<number>(0);
   mainsTestsCount = signal<number>(0);
-  questionBankCount = signal<number>(0);
+  prelimsQuestionBankCount = signal<number>(0);
+  mainsQuestionBankCount = signal<number>(0);
   newSupportRequestsCount = signal<number>(0);
   openSupportRequestsCount = signal<number>(0);
   quizAttemptsCount = signal<number>(0);
@@ -162,10 +162,10 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewChecked {
 
         this.totalStudentsCount.set(stats.totalStudents);
         this.totalResultsCount.set(stats.totalResults);
-        this.totalTestsCount.set(stats.totalTests);
         this.prelimsTestsCount.set(optionalCount(stats.prelimsTests));
         this.mainsTestsCount.set(optionalCount(stats.mainsTests));
-        this.questionBankCount.set(optionalCount(stats.totalQuestions));
+        this.prelimsQuestionBankCount.set(optionalCount(stats.prelimsQuestions ?? stats.totalQuestions));
+        this.mainsQuestionBankCount.set(optionalCount(stats.mainsQuestions));
         this.newSupportRequestsCount.set(optionalCount(stats.newSupportRequests));
         this.openSupportRequestsCount.set(optionalCount(stats.openSupportRequests));
         this.quizAttemptsCount.set(optionalCount(stats.quizAttempts));

@@ -31,11 +31,11 @@ export class TagService {
     return this.http.get<string[]>(`${this.endpoint(section)}/categories`);
   }
 
-  createTag(tagData: { category: string; subCategory: string; topic: string }, section: 'prelims' | 'mains' = 'prelims'): Observable<Tag> {
+  createTag(tagData: { category: string; subCategory: string; topic: string; types: string }, section: 'prelims' | 'mains' = 'prelims'): Observable<Tag> {
     return this.http.post<Tag>(this.endpoint(section), tagData);
   }
 
-  updateTag(tagId: string, tagData: { category: string; subCategory: string; topic: string }, section: 'prelims' | 'mains' = 'prelims'): Observable<Tag> {
+  updateTag(tagId: string, tagData: { category: string; subCategory: string; topic: string; types: string }, section: 'prelims' | 'mains' = 'prelims'): Observable<Tag> {
     return this.http.put<Tag>(`${this.endpoint(section)}/${tagId}`, tagData);
   }
 

@@ -21,6 +21,8 @@ export interface Student {
   updatedAt?: string;
   type?: string;
   isActive?: boolean;
+  isBlocked?: boolean;
+  status?: string;
   planActivatedAt?: string;
   planExpiryAt?: string;
 }
@@ -47,15 +49,32 @@ export class StudentsListComponent implements OnInit {
 
   students = signal<Student[]>([]);
   searchQuery = signal('');
+  statusFilter = signal<'All' | 'Active' | 'Inactive' | 'Blocked'>('All');
   loading = signal(true);
   displayedColumns: string[] = ['fullName', 'email', 'phone', 'plan', 'joinedDate', 'status', 'actions'];
   selectedStudent = signal<Student | null>(null);
   statusConfirmation = signal<Student | null>(null);
   filteredStudents = computed(() => {
     const query = this.searchQuery().trim().toLowerCase();
-    if (!query) return this.students();
-    return this.students().filter(student => [student.fullName, student.email, student.phone, student.type, student.role].some(value => String(value || '').toLowerCase().includes(query)));
+    return this.students().filter(student => {
+      const matchesSearch = !query || [student.fullName, student.email, student.phone, student.type, student.role].some(value =>
+        String(value || '').toLowerCase().includes(query)
+      );
+      const matchesStatus = this.statusFilter() === 'All' ||
+        (this.statusFilter() === 'Active' && student.isActive !== false && !this.isStudentBlocked(student)) ||
+        (this.statusFilter() === 'Inactive' && student.isActive === false && !this.isStudentBlocked(student)) ||
+        (this.statusFilter() === 'Blocked' && this.isStudentBlocked(student));
+      return matchesSearch && matchesStatus;
+    });
   });
+
+  setStatusFilter(status: 'All' | 'Active' | 'Inactive' | 'Blocked') {
+    this.statusFilter.set(status);
+  }
+
+  isStudentBlocked(student: Student): boolean {
+    return student.isBlocked === true || String(student.status || '').toLowerCase() === 'blocked';
+  }
 
   // ADD THIS COMPUTED PROPERTY
   recentStudentsCount = computed(() => {

@@ -14,6 +14,7 @@ export interface Tag {
   category: string;
   subCategory: string;
   topic: string;
+  types: string;
   tag: string; // This will store the combined path: category/sub-category/topic
   createdAt?: Date;
   updatedAt?: Date;

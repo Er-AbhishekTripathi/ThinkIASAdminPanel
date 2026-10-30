@@ -12,4 +12,7 @@ export class LanguageService {
   }
   text(value: string | null | undefined): string { return this.hindi ? HINDI[value || ''] || value || '' : value || ''; }
   content(english: string | null | undefined, hindi?: string | null): string { return this.hindi ? hindi || this.text(english) : english || ''; }
+  localizedContent(english: string | null | undefined, hindi?: string | null): string {
+    return this.hindi ? (typeof hindi === 'string' ? hindi.trim() : '') : (typeof english === 'string' ? english.trim() : '');
+  }
 }

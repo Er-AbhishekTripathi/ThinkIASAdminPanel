@@ -23,7 +23,9 @@ import { MatBadgeModule } from '@angular/material/badge';
 import { debounceTime, distinctUntilChanged, Subject, takeUntil } from 'rxjs';
 
 import { AnswerWritingService, AnswerWriting } from '../../../shared/services/answer-writing.service';
+import { MainsQuestion, MainsQuestionService } from '../../../shared/services/mains-question.service';
 import { FormsModule } from '@angular/forms';
+import { LanguageService } from '../../../shared/i18n/language.service';
 
 // ============================================
 // VALIDATORS
@@ -102,9 +104,20 @@ export class AdminAnswerWritingComponent implements OnInit, OnDestroy {
   // INJECTED SERVICES
   // ============================================
   private answerWritingService = inject(AnswerWritingService);
+  private mainsQuestionService = inject(MainsQuestionService);
   private fb = inject(FormBuilder);
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
+  readonly language = inject(LanguageService);
+
+  localized(english: any, hindi: any): string {
+    const value = this.language.hindi ? hindi : english;
+    return typeof value === 'string' ? value.trim() : '';
+  }
+
+  questionPaperUrl(exercise: AnswerWriting): string {
+    return this.localized(exercise.questionPaperPDF, exercise.questionPaperPDFHi);
+  }
 
   // ============================================
   // SIGNALS
@@ -162,7 +175,14 @@ export class AdminAnswerWritingComponent implements OnInit, OnDestroy {
   // ============================================
   private dialogRef: MatDialogRef<any> | null = null;
   private viewDialogRef: MatDialogRef<any> | null = null;
+  bankDialogRef: MatDialogRef<any> | null = null;
   private destroy$ = new Subject<void>();
+  @ViewChild('questionBankDialog') questionBankDialog!: TemplateRef<any>;
+  mainsBankQuestions: MainsQuestion[] = [];
+  filteredMainsBankQuestions: MainsQuestion[] = [];
+  questionBankSearch = '';
+  questionBankLoading = false;
+  selectedMainsQuestionIds = new Set<string>();
 
   // ============================================
   // CONSTRUCTOR
@@ -177,6 +197,7 @@ export class AdminAnswerWritingComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.loadExercises();
     this.setupSearchFilter();
+    this.loadMainsQuestionBank();
   }
 
   ngOnDestroy() {
@@ -349,6 +370,94 @@ export class AdminAnswerWritingComponent implements OnInit, OnDestroy {
   removeQuestion(index: number) {
     const questions = this.exerciseForm.get('questions') as FormArray;
     questions.removeAt(index);
+  }
+
+  loadMainsQuestionBank(): void {
+    this.questionBankLoading = true;
+    this.mainsQuestionService.getAllQuestions().subscribe({
+      next: (response) => {
+        this.mainsBankQuestions = response.questions || [];
+        this.filteredMainsBankQuestions = [...this.mainsBankQuestions];
+        this.questionBankLoading = false;
+      },
+      error: () => {
+        this.mainsBankQuestions = [];
+        this.filteredMainsBankQuestions = [];
+        this.questionBankLoading = false;
+      }
+    });
+  }
+
+  openQuestionBank(): void {
+    this.questionBankSearch = '';
+    this.filteredMainsBankQuestions = [...this.mainsBankQuestions];
+    this.selectedMainsQuestionIds.clear();
+    this.bankDialogRef = this.dialog.open(this.questionBankDialog, {
+      width: '760px',
+      maxWidth: '95vw',
+      maxHeight: '90vh',
+      panelClass: 'question-bank-dialog'
+    });
+  }
+
+  filterMainsQuestions(): void {
+    const search = this.questionBankSearch.trim().toLowerCase();
+    if (!search) {
+      this.filteredMainsBankQuestions = [...this.mainsBankQuestions];
+      return;
+    }
+    this.filteredMainsBankQuestions = this.mainsBankQuestions.filter(question =>
+      question.question?.english?.toLowerCase().includes(search) ||
+      question.question?.hindi?.toLowerCase().includes(search)
+    );
+  }
+
+  selectMainsQuestion(question: MainsQuestion): void {
+    const questions = this.exerciseForm.get('questions') as FormArray;
+    if (questions.length === 1) {
+      const current = questions.at(0) as FormGroup;
+      if (!current.get('questionText')?.value && !current.get('questionTextHi')?.value) {
+        questions.removeAt(0);
+      }
+    }
+    questions.push(this.fb.group({
+      questionText: [question.question?.english || '', Validators.required],
+      questionTextHi: [question.question?.hindi || '']
+    }));
+    this.bankDialogRef?.close();
+  }
+
+  toggleMainsQuestion(question: MainsQuestion): void {
+    if (this.selectedMainsQuestionIds.has(question._id)) {
+      this.selectedMainsQuestionIds.delete(question._id);
+    } else {
+      this.selectedMainsQuestionIds.add(question._id);
+    }
+  }
+
+  isMainsQuestionSelected(question: MainsQuestion): boolean {
+    return this.selectedMainsQuestionIds.has(question._id);
+  }
+
+  addSelectedMainsQuestions(): void {
+    const questions = this.exerciseForm.get('questions') as FormArray;
+    if (questions.length === 1) {
+      const current = questions.at(0) as FormGroup;
+      if (!current.get('questionText')?.value && !current.get('questionTextHi')?.value) {
+        questions.removeAt(0);
+      }
+    }
+
+    const selectedQuestions = this.mainsBankQuestions.filter(question =>
+      this.selectedMainsQuestionIds.has(question._id)
+    );
+    selectedQuestions.forEach(question => {
+      questions.push(this.fb.group({
+        questionText: [question.question?.english || '', Validators.required],
+        questionTextHi: [question.question?.hindi || '']
+      }));
+    });
+    this.bankDialogRef?.close();
   }
 
   formatDateTimeForInput(date: Date): string {

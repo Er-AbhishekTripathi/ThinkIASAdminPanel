@@ -172,6 +172,11 @@
               Add By UID
             </button>
 
+            <button type="button" mat-stroked-button color="accent" (click)="toggleAddByType()" class="add-by-type-btn">
+              <mat-icon>category</mat-icon>
+              Add By Type
+            </button>
+
             <button type="button" mat-stroked-button color="primary" (click)="toggleTagFilter()"
               class="filter-by-tag-btn">
               <mat-icon>filter_list</mat-icon>
@@ -214,7 +219,8 @@
 
             <div *ngIf="!tagsLoading() && tags().length > 0" class="tags-grid">
               <button *ngFor="let tag of tags()" type="button" mat-stroked-button
-                [class.active]="currentFilterTag() === tag.tag" (click)="applyTagFilter(tag)" class="tag-button">
+                [class.active]="currentFilterTag() === tag.tag" (click)="applyTagFilter(tag)"
+                [attr.title]="tag.tag" class="tag-button">
                 <span class="tag-name">{{ tag.tag }}</span>
                 <span class="tag-count">{{ tag.questionCount }}</span>
               </button>
@@ -286,6 +292,43 @@
           </div>
         </div>
 
+        <!-- Add by Type Section -->
+        <div *ngIf="showAddByType()" class="add-by-type-section add-by-uid-section">
+          <div class="type-selection-container">
+            <div class="textarea-header">
+              <h4 class="textarea-title">Add Questions by Type</h4>
+              <span class="uid-count" *ngIf="selectedQuestionType()">
+                {{ getQuestionCountByType() }} question(s) found
+              </span>
+            </div>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Select Type</mat-label>
+              <mat-select [value]="selectedQuestionType()"
+                (selectionChange)="selectedQuestionType.set($event.value)">
+                <mat-option *ngFor="let type of questionTypes()" [value]="type">{{ type }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <div class="uid-section-actions">
+            <button type="button" mat-stroked-button (click)="selectedQuestionType.set('')"
+              [disabled]="!selectedQuestionType()">
+              <mat-icon>clear_all</mat-icon>
+              Clear
+            </button>
+            <button type="button" mat-raised-button color="primary" (click)="processQuestionsByType()"
+              [disabled]="!selectedQuestionType() || getQuestionCountByType() === 0">
+              <mat-icon>add_circle</mat-icon>
+              Add to Test
+            </button>
+            <button type="button" mat-stroked-button color="warn" (click)="toggleAddByType()">
+              <mat-icon>close</mat-icon>
+              Close
+            </button>
+          </div>
+        </div>
+
         <!-- Questions Multi-select -->
         <div class="questions-select-section">
           <mat-form-field appearance="outline" class="full-width">
@@ -307,7 +350,10 @@
                     </mat-icon>
                   </div>
                   <div class="question-preview">
-                    <div class="question-text-preview" [innerHTML]="getQuestionDisplayText(question)"></div>
+                    <div class="question-text-preview question-text-english"
+                      [innerHTML]="question.question.english"></div>
+                    <div *ngIf="question.question.hindi" class="question-text-preview question-text-hindi"
+                      [innerHTML]="question.question.hindi"></div>
                     <div class="question-meta">
                       <span class="correct-answer">
                         Correct: {{ getOptionLetter(question.correctAnswer) }}

@@ -119,8 +119,9 @@
   background: #f8f9fa;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
-  padding: 20px;
+  padding: 16px;
   margin-bottom: 20px;
+  overflow: hidden;
 }
 
 .filter-header {
@@ -143,6 +144,7 @@
 
 .tags-container {
   min-height: 100px;
+  width: 100%;
 }
 
 .tags-loading {
@@ -156,16 +158,21 @@
 
 .tags-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 240px));
+  gap: 10px;
+  align-items: stretch;
 }
 
 .tag-button {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 44px;
   padding: 10px 16px;
-  border-radius: 6px;
+  border-radius: 8px;
+  overflow: hidden;
   transition: all 0.2s;
 }
 
@@ -176,11 +183,16 @@
 
 .tag-name {
   font-weight: 500;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .tag-count {
   font-size: 0.9rem;
   opacity: 0.8;
+  flex: 0 0 auto;
 }
 
 .no-tags {
@@ -583,9 +595,38 @@
   .action-buttons button {
     width: 100%;
   }
+
+  .questions-section {
+    padding: 16px;
+  }
+
+  .filter-by-tag-section {
+    padding: 12px;
+  }
+
+  .filter-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .filter-actions {
+    width: 100%;
+  }
+
+  .filter-actions button {
+    flex: 1 1 0;
+    min-width: 0;
+  }
   
   .tags-grid {
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .tag-button {
+    height: 46px;
+    padding: 8px 10px;
   }
   
   .options-grid {

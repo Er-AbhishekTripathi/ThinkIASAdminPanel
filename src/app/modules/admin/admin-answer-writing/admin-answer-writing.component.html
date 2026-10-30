@@ -138,9 +138,7 @@
   <mat-card-header>
     <mat-card-title>
       <span class="exercise-title">
-        {{ exercise.name }}
-        <span class="title-separator">/</span>
-        <span class="title-hindi">{{ exercise.nameHi }}</span>
+        {{ localized(exercise.name, exercise.nameHi) }}
       </span>
       <span 
         class="status-badge" 
@@ -170,10 +168,7 @@
   <!-- Card Content -->
   <mat-card-content>
     <p class="exercise-description">
-      {{ exercise.description }}
-      <span class="description-hindi" *ngIf="exercise.descriptionHi">
-        / {{ exercise.descriptionHi }}
-      </span>
+      {{ localized(exercise.description, exercise.descriptionHi) }}
     </p>
     
     <div class="exercise-meta">
@@ -188,20 +183,14 @@
     </div>
 
     <!-- PDF Links -->
-    <div class="pdf-links" *ngIf="exercise.questionPaperPDF || exercise.questionPaperPDFHi">
+    <div class="pdf-links" *ngIf="questionPaperUrl(exercise)">
       <a 
-        *ngIf="exercise.questionPaperPDF" 
-        [href]="exercise.questionPaperPDF" 
+        [href]="questionPaperUrl(exercise)" 
         target="_blank" 
-        class="pdf-link english">
-        <i class="fas fa-file-pdf"></i> English PDF
-      </a>
-      <a 
-        *ngIf="exercise.questionPaperPDFHi" 
-        [href]="exercise.questionPaperPDFHi" 
-        target="_blank" 
-        class="pdf-link hindi">
-        <i class="fas fa-file-pdf"></i> हिंदी PDF
+        class="pdf-link"
+        [class.english]="!language.hindi"
+        [class.hindi]="language.hindi">
+        <i class="fas fa-file-pdf"></i> {{ language.hindi ? 'हिंदी PDF' : 'English PDF' }}
       </a>
     </div>
   </mat-card-content>
@@ -254,7 +243,7 @@
 
     <div class="modal-body">
       <!-- Model Remark -->
-      <div class="form-group">
+      <div class="form-group model-answer-editor model-answer-remark">
         <label for="modelRemark">
           <i class="fas fa-comment"></i> Model Remark
         </label>
@@ -286,7 +275,7 @@
       </div>
 
       <!-- Model Answer - English -->
-      <div class="form-group">
+      <div class="form-group model-answer-editor model-answer-english">
         <label for="modelAnswerEnglish">
           <i class="fas fa-language"></i> Model Answer (English)
         </label>
@@ -341,7 +330,7 @@
       </div>
 
       <!-- Model Answer - Hindi -->
-      <div class="form-group">
+      <div class="form-group model-answer-editor model-answer-hindi">
         <label for="modelAnswerHindi">
           <i class="fas fa-language"></i> Model Answer (हिंदी)
         </label>
@@ -733,13 +722,9 @@
               <h3>Description</h3>
             </div>
             <div class="description-grid">
-              <div class="desc-box english">
-                <span class="lang-label">English</span>
-                <p>{{ viewingExercise?.description || 'Not provided' }}</p>
-              </div>
-              <div class="desc-box hindi">
-                <span class="lang-label">हिंदी</span>
-                <p>{{ viewingExercise?.descriptionHi || 'Not provided' }}</p>
+              <div class="desc-box" [class.english]="!language.hindi" [class.hindi]="language.hindi">
+                <span class="lang-label">{{ language.hindi ? 'हिंदी' : 'English' }}</span>
+                <p>{{ localized(viewingExercise?.description, viewingExercise?.descriptionHi) || 'Not provided' }}</p>
               </div>
             </div>
           </div>
@@ -754,28 +739,22 @@
               <div *ngFor="let question of viewingExercise?.questions; let i = index" class="question-card">
                 <div class="question-number">Q{{ i + 1 }}</div>
                 <div class="question-text">
-                  <p class="en">{{ question.questionText }}</p>
-                  <p class="hi" *ngIf="question.questionTextHi">{{ question.questionTextHi }}</p>
+                  <p [class.en]="!language.hindi" [class.hi]="language.hindi">{{ localized(question.questionText, question.questionTextHi) }}</p>
                 </div>
               </div>
             </div>
           </div>
 
           <!-- PDF Links -->
-          <div *ngIf="viewingExercise?.questionPaperPDF || viewingExercise?.questionPaperPDFHi" class="info-section">
+          <div *ngIf="viewingExercise && questionPaperUrl(viewingExercise)" class="info-section">
             <div class="section-header">
               <i class="fas fa-file-pdf"></i>
               <h3>Question Papers</h3>
             </div>
             <div class="pdf-grid">
-              <a *ngIf="viewingExercise?.questionPaperPDF" [href]="viewingExercise?.questionPaperPDF" target="_blank" class="pdf-btn english">
+              <a [href]="questionPaperUrl(viewingExercise)" target="_blank" class="pdf-btn" [class.english]="!language.hindi" [class.hindi]="language.hindi">
                 <i class="fas fa-file-pdf"></i>
-                <span>English PDF</span>
-                <i class="fas fa-external-link-alt"></i>
-              </a>
-              <a *ngIf="viewingExercise?.questionPaperPDFHi" [href]="viewingExercise?.questionPaperPDFHi" target="_blank" class="pdf-btn hindi">
-                <i class="fas fa-file-pdf"></i>
-                <span>हिंदी PDF</span>
+                <span>{{ language.hindi ? 'हिंदी PDF' : 'English PDF' }}</span>
                 <i class="fas fa-external-link-alt"></i>
               </a>
             </div>
@@ -924,9 +903,14 @@
                   </mat-form-field>
                 </div>
                 
-                <button mat-stroked-button type="button" class="add-question-btn" (click)="addQuestion()">
-                  <i class="fas fa-plus"></i> Add Question
-                </button>
+                <div class="question-actions">
+                  <button mat-stroked-button color="primary" type="button" class="add-question-btn" (click)="openQuestionBank()">
+                    <i class="fas fa-book-open"></i> Select from Mains Question Bank
+                  </button>
+                  <button mat-stroked-button type="button" class="add-question-btn" (click)="addQuestion()">
+                    <i class="fas fa-plus"></i> Add Question Manually
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -1035,5 +1019,61 @@
             </button>
           </div>
         </form>
+      </div>
+    </ng-template>
+ 
+    <ng-template #questionBankDialog>
+      <div class="question-bank-modal">
+        <div class="question-bank-header">
+          <div>
+            <h2><i class="fas fa-book-open"></i> Mains Question Bank</h2>
+            <p>Select a question to add to this exercise.</p>
+          </div>
+          <button mat-icon-button type="button" (click)="bankDialogRef?.close()">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+
+        <mat-form-field appearance="outline" class="full-width question-bank-search">
+          <mat-label>Search Mains questions</mat-label>
+          <input matInput [(ngModel)]="questionBankSearch" (ngModelChange)="filterMainsQuestions()"
+            [ngModelOptions]="{standalone: true}" placeholder="English or Hindi text">
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+
+        <div *ngIf="questionBankLoading" class="question-bank-loading">
+          <mat-spinner diameter="32"></mat-spinner>
+        </div>
+
+        <div class="question-bank-list" *ngIf="!questionBankLoading">
+          <div *ngIf="filteredMainsBankQuestions.length === 0" class="question-bank-empty">
+            No Mains questions found.
+          </div>
+          <div class="question-bank-item"
+            *ngFor="let question of filteredMainsBankQuestions; let i = index"
+            [class.selected]="isMainsQuestionSelected(question)"
+            (click)="toggleMainsQuestion(question)">
+            <input type="checkbox" class="question-bank-checkbox"
+              [checked]="isMainsQuestionSelected(question)"
+              (change)="toggleMainsQuestion(question)"
+              (click)="$event.stopPropagation()"
+              aria-label="Select question">
+            <span class="question-bank-number">{{ i + 1 }}</span>
+            <span class="question-bank-content">
+              <strong *ngIf="question.question?.english">{{ question.question.english }}</strong>
+              <span *ngIf="question.question?.hindi">{{ question.question.hindi }}</span>
+            </span>
+            <mat-icon>add_circle_outline</mat-icon>
+          </div>
+        </div>
+        <div class="question-bank-footer">
+          <button mat-button type="button" (click)="bankDialogRef?.close()">Cancel</button>
+          <button mat-raised-button color="primary" type="button"
+            [disabled]="selectedMainsQuestionIds.size === 0"
+            (click)="addSelectedMainsQuestions()">
+            <mat-icon>playlist_add_check</mat-icon>
+            Add Selected ({{ selectedMainsQuestionIds.size }})
+          </button>
+        </div>
       </div>
     </ng-template>

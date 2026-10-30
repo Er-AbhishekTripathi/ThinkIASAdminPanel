@@ -17,6 +17,8 @@ import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 import { TestService } from '../../../shared/services/test.service';
 import { QuestionService } from '../../../shared/services/question.service';
+import { MainsQuestionService } from '../../../shared/services/mains-question.service';
+import { TagService } from '../../../shared/services/tag.service';
 import { FormsModule } from '@angular/forms';
 
 interface Question {
@@ -46,6 +48,7 @@ interface Question {
 interface Tag {
   _id: string;
   tag: string;
+  types?: string;
   questionCount: number;
 }
 
@@ -77,6 +80,8 @@ export class CreateTestDialogComponent implements OnInit {
   private fb = inject(FormBuilder);
   private testService = inject(TestService);
   private questionService = inject(QuestionService);
+  private mainsQuestionService = inject(MainsQuestionService);
+  private tagService = inject(TagService);
   private snackBar = inject(MatSnackBar);
   private dialogRef = inject(MatDialogRef<CreateTestDialogComponent>);
   private data = inject(MAT_DIALOG_DATA);
@@ -100,6 +105,8 @@ export class CreateTestDialogComponent implements OnInit {
   showAddByUid = signal(false);
   uidTextareaValue = signal('');
   uidProcessingStatus = signal<'idle' | 'loading' | 'success' | 'error'>('idle');
+  showAddByType = signal(false);
+  selectedQuestionType = signal('');
   
   // Question selection
   selectedQuestions = signal<Question[]>([]);
@@ -266,6 +273,7 @@ endTimeValidator(control: FormControl): { [key: string]: any } | null {
 
   ngOnInit() {
     this.loadAvailableQuestions().then(() => {
+      this.loadTags();
       if (this.isEdit()) {
         this.populateForm(this.data.test);
       } else {
@@ -279,17 +287,20 @@ endTimeValidator(control: FormControl): { [key: string]: any } | null {
         }
       }
     });
-    this.loadTags();
   }
 
   loadAvailableQuestions(): Promise<void> {
     return new Promise((resolve, reject) => {
       this.questionsLoading.set(true);
-      this.questionService.getAllQuestions().subscribe({
+      const isMains = this.data.seriesKind === 'mains';
+      const request = isMains
+        ? this.mainsQuestionService.getAllQuestions()
+        : this.questionService.getAllQuestions();
+      request.subscribe({
         next: (response: any) => {
           const questions: Question[] = (response.questions || []).map((q: any) => ({
             _id: q._id,
-            uid: q.uid,
+            uid: isMains ? String(q._id) : q.uid,
             question: {
               english: q.question?.english || '',
               hindi: q.question?.hindi || '',
@@ -346,11 +357,17 @@ endTimeValidator(control: FormControl): { [key: string]: any } | null {
 
   loadTags() {
     this.tagsLoading.set(true);
-    this.questionService.getTags().subscribe({
+    const isMains = this.data.seriesKind === 'mains';
+    const request = isMains
+      ? this.tagService.getTags('mains')
+      : this.questionService.getTags();
+    request.subscribe({
       next: (response: any) => {
-        const tags: Tag[] = (response || []).map((tag: any) => ({
+        const tagRows = Array.isArray(response) ? response : (response?.data || []);
+        const tags: Tag[] = tagRows.map((tag: any) => ({
           _id: tag._id,
           tag: tag.tag,
+          types: tag.types || '',
           questionCount: 0
         }));
         this.calculateTagQuestionCounts(tags);
@@ -424,9 +441,70 @@ endTimeValidator(control: FormControl): { [key: string]: any } | null {
   // Add by UID functionality
   toggleAddByUid() {
     this.showAddByUid.set(!this.showAddByUid());
+    if (this.showAddByUid()) this.showAddByType.set(false);
     if (!this.showAddByUid()) {
       this.uidTextareaValue.set('');
     }
+  }
+
+  toggleAddByType() {
+    this.showAddByType.set(!this.showAddByType());
+    if (this.showAddByType()) this.showAddByUid.set(false);
+    if (!this.showAddByType()) this.selectedQuestionType.set('');
+  }
+
+  questionTypes(): string[] {
+    return [...new Set(
+      this.tags()
+        .map(tag => String(tag.types || '').trim())
+        .filter(type => type.length > 0)
+    )].sort((a, b) => a.localeCompare(b));
+  }
+
+  getQuestionsByType(type: string): Question[] {
+    return this.allQuestions().filter(question =>
+      (question.tags || []).some((tagRef: any) => {
+        if (typeof tagRef === 'object') {
+          const objectType = String(tagRef.types || '').trim();
+          if (objectType) return objectType === type;
+        }
+        const tagId = typeof tagRef === 'object' ? String(tagRef._id || '') : String(tagRef || '');
+        const tagName = typeof tagRef === 'object' ? String(tagRef.tag || '') : '';
+        const matchedTag = this.tags().find(tag =>
+          String(tag._id) === tagId || (!!tagName && tag.tag === tagName)
+        );
+        return matchedTag?.types === type;
+      })
+    );
+  }
+
+  getQuestionCountByType(): number {
+    const type = this.selectedQuestionType();
+    return type ? this.getQuestionsByType(type).length : 0;
+  }
+
+  processQuestionsByType() {
+    const type = this.selectedQuestionType();
+    if (!type) return;
+
+    const existingUids = new Set(this.selectedQuestions().map(question => question.uid));
+    const newQuestions = this.getQuestionsByType(type)
+      .filter(question => !existingUids.has(question.uid));
+
+    if (newQuestions.length > 0) {
+      const updatedQuestions = [...this.selectedQuestions(), ...newQuestions];
+      this.selectedQuestions.set(updatedQuestions);
+      this.temporarilySelectedUids.set(updatedQuestions.map(question => question.uid));
+    }
+
+    this.snackBar.open(
+      newQuestions.length > 0
+        ? `Added ${newQuestions.length} question(s) for type: ${type}`
+        : `No new questions found for type: ${type}`,
+      'Close',
+      { duration: 4000 }
+    );
+    this.toggleAddByType();
   }
 
   onUidTextareaChange(event: Event) {

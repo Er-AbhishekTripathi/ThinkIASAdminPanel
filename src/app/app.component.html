@@ -49,7 +49,8 @@
       <mat-sidenav #sidenav [mode]="getSidenavMode()" [opened]="isSidenavOpen()"
         (openedChange)="onSidenavToggle($event)" class="app-sidenav">
         <mat-nav-list>
-          <ng-container *ngFor="let item of authService.menuItems()">
+          <ng-template #renderMenu let-items>
+            <ng-container *ngFor="let item of items">
             <a *ngIf="!item.children?.length" mat-list-item [routerLink]="item.path"
               routerLinkActive="active-link" class="nav-item" (click)="closeSidenavOnMobile()">
               <mat-icon matListIcon class="nav-icon">{{ getMenuIcon(item) }}</mat-icon>
@@ -58,20 +59,20 @@
 
             <button *ngIf="item.children?.length" type="button" class="nav-item nav-parent"
               [class.active-parent]="isMenuExpanded(item.name)"
-              [attr.aria-expanded]="isMenuExpanded(item.name)" (click)="toggleMenu(item.name)">
+              [class.exam-section-parent]="item.name === 'Prelims Examination' || item.name === 'Mains Section'"
+              [attr.aria-expanded]="isMenuExpanded(item.name)"
+              (click)="toggleMenu(item.name, getSiblingMenuNames(items, item.name))">
               <mat-icon class="nav-icon">{{ getMenuIcon(item) }}</mat-icon>
               <span class="nav-text">{{ item.name | t }}</span>
               <mat-icon class="expand-icon">{{ isMenuExpanded(item.name) ? 'expand_less' : 'expand_more' }}</mat-icon>
             </button>
 
             <div *ngIf="item.children?.length && isMenuExpanded(item.name)" class="submenu">
-              <a mat-list-item *ngFor="let child of item.children" [routerLink]="child.path"
-                routerLinkActive="active-link" class="nav-item submenu-item" (click)="closeSidenavOnMobile()">
-                <mat-icon matListIcon class="nav-icon">{{ getMenuIcon(child) }}</mat-icon>
-                <span class="nav-text">{{ child.name | t }}</span>
-              </a>
+              <ng-container *ngTemplateOutlet="renderMenu; context: {$implicit: item.children}"></ng-container>
             </div>
-          </ng-container>
+            </ng-container>
+          </ng-template>
+          <ng-container *ngTemplateOutlet="renderMenu; context: {$implicit: authService.menuItems()}"></ng-container>
         </mat-nav-list>
       </mat-sidenav>
   

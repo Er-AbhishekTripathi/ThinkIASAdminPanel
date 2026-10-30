@@ -333,6 +333,17 @@ Q2H. भारत के प्रथम प्रधानमंत्री �
     <mat-dialog-content class="dialog-content">
       <form [formGroup]="addTagForm" (ngSubmit)="onAddTagSubmit()" class="add-tag-form">
         <div class="form-group">
+          <label for="types">Types *</label>
+          <input type="text" id="types" formControlName="types" placeholder="Enter type (e.g., MCQ, Question, Practice)"
+            class="form-control" [class.error]="isAddTagFieldInvalid('types')">
+          <div *ngIf="isAddTagFieldInvalid('types')" class="error-message">
+            <span *ngIf="addTagForm.get('types')?.errors?.['required']">Types is required</span>
+            <span *ngIf="addTagForm.get('types')?.errors?.['minlength']">Types must be at least 2 characters long</span>
+            <span *ngIf="addTagForm.get('types')?.errors?.['maxlength']">Types cannot exceed 50 characters</span>
+          </div>
+        </div>
+
+        <div class="form-group">
           <label for="category">Category *</label>
           <input 
             type="text" 
@@ -384,7 +395,8 @@ Q2H. भारत के प्रथम प्रधानमंत्री �
         <div class="form-group" *ngIf="addTagForm.valid">
           <label>Full Path Preview:</label>
           <div class="path-preview">
-            {{ addTagForm.get('category')?.value | titlecase }} / 
+            {{ addTagForm.get('types')?.value | titlecase }} /
+            {{ addTagForm.get('category')?.value | titlecase }} /
             {{ addTagForm.get('subCategory')?.value | titlecase }} / 
             {{ addTagForm.get('topic')?.value | titlecase }}
           </div>

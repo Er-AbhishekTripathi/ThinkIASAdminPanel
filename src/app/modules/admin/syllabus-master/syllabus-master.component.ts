@@ -52,10 +52,10 @@ export class SyllabusMasterComponent implements OnInit {
   syllabusSubTab: 'prelims' | 'mains' = 'prelims';
   
   // Topicwise subtabs
-  topicwiseSubTab: 'prelims1' | 'prelims2' | 'gs1' | 'gs2' | 'gs3' | 'gs4' | 'essay' | 'optional' = 'prelims1';
+  topicwiseSubTab: 'prelims1' | 'prelims2' | 'gs1' | 'gs2' | 'gs3' | 'gs4' | 'essay' | 'optional' | 'qualifying' = 'prelims1';
   
   // Video subtabs
-  videoSubTab: 'gs1' | 'gs2' | 'gs3' | 'gs4' | 'essay' | 'strategy' | 'current' | 'mock' = 'gs1';
+  videoSubTab: 'gs1' | 'gs2' | 'gs3' | 'gs4' | 'essay' | 'qualifying' | 'strategy' | 'current' | 'mock' = 'gs1';
   
   // Forms (keep existing)
   prelimsForm: FormGroup;
@@ -81,6 +81,7 @@ export class SyllabusMasterComponent implements OnInit {
            (this.mainsData.gs3 && (this.mainsData.gs3.fileNameEnglish || this.mainsData.gs3.fileNameHindi)) ||
            (this.mainsData.gs4 && (this.mainsData.gs4.fileNameEnglish || this.mainsData.gs4.fileNameHindi)) ||
            (this.mainsData.essay && (this.mainsData.essay.fileNameEnglish || this.mainsData.essay.fileNameHindi)) ||
+           (this.mainsData.qualifying && (this.mainsData.qualifying.fileNameEnglish || this.mainsData.qualifying.fileNameHindi)) ||
            (this.mainsData.optionalSubjects && this.mainsData.optionalSubjects.length > 0);
   }
 
@@ -125,12 +126,12 @@ export class SyllabusMasterComponent implements OnInit {
     }
   }
 
-  switchTopicwiseSubTab(subtab: 'prelims1' | 'prelims2' | 'gs1' | 'gs2' | 'gs3' | 'gs4' | 'essay' | 'optional'): void {
+  switchTopicwiseSubTab(subtab: 'prelims1' | 'prelims2' | 'gs1' | 'gs2' | 'gs3' | 'gs4' | 'essay' | 'optional' | 'qualifying'): void {
     this.topicwiseSubTab = subtab;
   }
 
   // New method for video subtabs
-  switchVideoSubTab(subtab: 'gs1' | 'gs2' | 'gs3' | 'gs4' | 'essay' | 'strategy' | 'current' | 'mock'): void {
+  switchVideoSubTab(subtab: 'gs1' | 'gs2' | 'gs3' | 'gs4' | 'essay' | 'qualifying' | 'strategy' | 'current' | 'mock'): void {
     this.videoSubTab = subtab;
   }
 
@@ -225,6 +226,14 @@ export class SyllabusMasterComponent implements OnInit {
         fileLinkHindi: ['', [Validators.pattern('https?://.+')]],
         descriptionHindi: ['']
       }, { validators: atLeastOneLanguageValidator }),
+      qualifying: this.fb.group({
+        fileNameEnglish: [''],
+        fileLinkEnglish: ['', [Validators.pattern('https?://.+')]],
+        descriptionEnglish: [''],
+        fileNameHindi: [''],
+        fileLinkHindi: ['', [Validators.pattern('https?://.+')]],
+        descriptionHindi: ['']
+      }, { validators: atLeastOneLanguageValidator }),
       optionalSubjects: this.fb.array([])
     });
   }
@@ -233,6 +242,7 @@ export class SyllabusMasterComponent implements OnInit {
   get mainsGs2Form(): FormGroup { return this.mainsForm.get('gs2') as FormGroup; }
   get mainsGs3Form(): FormGroup { return this.mainsForm.get('gs3') as FormGroup; }
   get mainsGs4Form(): FormGroup { return this.mainsForm.get('gs4') as FormGroup; }
+  get mainsQualifyingForm(): FormGroup { return this.mainsForm.get('qualifying') as FormGroup; }
   get mainsEssayForm(): FormGroup { return this.mainsForm.get('essay') as FormGroup; }
   get optionalSubjects(): FormArray { return this.mainsForm.get('optionalSubjects') as FormArray; }
 
@@ -327,7 +337,7 @@ export class SyllabusMasterComponent implements OnInit {
     this.optionalSubjects.clear();
 
     // Populate GS papers and Essay
-    ['essay', 'gs1', 'gs2', 'gs3', 'gs4'].forEach((paper) => {
+    ['essay', 'qualifying', 'gs1', 'gs2', 'gs3', 'gs4'].forEach((paper) => {
       if (data[paper]) {
         const paperForm = this.mainsForm.get(paper) as FormGroup;
         paperForm.patchValue({
@@ -407,6 +417,7 @@ export class SyllabusMasterComponent implements OnInit {
         gs3: this.mainsGs3Form.value,
         gs4: this.mainsGs4Form.value,
         essay: this.mainsEssayForm.value,
+        qualifying: this.mainsQualifyingForm.value,
         optionalSubjects: []
       };
 
@@ -572,7 +583,8 @@ clearMainsForm() {
     gs2: { fileNameEnglish: '', fileNameHindi: '' },
     gs3: { fileNameEnglish: '', fileNameHindi: '' },
     gs4: { fileNameEnglish: '', fileNameHindi: '' },
-    essay: { fileNameEnglish: '', fileNameHindi: '' }
+    essay: { fileNameEnglish: '', fileNameHindi: '' },
+    qualifying: { fileNameEnglish: '', fileNameHindi: '' }
   };
 }
 

@@ -39,6 +39,7 @@
         <table>
           <thead>
             <tr>
+              <th>Types</th>
               <th>Category</th>
               <th>Sub-Category</th>
               <th>Topic</th>
@@ -48,6 +49,9 @@
           </thead>
           <tbody>
             <tr *ngFor="let tag of tags">
+              <td class="types-name">
+                <span class="types-badge">{{ tag.types | titlecase }}</span>
+              </td>
               <td class="category-name">
                 <span class="category-badge">{{ tag.category | titlecase }}</span>
               </td>
@@ -58,7 +62,7 @@
                 <span class="topic-badge">{{ tag.topic | titlecase }}</span>
               </td>
               <td class="full-path">
-                <code>{{ tag.tag }}</code>
+                <code>{{ tag.types }}/{{ tag.category }}/{{ tag.subCategory }}/{{ tag.topic }}</code>
               </td>
               <td class="actions">
                 <button 
@@ -94,6 +98,22 @@
 
     <mat-dialog-content class="dialog-content">
       <form [formGroup]="tagForm" (ngSubmit)="onSubmit()" class="tag-form">
+        <div class="form-group">
+          <label for="types">Types *</label>
+          <input
+            type="text"
+            id="types"
+            formControlName="types"
+            placeholder="Enter type (e.g., MCQ, Question, Practice)"
+            class="form-control"
+            [class.error]="isFieldInvalid('types')">
+          <div *ngIf="isFieldInvalid('types')" class="error-message">
+            <span *ngIf="tagForm.get('types')?.errors?.['required']">Types is required</span>
+            <span *ngIf="tagForm.get('types')?.errors?.['minlength']">Types must be at least 2 characters long</span>
+            <span *ngIf="tagForm.get('types')?.errors?.['maxlength']">Types cannot exceed 50 characters</span>
+          </div>
+        </div>
+
         <div class="form-group">
           <label for="category">Category *</label>
           <input 
@@ -150,7 +170,8 @@
         <div class="form-group" *ngIf="tagForm.valid">
           <label>Full Path Preview:</label>
           <div class="path-preview">
-            {{ tagForm.get('category')?.value | titlecase }} / 
+            {{ tagForm.get('types')?.value | titlecase }} /
+            {{ tagForm.get('category')?.value | titlecase }} /
             {{ tagForm.get('subCategory')?.value | titlecase }} / 
             {{ tagForm.get('topic')?.value | titlecase }}
           </div>
