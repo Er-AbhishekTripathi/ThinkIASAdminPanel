@@ -103,6 +103,11 @@
           <div class="questions-count">{{ totalQuestions() }} questions</div>
         </div>
         <div class="action-buttons">
+          <button mat-stroked-button type="button" class="delete-all-button"
+            (click)="deleteAllQuestions()" [disabled]="loading() || totalQuestions() === 0">
+            <mat-icon>delete_forever</mat-icon>
+            {{ 'Delete All' | t }}
+          </button>
           <button class="btn btn-primary" (click)="openCreateQuestionDialog()">
             <mat-icon>add</mat-icon>
             {{ 'Add New Question' | t }}
@@ -135,6 +140,11 @@
             <button mat-button (click)="showSelectedUIDs()" class="uid-btn" matTooltip="Show selected question UIDs">
               <mat-icon>list</mat-icon>
               {{ 'Show UIDs' | t }}
+            </button>
+            <button mat-button (click)="copySelectedUIDs()" class="copy-selected-uid-btn"
+              [matTooltip]="language.hindi ? 'चयनित प्रश्नों के UID कॉपी करें' : 'Copy selected question UIDs'">
+              <mat-icon>content_copy</mat-icon>
+              {{ language.hindi ? 'UID कॉपी करें' : 'Copy UID' }}
             </button>
             <button mat-button color="accent" (click)="exportSelectedToCSV()" 
           [disabled]="selectedQuestions().length === 0" class="export-btn">
@@ -233,7 +243,14 @@
                   {{ (currentPage() * pageSize()) + i + 1 }}
                 </td>
                 <td>
-                  <span class="question-id">{{ getQuestionId(question) }}</span>
+                  <div class="question-id-cell">
+                    <span class="question-id">{{ getQuestionId(question) }}</span>
+                    <button type="button" class="copy-uid-btn" (click)="copyQuestionUID(question); $event.stopPropagation()"
+                      [attr.aria-label]="language.hindi ? 'UID कॉपी करें' : 'Copy UID'"
+                      [matTooltip]="language.hindi ? 'UID कॉपी करें' : 'Copy UID'">
+                      <mat-icon>content_copy</mat-icon>
+                    </button>
+                  </div>
                 </td>
                 <td>
                   <div class="question-preview">

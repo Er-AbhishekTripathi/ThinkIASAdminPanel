@@ -87,6 +87,10 @@ export class QuestionService {
     return this.http.delete(`${this.apiUrl}/${questionId}`);
   }
 
+  deleteAllQuestions(): Observable<{ deletedCount: number; message: string }> {
+    return this.http.delete<{ deletedCount: number; message: string }>(this.apiUrl);
+  }
+
   getQuestionById(questionId: string): Observable<Question> {
     return this.http.get<Question>(`${this.apiUrl}/${questionId}`);
   }

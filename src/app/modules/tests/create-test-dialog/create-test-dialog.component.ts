@@ -611,8 +611,7 @@ endTimeValidator(control: FormControl): { [key: string]: any } | null {
   }
 
   getQuestionDisplayText(question: Question): string {
-    const engText = question.question.english;
-    return engText.length > 100 ? engText.substring(0, 100) + '...' : engText;
+    return question.question.english;
   }
 
   getOptionLetter(index: number): string {

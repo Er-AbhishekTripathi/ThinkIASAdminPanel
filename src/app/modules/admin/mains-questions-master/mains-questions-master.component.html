@@ -104,7 +104,68 @@
         <mat-icon>refresh</mat-icon>
         Refresh
       </button>
+      <button mat-stroked-button type="button" class="delete-all-button"
+        (click)="deleteAllQuestions()" [disabled]="loading()">
+        <mat-icon>delete_forever</mat-icon>
+        Delete All
+      </button>
     </div>
+
+    <section class="bulk-actions-panel" *ngIf="selectedQuestions().length">
+      <div class="bulk-info">
+        <span class="selected-count">
+          <mat-icon>check_circle</mat-icon>
+          {{ selectedQuestions().length }} question{{ selectedQuestions().length === 1 ? '' : 's' }} selected
+        </span>
+      </div>
+      <div class="bulk-buttons">
+        <button mat-button type="button" class="clear-btn" (click)="clearSelection()">
+          <mat-icon>clear</mat-icon>
+          Clear Selection
+        </button>
+        <button mat-button type="button" class="tag-btn" (click)="openBulkTagDialog()">
+          <mat-icon>local_offer</mat-icon>
+          Assign Tags
+        </button>
+        <button mat-button type="button" class="uid-btn" (click)="showSelectedUIDs()">
+          <mat-icon>list</mat-icon>
+          Show UIDs
+        </button>
+        <button mat-button type="button" class="copy-selected-uid-btn" (click)="copySelectedUIDs()">
+          <mat-icon>content_copy</mat-icon>
+          Copy UID
+        </button>
+        <button mat-button type="button" class="export-btn" (click)="exportSelectedToCSV()">
+          <mat-icon>download</mat-icon>
+          Export Selected
+        </button>
+        <button mat-button type="button" class="delete-btn" (click)="deleteSelectedQuestions()">
+          <mat-icon>delete</mat-icon>
+          Delete Selected
+        </button>
+      </div>
+    </section>
+
+    <section class="uids-panel" *ngIf="showUIDsPanel()">
+      <header class="uids-panel-header">
+        <h3><mat-icon>list_alt</mat-icon>Selected Question UIDs ({{ getSelectedQuestionUIDs().length }})</h3>
+        <button mat-icon-button type="button" aria-label="Close selected UIDs" (click)="closeUIDsPanel()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </header>
+      <div class="uids-content">
+        <div class="uids-list">
+          <span *ngFor="let uid of getSelectedQuestionUIDs()">{{ uid }}</span>
+        </div>
+      </div>
+      <footer class="uids-footer">
+        <button mat-button type="button" class="copy-all-btn" (click)="copySelectedUIDs()">
+          <mat-icon>content_copy</mat-icon>
+          Copy All UIDs
+        </button>
+        <span class="total-uids">Total: {{ getSelectedQuestionUIDs().length }} UIDs</span>
+      </footer>
+    </section>
 
     <div class="loading-state" *ngIf="loading()">
       <mat-spinner diameter="36"></mat-spinner>
@@ -126,6 +187,11 @@
         <table>
           <thead>
             <tr>
+              <th class="selection-column">
+                <mat-checkbox [checked]="allSelected()" [indeterminate]="someSelected()"
+                  (change)="toggleSelectAll($event.checked)" aria-label="Select all questions on this page">
+                </mat-checkbox>
+              </th>
               <th class="serial-column">S.No.</th>
               <th>UID</th>
               <th>Question</th>
@@ -136,9 +202,24 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let question of questions(); let i = index; trackBy: trackQuestion">
+            <tr *ngFor="let question of questions(); let i = index; trackBy: trackQuestion"
+              [class.selected]="isQuestionSelected(question)">
+              <td class="selection-column">
+                <mat-checkbox [checked]="isQuestionSelected(question)"
+                  (change)="toggleQuestionSelection(question, $event.checked)"
+                  [attr.aria-label]="'Select question ' + (currentPage() * pageSize() + i + 1)">
+                </mat-checkbox>
+              </td>
               <td class="serial-number">{{ currentPage() * pageSize() + i + 1 }}</td>
-              <td><span class="question-id" [matTooltip]="question._id">{{ question._id }}</span></td>
+              <td>
+                <div class="question-id-cell">
+                  <span class="question-id" [matTooltip]="question._id">{{ question._id }}</span>
+                  <button type="button" class="copy-uid-btn" (click)="copyQuestionUID(question); $event.stopPropagation()"
+                    aria-label="Copy UID" matTooltip="Copy UID">
+                    <mat-icon>content_copy</mat-icon>
+                  </button>
+                </div>
+              </td>
               <td>
                 <div class="question-preview">
                   <div class="question-en" [innerHTML]="question.question.english | safeHtml"></div>
@@ -219,6 +300,41 @@
       <button mat-raised-button color="primary" type="button" (click)="closeViewDialog(); openQuestionDialog(selectedQuestion)">
         <mat-icon>edit</mat-icon>
         Edit Question
+      </button>
+    </mat-dialog-actions>
+  </section>
+</ng-template>
+
+<ng-template #bulkTagDialogTemplate>
+  <section class="bulk-tag-dialog">
+    <header class="bulk-tag-dialog-header">
+      <div>
+        <span class="eyebrow">BULK ACTION</span>
+        <h2>Assign Tags to Selected Questions</h2>
+        <p>{{ selectedQuestions().length }} Mains question{{ selectedQuestions().length === 1 ? '' : 's' }} selected</p>
+      </div>
+      <button mat-icon-button type="button" aria-label="Close assign tags dialog" (click)="closeBulkTagDialog()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </header>
+    <mat-dialog-content class="bulk-tag-dialog-content">
+      <mat-form-field appearance="outline" class="bulk-tag-select">
+        <mat-label>Mains tags</mat-label>
+        <mat-select [(ngModel)]="selectedTags" multiple>
+          <mat-option *ngFor="let tag of tags()" [value]="tag._id">{{ tag.tag }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-checkbox [(ngModel)]="replaceExistingTags">
+        Replace each question's existing tags
+      </mat-checkbox>
+    </mat-dialog-content>
+    <mat-dialog-actions align="end">
+      <button mat-button type="button" (click)="closeBulkTagDialog()" [disabled]="bulkTagLoading">Cancel</button>
+      <button mat-raised-button color="primary" type="button"
+        [disabled]="bulkTagLoading || !selectedTags.length" (click)="applyBulkTags()">
+        <mat-spinner *ngIf="bulkTagLoading" diameter="18"></mat-spinner>
+        <mat-icon *ngIf="!bulkTagLoading">local_offer</mat-icon>
+        Apply Tags
       </button>
     </mat-dialog-actions>
   </section>

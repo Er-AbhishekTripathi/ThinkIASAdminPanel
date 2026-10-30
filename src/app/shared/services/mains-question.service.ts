@@ -58,6 +58,10 @@ export class MainsQuestionService {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 
+  deleteAllQuestions(): Observable<{ deletedCount: number; message: string }> {
+    return this.http.delete<{ deletedCount: number; message: string }>(this.apiUrl);
+  }
+
   previewImport(files: File[]): Observable<{ questions: MainsQuestionInput[] }> {
     const form = new FormData();
     files.forEach(file => form.append('file', file));

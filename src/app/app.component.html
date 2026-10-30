@@ -57,7 +57,8 @@
             </a>
 
             <button *ngIf="item.children?.length" type="button" class="nav-item nav-parent"
-              [class.active-parent]="isMenuExpanded(item.name)" (click)="toggleMenu(item.name)">
+              [class.active-parent]="isMenuExpanded(item.name)"
+              [attr.aria-expanded]="isMenuExpanded(item.name)" (click)="toggleMenu(item.name)">
               <mat-icon class="nav-icon">{{ getMenuIcon(item) }}</mat-icon>
               <span class="nav-text">{{ item.name | t }}</span>
               <mat-icon class="expand-icon">{{ isMenuExpanded(item.name) ? 'expand_less' : 'expand_more' }}</mat-icon>

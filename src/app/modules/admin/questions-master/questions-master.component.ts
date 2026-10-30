@@ -218,6 +218,23 @@ export class QuestionsMasterComponent implements OnInit {
     return question.uid || question._id || 'N/A';
   }
 
+  copyQuestionUID(question: Question): void {
+    const uid = this.getQuestionId(question);
+    if (uid === 'N/A') {
+      this.snackBar.open(this.language.hindi ? 'कॉपी करने के लिए UID उपलब्ध नहीं है' : 'No UID available to copy', 'Close', { duration: 3000 });
+      return;
+    }
+
+    const copied = this.clipboard.copy(uid);
+    this.snackBar.open(
+      copied
+        ? (this.language.hindi ? 'UID कॉपी हो गया' : 'UID copied to clipboard')
+        : (this.language.hindi ? 'UID कॉपी नहीं हो सका' : 'Unable to copy UID'),
+      'Close',
+      { duration: 3000, panelClass: [copied ? 'success-snackbar' : 'error-snackbar'] }
+    );
+  }
+
   // Show selected UIDs functionality
   showSelectedUIDs() {
     const selected = this.selectedQuestions();
@@ -245,17 +262,19 @@ export class QuestionsMasterComponent implements OnInit {
       return;
     }
 
-    // Create comma-separated list of UIDs
     const uidsText = uids.join(',\n');
-    
-    // Copy to clipboard
-    this.clipboard.copy(uidsText);
-    
-    // Show success message
-    this.snackBar.open(`${uids.length} UID${uids.length > 1 ? 's' : ''} copied to clipboard!`, 'Close', {
-      duration: 3000,
-      panelClass: ['success-snackbar']
-    });
+
+    const copied = this.clipboard.copy(uidsText);
+    this.snackBar.open(
+      copied
+        ? `${uids.length} UID${uids.length > 1 ? 's' : ''} copied to clipboard!`
+        : 'Unable to copy UIDs',
+      'Close',
+      {
+        duration: 3000,
+        panelClass: [copied ? 'success-snackbar' : 'error-snackbar']
+      }
+    );
   }
 
   openViewDialog(question: Question) {
@@ -361,6 +380,33 @@ export class QuestionsMasterComponent implements OnInit {
         this.loading.set(false);
         this.snackBar.open('Error deleting some questions', 'Close', { duration: 3000 });
         console.error('Delete error:', error);
+      });
+    });
+  }
+
+  deleteAllQuestions(): void {
+    this.confirmDialog.ask({
+      title: 'Delete all questions?',
+      message: 'This permanently deletes every question, including questions outside the current search or tag filter. This action cannot be undone.',
+      confirmText: 'Delete All',
+      icon: 'delete_forever'
+    }).subscribe(confirmed => {
+      if (!confirmed) return;
+
+      this.loading.set(true);
+      this.questionService.deleteAllQuestions().subscribe({
+        next: response => {
+          this.currentPage.set(0);
+          this.clearSelection();
+          this.showUIDsPanel.set(false);
+          this.snackBar.open(response.message, 'Close', { duration: 5000 });
+          this.loadQuestions();
+        },
+        error: error => {
+          console.error('Unable to delete all questions:', error);
+          this.loading.set(false);
+          this.snackBar.open(error.error?.message || 'Unable to delete all questions.', 'Close', { duration: 4000 });
+        }
       });
     });
   }

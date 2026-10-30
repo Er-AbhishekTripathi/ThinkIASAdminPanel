@@ -64,7 +64,7 @@ export class AppComponent implements OnInit, OnDestroy {
   sidenavOpen = signal(true);
   showProfileDropdown = signal(false);
   showNotifications = signal(false);
-  private expandedMenus = signal<Set<string>>(new Set(['Website Page Manage']));
+  private expandedMenu = signal<string | null>('Website Page Manage');
   
   private breakpointSubscription!: Subscription;
 
@@ -242,15 +242,11 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   toggleMenu(menuName: string): void {
-    this.expandedMenus.update(menus => {
-      const updatedMenus = new Set(menus);
-      updatedMenus.has(menuName) ? updatedMenus.delete(menuName) : updatedMenus.add(menuName);
-      return updatedMenus;
-    });
+    this.expandedMenu.update(expandedMenu => expandedMenu === menuName ? null : menuName);
   }
 
   isMenuExpanded(menuName: string): boolean {
-    return this.expandedMenus().has(menuName);
+    return this.expandedMenu() === menuName;
   }
 
   // Computed property for route name

@@ -295,7 +295,7 @@
               </span>
             </mat-label>
             <mat-select [value]="temporarilySelectedUids()" (selectionChange)="onSelectionChange($event.value)"
-              multiple>
+              panelClass="question-select-panel" multiple>
               <mat-select-trigger>
                 {{ temporarilySelectedUids().length }} question(s) selected
               </mat-select-trigger>
@@ -316,7 +316,7 @@
                         Tags: {{ getQuestionTags(question) }}
                       </span>
                       <span class="question-id">
-                        ID: {{ question.uid.slice(0, 8) }}...
+                        ID: {{ question.uid }}
                       </span>
                     </div>
                   </div>

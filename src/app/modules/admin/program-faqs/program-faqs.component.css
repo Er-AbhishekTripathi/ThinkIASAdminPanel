@@ -1,6 +1,6 @@
 /* Shared admin refinement */
 :host { background: #f4f7fb; color: #172b4d; }
-.faq-page { padding: 34px 30px 54px; }
+:host .faq-page { width: 100%; max-width: none; margin: 0; padding: 34px 30px 54px; box-sizing: border-box; }
 .title-icon { background: #1c365e; box-shadow: 0 8px 18px rgba(28,54,94,.18); }
 .title-block h1 { font: 700 clamp(28px,4vw,40px)/1.1 Georgia, serif; color: #172b4d; letter-spacing: -.02em; }
 .title-block p, .toolbar p { color: #6b7a90; }

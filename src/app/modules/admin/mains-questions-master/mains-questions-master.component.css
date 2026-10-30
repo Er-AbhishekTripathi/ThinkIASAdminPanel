@@ -413,6 +413,210 @@
   min-height: 44px;
 }
 
+.toolbar .delete-all-button {
+  border-color: #fecaca;
+  color: #dc2626;
+}
+
+.toolbar .delete-all-button:hover:not(:disabled) {
+  background: #fef2f2;
+  border-color: #f87171;
+}
+
+.bulk-actions-panel {
+  margin: 14px 22px 16px;
+  padding: 16px;
+  border: 1px solid #90caf9;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  box-shadow: 0 2px 4px rgba(25, 118, 210, 0.1);
+}
+
+.bulk-info {
+  margin-bottom: 12px;
+}
+
+.selected-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #1976d2;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.selected-count mat-icon {
+  width: 20px;
+  height: 20px;
+  font-size: 20px;
+}
+
+.bulk-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.bulk-buttons button {
+  padding: 4px 12px;
+  font-size: 13px;
+}
+
+.bulk-buttons .clear-btn {
+  color: #666;
+}
+
+.bulk-buttons .uid-btn {
+  background: #0ea5e9;
+  color: #fff;
+}
+
+.bulk-buttons .tag-btn {
+  background: #ff9800;
+  color: #fff;
+}
+
+.bulk-buttons .tag-btn:hover {
+  background: #f57c00;
+}
+
+.bulk-buttons .copy-selected-uid-btn {
+  background: #16a34a;
+  color: #fff;
+}
+
+.bulk-buttons .export-btn {
+  color: #1976d2;
+}
+
+.bulk-buttons .delete-btn {
+  background: #f44336;
+  color: #fff;
+}
+
+.bulk-buttons .delete-btn:hover {
+  background: #d32f2f;
+}
+
+.bulk-tag-dialog-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 24px 12px;
+}
+
+.bulk-tag-dialog-header h2 {
+  margin: 5px 0;
+  color: #172554;
+  font-size: 1.2rem;
+}
+
+.bulk-tag-dialog-header p {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.bulk-tag-dialog-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 24px 20px;
+}
+
+.bulk-tag-select {
+  width: 100%;
+}
+
+.bulk-tag-dialog mat-dialog-actions {
+  padding: 8px 24px 20px;
+}
+
+.bulk-tag-dialog mat-dialog-actions button mat-icon {
+  margin-right: 5px;
+  vertical-align: middle;
+}
+
+.uids-panel {
+  margin: 0 22px 16px;
+  padding: 16px;
+  border: 1px solid #0ea5e9;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  box-shadow: 0 2px 8px rgba(14, 165, 233, 0.1);
+}
+
+.uids-panel-header,
+.uids-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.uids-panel-header {
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #bae6fd;
+}
+
+.uids-panel-header h3 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: #0369a1;
+  font-size: 14px;
+}
+
+.uids-panel-header button {
+  color: #0369a1;
+}
+
+.uids-content {
+  max-height: 200px;
+  margin-bottom: 12px;
+  padding: 12px;
+  overflow-y: auto;
+  border: 1px solid #bae6fd;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.uids-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: #0c4a6e;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-size: 13px;
+}
+
+.uids-list span {
+  padding: 4px 8px;
+  border: 1px solid #bae6fd;
+  border-radius: 4px;
+  background: #f0f9ff;
+  overflow-wrap: anywhere;
+}
+
+.copy-all-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  background: #0ea5e9;
+  color: #fff;
+  font-size: 12px;
+}
+
+.total-uids {
+  color: #0369a1;
+  font-size: 12px;
+  font-weight: 600;
+}
+
 .loading-state,
 .empty-state {
   display: flex;
@@ -451,7 +655,7 @@
 
 .questions-table table {
   width: 100%;
-  min-width: 760px;
+  min-width: 980px;
   border-collapse: collapse;
 }
 
@@ -474,6 +678,29 @@
   white-space: nowrap;
 }
 
+.questions-table tbody tr.selected {
+  background-color: #e3f2fd;
+}
+
+.questions-table tbody tr:hover {
+  background-color: #f5f5f5;
+}
+
+.questions-table tbody tr.selected:hover {
+  background-color: #bbdefb;
+}
+
+.selection-column {
+  width: 52px;
+  text-align: center !important;
+}
+
+.questions-table th:nth-child(3),
+.questions-table td:nth-child(3) {
+  width: 270px;
+  min-width: 270px;
+}
+
 .serial-column {
   width: 64px;
 }
@@ -489,16 +716,53 @@
 
 .question-id {
   display: inline-block;
-  max-width: 150px;
-  overflow: hidden;
+  max-width: none;
+  overflow: visible;
   padding: 6px 10px;
   border-radius: 20px;
   background: #f1f5f9;
   color: #475569;
   font-family: 'Courier New', monospace;
   font-size: 12px;
-  text-overflow: ellipsis;
+  text-overflow: clip;
   vertical-align: middle;
+  white-space: nowrap;
+}
+
+.question-id-cell {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 6px;
+  width: max-content;
+}
+
+.copy-uid-btn {
+  display: inline-grid;
+  flex: 0 0 32px;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid #dbe4ee;
+  border-radius: 8px;
+  background: #fff;
+  color: #52657d;
+  cursor: pointer;
+  transition: color .2s ease, background .2s ease, border-color .2s ease;
+}
+
+.copy-uid-btn:hover {
+  border-color: #93c5fd;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.copy-uid-btn mat-icon {
+  width: 18px;
+  height: 18px;
+  font-size: 18px;
+  line-height: 18px;
 }
 
 .question-preview {
@@ -694,6 +958,24 @@ mat-paginator {
 
   .toolbar button {
     margin-bottom: 12px;
+  }
+
+  .bulk-actions-panel,
+  .uids-panel {
+    margin-right: 16px;
+    margin-left: 16px;
+  }
+
+  .uids-panel-header,
+  .uids-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .bulk-tag-dialog-header,
+  .bulk-tag-dialog-content {
+    padding-right: 16px;
+    padding-left: 16px;
   }
 
   .view-dialog-header,

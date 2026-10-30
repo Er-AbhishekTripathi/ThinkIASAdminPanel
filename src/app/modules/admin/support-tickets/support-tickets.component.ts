@@ -21,6 +21,7 @@ import { environment } from '../../../../environment/environment';
       <div class="stat"><span class="stat-value">{{tickets.length}}</span><span class="stat-label">Total</span></div>
       <div class="stat"><span class="stat-value">{{countByStatus('open')}}</span><span class="stat-label">Open</span></div>
       <div class="stat"><span class="stat-value">{{countByStatus('in_progress')}}</span><span class="stat-label">In progress</span></div>
+      <div class="stat"><span class="stat-value">{{countByStatus('closed')}}</span><span class="stat-label">Closed</span></div>
     </div>
   </header>
 
@@ -31,6 +32,7 @@ import { environment } from '../../../../environment/environment';
       <button type="button" class="chip" [class.active]="status==='in_progress'" (click)="setStatusFilter('in_progress')">In progress</button>
       <button type="button" class="chip" [class.active]="status==='closed'" (click)="setStatusFilter('closed')">Closed</button>
     </div>
+    <button type="button" class="refresh-btn" (click)="refresh()">Refresh</button>
   </div>
 
   <p *ngIf="error" class="error-banner">{{error}}</p>
@@ -118,7 +120,7 @@ import { environment } from '../../../../environment/environment';
 </section>`,
   styles: [`
     :host{display:block;background:#f4f6f9;min-height:100vh;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
-    .wrap{max-width:1200px;margin:0 auto;padding:24px}
+    .wrap{width:100%;max-width:none;margin:0;padding:24px;box-sizing:border-box}
     .page-header{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;background:linear-gradient(135deg,#102a43,#1d5374);color:#fff;padding:28px 32px;border-radius:18px;box-shadow:0 8px 24px rgba(16,42,67,.18);flex-wrap:wrap}
     .eyebrow{letter-spacing:.14em;font-size:11px;font-weight:600;opacity:.75}
     .header-left h1{margin:8px 0 4px;font-size:26px}
@@ -127,11 +129,13 @@ import { environment } from '../../../../environment/environment';
     .stat{display:flex;flex-direction:column;align-items:center;background:rgba(255,255,255,.1);padding:10px 18px;border-radius:12px;min-width:76px}
     .stat-value{font-size:20px;font-weight:700}
     .stat-label{font-size:11px;opacity:.8;margin-top:2px}
-    .toolbar{margin:18px 0}
+    .toolbar{margin:18px 0;display:flex;justify-content:space-between;align-items:center;gap:12px}
     .filter-chips{display:flex;gap:8px;flex-wrap:wrap}
     .chip{border:1px solid #d6e0e8;background:#fff;color:#334155;padding:8px 16px;border-radius:999px;cursor:pointer;font-size:13px;font-weight:500;transition:all .15s ease}
     .chip:hover{border-color:#1d5374}
     .chip.active{background:#1d5374;border-color:#1d5374;color:#fff}
+    .refresh-btn{border:1px solid #d6e0e8;background:#fff;color:#334155;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500}
+    .refresh-btn:hover{border-color:#1d5374;color:#1d5374}
     .error-banner{background:#fde8e8;color:#be123c;padding:12px 16px;border-radius:10px;margin-bottom:12px;font-size:14px}
     .layout{display:grid;grid-template-columns:320px 1fr;gap:18px;align-items:start}
     .list-panel{background:#fff;border-radius:14px;box-shadow:0 2px 10px rgba(16,42,67,.06);overflow:hidden}
@@ -208,19 +212,36 @@ export class SupportTicketsComponent implements OnInit, OnDestroy {
   tickets: any[] = []; selected: any = null; status = ''; error = ''; replyBody = ''; files: File[] = [];
   showCloseConfirm = false;
   private routeSubscription?: Subscription;
+  private refreshTimer?: ReturnType<typeof setInterval>;
   ngOnInit() {
     this.load();
     this.routeSubscription = this.route.queryParamMap.subscribe(params => {
       const id = params.get('id');
       if (id) this.open(id);
     });
+    this.refreshTimer = setInterval(() => this.refresh(), 15000);
   }
-  ngOnDestroy() { this.routeSubscription?.unsubscribe(); }
+  ngOnDestroy() {
+    this.routeSubscription?.unsubscribe();
+    if (this.refreshTimer) clearInterval(this.refreshTimer);
+  }
+  refresh() {
+    this.load();
+    if (this.selected?._id) this.open(this.selected._id);
+  }
   load() {
     const params: any = {}; if (this.status) params.status = this.status;
-    this.http.get<any>(`${environment.apiUrl}/support-tickets`, { params }).subscribe({ next: r => this.tickets = r.data || [], error: e => this.error = e.error?.message || 'Unable to load tickets.' });
+    this.http.get<any>(`${environment.apiUrl}/support-tickets`, { params }).subscribe({
+      next: r => { this.tickets = r.data || []; this.error = ''; },
+      error: e => this.error = e.error?.message || 'Unable to load tickets.'
+    });
   }
-  open(id: string) { this.http.get<any>(`${environment.apiUrl}/support-tickets/${id}`).subscribe({ next: r => this.selected = r.data }); }
+  open(id: string) {
+    this.http.get<any>(`${environment.apiUrl}/support-tickets/${id}`).subscribe({
+      next: r => { this.selected = r.data; this.error = ''; },
+      error: e => this.error = e.error?.message || 'Unable to load ticket details.'
+    });
+  }
   onFiles(event: Event) { this.files = Array.from((event.target as HTMLInputElement).files || []); }
   reply(event: Event) {
     event.preventDefault();
@@ -234,7 +255,10 @@ export class SupportTicketsComponent implements OnInit, OnDestroy {
   confirmClose() { this.showCloseConfirm = false; this.applyStatus('closed'); }
   cancelClose() { this.showCloseConfirm = false; }
   private applyStatus(status: string) {
-    this.http.patch<any>(`${environment.apiUrl}/support-tickets/${this.selected._id}/status`, { status }).subscribe({ next: r => { this.selected = r.data; this.load(); } });
+    this.http.patch<any>(`${environment.apiUrl}/support-tickets/${this.selected._id}/status`, { status }).subscribe({
+      next: r => { this.selected = r.data; this.refresh(); },
+      error: e => this.error = e.error?.message || 'Unable to update ticket status.'
+    });
   }
   setStatusFilter(status: string) { this.status = status; this.load(); }
   countByStatus(status: string) { return this.tickets.filter(t => t.status === status).length; }

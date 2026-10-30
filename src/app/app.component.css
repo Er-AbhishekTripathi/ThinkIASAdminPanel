@@ -173,7 +173,7 @@
    SIDENAV (LEFT MENU)
 ============================ */
 .app-sidenav {
-  width: 240px;
+  width: 280px;
   background: #fbfcfe;
   border-right: 1px solid var(--admin-line, #e2e9f1);
   display: flex;
@@ -208,6 +208,9 @@
     align-items: center;
     min-width: 0;
     width: 100%;
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
   }
 
   ::ng-deep .mat-mdc-list-item .mdc-list-item__start {
@@ -232,6 +235,8 @@
   .nav-item {
     display: flex !important;
     align-items: center !important;
+    height: auto !important;
+    min-height: 48px;
     border-radius: 10px;
     margin: 0.25rem 0.7rem;
     padding: 0.62rem 0.9rem;
@@ -245,6 +250,9 @@
       display: flex !important;
       align-items: center;
       width: 100%;
+      overflow: visible;
+      text-overflow: clip;
+      white-space: normal;
     }
 
     .nav-icon {
@@ -263,11 +271,15 @@
     .nav-text {
       flex: 1;
       min-width: 0;
-      overflow: hidden;
+      overflow: visible;
+      color: #34465c;
+      font-family: 'Segoe UI', 'Nirmala UI', 'Noto Sans Devanagari', 'Mangal', sans-serif;
       font-size: 0.95rem;
-      line-height: 1.25;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      font-weight: 600;
+      line-height: 1.35;
+      text-overflow: clip;
+      white-space: normal;
+      overflow-wrap: anywhere;
     }
 
     &:hover {
@@ -278,6 +290,8 @@
 
   .nav-parent {
     width: calc(100% - 1.6rem);
+    min-height: 48px;
+    height: auto;
     border: 0;
     background: transparent;
     font: inherit;
@@ -292,8 +306,12 @@
       color: #64748b;
     }
 
-    &.active-parent,
-    &:hover {
+    &.active-parent {
+      background: #dce8f2;
+      color: #1c365e;
+    }
+
+    &:hover:not(.active-parent) {
       background: #edf3f8;
     }
   }
@@ -335,10 +353,22 @@
 ============================ */
 .content-area {
   flex: 1;
+  min-width: 0;
   padding: 1.8rem;
   background: var(--admin-canvas, #f4f7fb);
   overflow-y: auto;
   transition: all 0.3s ease;
+}
+
+.content-wrapper {
+  width: 100%;
+  min-width: 0;
+}
+
+.content-wrapper > * {
+  display: block;
+  width: 100%;
+  min-width: 0;
 }
 
 .admin-page-banner {
@@ -412,7 +442,7 @@
 ============================ */
 @media (max-width: 1024px) {
   .app-sidenav {
-    width: 200px;
+    width: 260px;
   }
 
   .app-toolbar .app-title {
@@ -426,11 +456,7 @@
 
 @media (max-width: 768px) {
   .app-sidenav {
-    width: 180px;
-  }
-
-  .nav-item .nav-text {
-    font-size: 0.85rem;
+    width: 280px;
   }
 
   .app-toolbar {
