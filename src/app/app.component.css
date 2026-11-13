@@ -447,6 +447,20 @@
   min-width: 0;
 }
 
+.question-bank-suite-layout .main-container {
+  height: calc(100vh - 64px);
+}
+
+.question-bank-suite-layout .content-area,
+.question-bank-suite-layout .content-wrapper.suite-content-wrapper {
+  width: 100%;
+}
+
+.content-wrapper.suite-content-wrapper {
+  height: 100%;
+  overflow: hidden;
+}
+
 .content-wrapper > * {
   display: block;
   width: 100%;

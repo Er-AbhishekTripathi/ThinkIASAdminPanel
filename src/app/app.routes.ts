@@ -15,6 +15,9 @@ export const routes: Routes = [
   { path: 'notifications', loadComponent: () => import('./modules/admin/notifications/notifications.component').then(m => m.NotificationsComponent), canActivate: [authGuard, roleGuard], data: { role: 'admin' } },
   { path: 'exam-monitoring', loadComponent: () => import('./modules/admin/exam-monitoring/exam-monitoring.component').then(m => m.ExamMonitoringComponent), canActivate: [authGuard, roleGuard], data: { role: 'admin' } },
   { path: 'manage-exams', loadComponent: () => import('./modules/admin/manage-exams/manage-exams.component').then(m => m.ManageExamsComponent), canActivate: [authGuard, roleGuard], data: { role: 'admin' } },
+  { path: 'question-bank-suite', loadComponent: () => import('./modules/admin/question-bank-suite/question-bank-suite.component').then(m => m.QuestionBankSuiteComponent), canActivate: [authGuard, roleGuard], data: { role: 'admin' } },
+  { path: 'question-bank-suite/:section/:page', loadComponent: () => import('./modules/admin/question-bank-suite/question-bank-suite.component').then(m => m.QuestionBankSuiteComponent), canActivate: [authGuard, roleGuard], data: { role: 'admin' } },
+  { path: 'question-bank-suite/:section/:page/:id', loadComponent: () => import('./modules/admin/question-bank-suite/question-bank-suite.component').then(m => m.QuestionBankSuiteComponent), canActivate: [authGuard, roleGuard], data: { role: 'admin' } },
   { path: 'manage-batches', loadComponent: () => import('./modules/admin/manage-batches/manage-batches.component').then(m => m.ManageBatchesComponent), canActivate: [authGuard, roleGuard], data: { role: 'admin' } },
   { path: 'manage-plans', loadComponent: () => import('./modules/admin/manage-plans/manage-plans.component').then(m => m.ManagePlansComponent), canActivate: [authGuard, roleGuard], data: { role: 'admin' } },
   // { 

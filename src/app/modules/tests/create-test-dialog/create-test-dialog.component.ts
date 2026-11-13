@@ -127,6 +127,10 @@ export class CreateTestDialogComponent implements OnInit {
     }
   };
 
+  get isMainsSeries(): boolean {
+    return this.data?.seriesKind === 'mains';
+  }
+
   constructor() {
     this.isEdit.set(!!this.data?.test);
     this.testForm = this.createTestForm();
@@ -309,7 +313,9 @@ endTimeValidator(control: FormControl): { [key: string]: any } | null {
             options: q.options || [],
             correctAnswer: q.correctAnswer,
             description: q.description,
-            tags: q.tags || [],
+            tags: (q.tags || [])
+              .map((tag: string | { _id?: string }) => typeof tag === 'string' ? tag : String(tag?._id || ''))
+              .filter(Boolean),
             isActive: q.isActive !== undefined ? q.isActive : true,
             createdAt: q.createdAt,
             updatedAt: q.updatedAt

@@ -152,9 +152,6 @@ export class AuthService {
         if (!websitePagePaths.some(path => this.isAnnouncementItem(path))) {
           children.push({ name: 'Announcement Master', path: '/announcement-master', icon: 'campaign' });
         }
-        if (!websitePagePaths.some(path => this.isCareersItem(path))) {
-          children.push({ name: 'Careers', path: '/careers', icon: 'work' });
-        }
         if (!websitePagePaths.some(path => this.isAppSettingsItem(path))) {
           children.push({ name: 'App Settings', path: '/app-settings', icon: 'phone_android' });
         }
@@ -187,14 +184,91 @@ export class AuthService {
           return { ...item, children };
         })
       : adminTools;
-    if (!adminMenu.some(item => this.isCareersItem(item.path)) && !hasWebsitePageManage) {
-      adminMenu.push({ name: 'Careers', path: '/careers', icon: 'work' });
-    }
-    if (!adminMenu.some(item => item.path === '/exam-monitoring' || item.path === 'exam-monitoring')) {
-      adminMenu.push({ name: 'Exam Monitoring', path: '/exam-monitoring', icon: 'videocam' });
+    const isHiddenAdminPage = (path?: string) =>
+      this.isCareersItem(path || '') ||
+      path === '/exam-monitoring' ||
+      path === 'exam-monitoring';
+    const isLegacyTestSeriesItem = (item: MenuItem) =>
+      item.name === 'Test Series' ||
+      item.path === '/prelims-test-series' ||
+      item.path === 'prelims-test-series' ||
+      item.path === '/mains-test-series' ||
+      item.path === 'mains-test-series';
+
+    const visibleAdminMenu = adminMenu
+      .filter(item => item.name !== 'Question Management' && !isLegacyTestSeriesItem(item) && !isHiddenAdminPage(item.path))
+      .map(item => ({
+        ...item,
+        children: item.children
+          ?.filter(child => !isLegacyTestSeriesItem(child) && !isHiddenAdminPage(child.path))
+          .map(child => ({
+            ...child,
+            children: child.children?.filter(grandchild => !isLegacyTestSeriesItem(grandchild) && !isHiddenAdminPage(grandchild.path))
+          }))
+      }));
+
+    if (this.currentUserSignal()?.role === 'admin' &&
+        !visibleAdminMenu.some(item => item.path === '/question-bank-suite' || item.path === 'question-bank-suite')) {
+      visibleAdminMenu.push({
+        name: 'Question Bank Suite',
+        path: '/question-bank-suite',
+        icon: 'inventory_2',
+        children: [
+          {
+            name: 'Prelims',
+            path: '',
+            icon: 'school',
+            children: [
+              { name: 'Question Bank', path: '/question-bank-suite/prelims/questions', icon: 'quiz' },
+              { name: 'Manage Tests', path: '/question-bank-suite/prelims/tests', icon: 'assignment' },
+              { name: 'Manage Test Series', path: '/question-bank-suite/prelims/test-series', icon: 'library_books' },
+              { name: 'Word Import', path: '/question-bank-suite/prelims/import', icon: 'upload_file' }
+            ]
+          },
+          {
+            name: 'Mains',
+            path: '',
+            icon: 'edit_note',
+            children: [
+              { name: 'Question Bank', path: '/question-bank-suite/mains/questions', icon: 'quiz' },
+              { name: 'Manage Tests', path: '/question-bank-suite/mains/tests', icon: 'assignment' },
+              { name: 'Manage Test Series', path: '/question-bank-suite/mains/test-series', icon: 'library_books' },
+              { name: 'Word Import', path: '/question-bank-suite/mains/import', icon: 'upload_file' }
+            ]
+          },
+          {
+            name: 'Setup',
+            path: '',
+            icon: 'settings',
+            children: [
+              { name: 'Master Data', path: '/question-bank-suite/master/exams', icon: 'account_balance' },
+              { name: 'Tag Management', path: '/question-bank-suite/setup/tags', icon: 'local_offer' },
+              { name: 'Settings & Backup', path: '/question-bank-suite/setup/settings', icon: 'settings_backup_restore' }
+            ]
+          }
+        ]
+      });
     }
 
-    return adminMenu.filter(item => item.name !== 'Question Management');
+    const suiteIndex = visibleAdminMenu.findIndex(item =>
+      item.path === '/question-bank-suite' || item.path === 'question-bank-suite'
+    );
+    const dashboardIndex = visibleAdminMenu.findIndex(item =>
+      item.name?.trim().toLowerCase() === 'dashboard' ||
+      item.path === '/dashboard' ||
+      item.path === 'dashboard'
+    );
+    if (suiteIndex !== -1 && dashboardIndex !== -1 && suiteIndex !== dashboardIndex + 1) {
+      const [suiteItem] = visibleAdminMenu.splice(suiteIndex, 1);
+      const updatedDashboardIndex = visibleAdminMenu.findIndex(item =>
+        item.name?.trim().toLowerCase() === 'dashboard' ||
+        item.path === '/dashboard' ||
+        item.path === 'dashboard'
+      );
+      visibleAdminMenu.splice(updatedDashboardIndex + 1, 0, suiteItem);
+    }
+
+    return visibleAdminMenu;
   }
 
   private normalizeLegacyQuestionManagementGroup(menuItems: MenuItem[]): MenuItem[] {

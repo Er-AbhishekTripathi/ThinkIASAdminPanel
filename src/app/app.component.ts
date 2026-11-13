@@ -249,6 +249,15 @@ export class AppComponent implements OnInit, OnDestroy {
     );
   }
 
+  openQuestionBankSuite(menuName: string, siblings: MenuItem[]): void {
+    this.expandedMenus.update(expandedMenus => [
+      ...expandedMenus.filter(name => !this.getSiblingMenuNames(siblings, menuName).includes(name)),
+      menuName
+    ]);
+    this.router.navigateByUrl('/question-bank-suite', { onSameUrlNavigation: 'reload' })
+      .catch(error => console.error('Unable to open Question Bank Suite dashboard:', error));
+  }
+
   isMenuExpanded(menuName: string): boolean {
     return this.expandedMenus().includes(menuName);
   }
@@ -271,6 +280,10 @@ export class AppComponent implements OnInit, OnDestroy {
     return !!route && !route.includes('/login') && !route.includes('/take-test');
   }
 
+  isQuestionBankSuite(): boolean {
+    return this.currentRoute().split('?')[0].split('/')[1] === 'question-bank-suite';
+  }
+
   adminPageTitle(): string {
     const route = this.currentRoute().split('?')[0].split('/')[1] || 'dashboard';
     const titles: Record<string, string> = {
@@ -280,6 +293,7 @@ export class AppComponent implements OnInit, OnDestroy {
       'syllabus-master': 'Syllabus Master',
       'tag-master': 'Tag Management',
       'questions-master': 'Question Bank',
+      'question-bank-suite': 'Question Bank Suite',
       'directory-master': 'Prelims Document Directory',
       'mains-directory-master': 'Mains Document Directory',
       'program-faqs': 'Program FAQs',
@@ -335,6 +349,8 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   getMenuIcon(item: MenuItem): string {
+    if (item.icon) return item.icon;
+
     const value = `${item.name || ''} ${item.path || ''}`.toLowerCase();
     const iconMap: Array<[string[], string]> = [
       [['dashboard'], 'dashboard'],
@@ -370,7 +386,7 @@ export class AppComponent implements OnInit, OnDestroy {
       [['study module'], 'auto_stories']
     ];
     const match = iconMap.find(([keywords]) => keywords.some(keyword => value.includes(keyword)));
-    return match?.[1] || item.icon || 'apps';
+    return match?.[1] || 'apps';
   }
 
   // Show header only for specific fullscreen routes

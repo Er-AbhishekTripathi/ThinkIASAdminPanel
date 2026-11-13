@@ -99,7 +99,7 @@
           <tbody>
             <tr *ngFor="let video of allVideos">
               <td>
-                <span class="badge" [ngClass]="video.isActive ? 'bg-success' : 'bg-secondary'">
+                <span class="badge text-white" [ngClass]="video.isActive ? 'bg-success' : 'bg-danger'">
                   {{ video.isActive ? 'Active' : 'Inactive' }}
                 </span>
               </td>

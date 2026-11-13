@@ -130,7 +130,7 @@
           </div>
 
           <!-- Marks Section -->
-          <div class="marks-section">
+          <div class="marks-section" *ngIf="!isMainsSeries">
             <mat-form-field appearance="outline" class="half-width">
               <mat-label>Marks per Question</mat-label>
               <input matInput type="number" formControlName="marksPerQuestion" min="1">
@@ -393,7 +393,7 @@
               <div class="preview-header">
                 <div class="question-header-left">
                   <h5 class="question-preview-number">Question {{ i + 1 }}</h5>
-                  <span class="correct-answer-badge">
+                  <span class="correct-answer-badge" *ngIf="!isMainsSeries">
                     Correct: {{ getOptionLetter(question.correctAnswer) }}
                   </span>
                   <span class="question-uid-badge">
@@ -429,7 +429,7 @@
                   </div>
                 </div>
 
-                <div class="options-preview">
+                <div class="options-preview" *ngIf="!isMainsSeries">
                   <strong>Options:</strong>
                   <div class="options-grid">
                     <div *ngFor="let option of question.options; let j = index" class="option-preview">
