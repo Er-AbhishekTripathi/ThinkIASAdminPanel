@@ -4,6 +4,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormArray, Abs
 import { AdminService } from '../../../shared/services/admin.service';
 import { HttpClientModule } from '@angular/common/http';
 import { DirectoryExplorerComponent } from '../../../shared/components/directory-explorer/directory-explorer.component';
+import { ExamAdminService, AdminExam } from '../../../shared/services/exam-admin.service';
 
 // Custom validator for at least one language
 export function atLeastOneLanguageValidator(control: AbstractControl): ValidationErrors | null {
@@ -45,6 +46,12 @@ export function atLeastOneLanguageValidator(control: AbstractControl): Validatio
   styleUrls: ['./syllabus-master.component.css']
 })
 export class SyllabusMasterComponent implements OnInit {
+  exams: AdminExam[] = [];
+  selectedExamId = '';
+  get selectedExamName(): string {
+    return this.exams.find(exam => exam._id === this.selectedExamId)?.name || 'UPSC';
+  }
+
   // Main tabs - Added 'videos' option
   activeTab: 'upsc-syllabus' | 'topicwise' | 'videos' = 'upsc-syllabus';
   
@@ -91,7 +98,8 @@ export class SyllabusMasterComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private adminService: AdminService
+    private adminService: AdminService,
+    private examService: ExamAdminService
   ) {
     this.prelimsForm = this.createPrelimsForm();
     this.mainsForm = this.createMainsForm();
@@ -100,6 +108,27 @@ export class SyllabusMasterComponent implements OnInit {
   ngOnInit() {
     this.loadPrelimsData();
     this.loadMainsData();
+    this.examService.getAll().subscribe({
+      next: (response) => {
+        this.exams = response.data || [];
+        this.selectedExamId = this.exams[0]?._id || '';
+      },
+      error: () => { this.exams = []; }
+    });
+  }
+
+  selectExam(exam: AdminExam): void {
+    this.selectedExamId = exam._id || '';
+  }
+
+  openSyllabusSection(section: 'prelims' | 'mains'): void {
+    this.switchTab('upsc-syllabus');
+    this.switchSyllabusSubTab(section);
+  }
+
+  onAccordionToggle(tab: 'upsc-syllabus' | 'topicwise' | 'videos', event: Event): void {
+    const details = event.currentTarget as HTMLDetailsElement;
+    if (details.open) this.switchTab(tab);
   }
 
   // Main Tab Management - Added 'videos'

@@ -10,33 +10,27 @@
         <p>Loading...</p>
     </div>
 
-    <!-- Main Tab Navigation -->
-    <div class="tab-navigation">
-        <button class="tab-button" [class.active]="activeTab === 'upsc-syllabus'" (click)="switchTab('upsc-syllabus')">
-            Syllabus given by UPSC
-        </button>
-        <button class="tab-button" [class.active]="activeTab === 'topicwise'" (click)="switchTab('topicwise')">
-            Topicwise Detail Explanation
-        </button>
-        <button class="tab-button" [class.active]="activeTab === 'videos'" (click)="switchTab('videos')">
-            Video Lectures
-        </button>
+    <div class="exam-pick" *ngIf="exams.length">
+        <button type="button" class="exam-chip" *ngFor="let exam of exams" [class.active]="selectedExamId === exam._id" (click)="selectExam(exam)">{{ exam.name }}</button>
+    </div>
+    <div class="syllabus-accordion">
+        <details [open]="activeTab === 'upsc-syllabus'" (toggle)="onAccordionToggle('upsc-syllabus', $event)">
+            <summary>Syllabus given by {{ selectedExamName }}</summary>
+            <div class="accordion-children">
+                <button type="button" [class.active]="activeTab === 'upsc-syllabus' && syllabusSubTab === 'prelims'" (click)="openSyllabusSection('prelims')">Prelims Examination Syllabus</button>
+                <button type="button" [class.active]="activeTab === 'upsc-syllabus' && syllabusSubTab === 'mains'" (click)="openSyllabusSection('mains')">Mains Examination Syllabus</button>
+            </div>
+        </details>
+        <details [open]="activeTab === 'topicwise'" (toggle)="onAccordionToggle('topicwise', $event)">
+            <summary>Topicwise Detail Explanation</summary>
+        </details>
+        <details [open]="activeTab === 'videos'" (toggle)="onAccordionToggle('videos', $event)">
+            <summary>Video Lectures</summary>
+        </details>
     </div>
 
     <!-- UPSC SYLLABUS TAB -->
     <div *ngIf="activeTab === 'upsc-syllabus'" class="tab-content">
-        <!-- Sub-tabs for Prelims and Mains -->
-        <div class="syllabus-subtabs">
-            <button class="subtab-button" [class.active]="syllabusSubTab === 'prelims'"
-                (click)="switchSyllabusSubTab('prelims')">
-                Prelims Examination Syllabus
-            </button>
-            <button class="subtab-button" [class.active]="syllabusSubTab === 'mains'"
-                (click)="switchSyllabusSubTab('mains')">
-                Mains Examination Syllabus
-            </button>
-        </div>
-
         <!-- Prelims Subtab -->
         <div *ngIf="syllabusSubTab === 'prelims'" class="syllabus-subtab-content">
             <div class="syllabus-display-section" *ngIf="!isEditingPrelims">

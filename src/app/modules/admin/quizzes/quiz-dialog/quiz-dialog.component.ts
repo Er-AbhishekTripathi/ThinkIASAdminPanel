@@ -126,11 +126,20 @@ export class QuizDialogComponent implements OnInit {
     });
   }
 
+  qbankExams = signal<string[]>([]);
+  selectedQbankExam = signal('');
+
+  onQbankExamChange(exam: string): void {
+    this.selectedQbankExam.set(exam || '');
+    this.loadAvailableQuestions();
+  }
+
   loadAvailableQuestions(): Promise<void> {
     return new Promise((resolve, reject) => {
       this.questionsLoading.set(true);
-      this.questionService.getAllQuestions().subscribe({
+      this.questionService.getQbankQuestions(this.selectedQbankExam()).subscribe({
         next: (response: any) => {
+          this.qbankExams.set(response.exams || []);
           const questions: Question[] = (response.questions || []).map((q: any) => ({
             _id: q._id,
             uid: q.uid,

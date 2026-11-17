@@ -99,6 +99,12 @@ export class QuestionService {
     return this.http.get<{ questions: Question[], totalCount: number }>(`${this.apiUrl}/all`);
   }
 
+  getQbankQuestions(exam = ''): Observable<{ questions: any[]; exams: string[] }> {
+    let params = new HttpParams();
+    if (exam) params = params.set('exam', exam);
+    return this.http.get<{ questions: any[]; exams: string[] }>(`${environment.apiUrl}/qbank/questions`, { params });
+  }
+
   getTags(): Observable<any> {
     return this.http.get<any>(`${environment.apiUrl}/tags`);
   }

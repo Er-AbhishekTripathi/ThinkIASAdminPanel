@@ -86,6 +86,13 @@
       <div class="questions-section">
         <div class="section-header">
           <h3 class="section-title">Questions in Demo Test ({{ selectedQuestions().length }})</h3>
+          <mat-form-field appearance="outline" class="qbank-exam-filter">
+            <mat-label>Examination</mat-label>
+            <mat-select [value]="selectedQbankExam()" (selectionChange)="onQbankExamChange($event.value)">
+              <mat-option value="">All examinations</mat-option>
+              <mat-option *ngFor="let exam of qbankExams()" [value]="exam">{{ exam }}</mat-option>
+            </mat-select>
+          </mat-form-field>
           <div class="action-buttons" *ngIf="!questionsLoading()">
             <button type="button" mat-raised-button color="primary" (click)="addSelectedToTest()"
               [disabled]="temporarilySelectedUids().length === 0" class="add-selected-btn">

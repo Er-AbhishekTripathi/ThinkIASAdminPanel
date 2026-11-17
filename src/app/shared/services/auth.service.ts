@@ -168,26 +168,18 @@ export class AuthService {
         ? { ...item, name: 'Exam Monitoring', path: '/exam-monitoring', icon: 'videocam' }
         : item
     );
-    const adminMenu = this.currentUserSignal()?.role === 'admin'
-      ? adminTools.map(item => {
-          if (item.name !== 'Mains Section') return item;
-          const children = [...(item.children || [])];
-          const mainsQuestionItems: MenuItem[] = [
-            { name: 'Mains Tag Management', path: '/mains-tag-master', icon: 'local_offer' },
-            { name: 'Mains Question Bank', path: '/mains-questions-master', icon: 'edit_note' }
-          ];
-          for (const mainsItem of mainsQuestionItems) {
-            if (!children.some(child => child.path === mainsItem.path)) {
-              children.push(mainsItem);
-            }
-          }
-          return { ...item, children };
-        })
-      : adminTools;
+    const adminMenu = adminTools;
     const isHiddenAdminPage = (path?: string) =>
       this.isCareersItem(path || '') ||
       path === '/exam-monitoring' ||
       path === 'exam-monitoring';
+    const oldQuestionBankPaths = new Set([
+      '/questions-master', 'questions-master',
+      '/mains-questions-master', 'mains-questions-master',
+      '/tag-master', 'tag-master',
+      '/mains-tag-master', 'mains-tag-master'
+    ]);
+    const isOldQuestionBankItem = (item: MenuItem) => oldQuestionBankPaths.has(item.path || '');
     const isLegacyTestSeriesItem = (item: MenuItem) =>
       item.name === 'Test Series' ||
       item.path === '/prelims-test-series' ||
@@ -200,10 +192,10 @@ export class AuthService {
       .map(item => ({
         ...item,
         children: item.children
-          ?.filter(child => !isLegacyTestSeriesItem(child) && !isHiddenAdminPage(child.path))
+          ?.filter(child => !isLegacyTestSeriesItem(child) && !isOldQuestionBankItem(child) && !isHiddenAdminPage(child.path))
           .map(child => ({
             ...child,
-            children: child.children?.filter(grandchild => !isLegacyTestSeriesItem(grandchild) && !isHiddenAdminPage(grandchild.path))
+            children: child.children?.filter(grandchild => !isLegacyTestSeriesItem(grandchild) && !isOldQuestionBankItem(grandchild) && !isHiddenAdminPage(grandchild.path))
           }))
       }));
 
