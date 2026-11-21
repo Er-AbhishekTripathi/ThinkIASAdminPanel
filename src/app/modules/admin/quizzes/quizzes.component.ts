@@ -4,7 +4,6 @@ import { Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatMenuModule } from '@angular/material/menu';
@@ -16,6 +15,7 @@ import { ReactiveFormsModule, FormControl } from '@angular/forms';
 
 import { QuizService } from '../../../shared/services/quiz.service';
 import { QuizDialogComponent } from './quiz-dialog/quiz-dialog.component';
+import { timeout } from 'rxjs';
 
 @Component({
   selector: 'app-quizzes',
@@ -25,7 +25,6 @@ import { QuizDialogComponent } from './quiz-dialog/quiz-dialog.component';
     MatCardModule,
     MatButtonModule,
     MatIconModule,
-    MatDialogModule,
     MatSnackBarModule,
     MatProgressSpinnerModule,
     MatMenuModule,
@@ -33,20 +32,22 @@ import { QuizDialogComponent } from './quiz-dialog/quiz-dialog.component';
     MatInputModule,
     MatSelectModule,
     FormsModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    QuizDialogComponent
   ],
   templateUrl: './quizzes.component.html',
   styleUrl: './quizzes.component.css'
 })
 export class QuizzesComponent implements OnInit {
   private quizService = inject(QuizService);
-  private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
   private router = inject(Router);
 
   quizzes = signal<any[]>([]);
   filteredQuizzes = signal<any[]>([]);
   loading = signal(false);
+  isFormVisible = signal(false);
+  selectedQuiz = signal<any | null>(null);
   
   // Search and filter
   searchTerm = '';
@@ -58,7 +59,7 @@ export class QuizzesComponent implements OnInit {
 
   loadQuizzes() {
     this.loading.set(true);
-    this.quizService.getAllQuizzes().subscribe({
+    this.quizService.getAllQuizzes().pipe(timeout(10000)).subscribe({
       next: (quizzes) => {
         this.quizzes.set(quizzes);
         this.filterQuizzes();
@@ -93,26 +94,24 @@ export class QuizzesComponent implements OnInit {
     this.filteredQuizzes.set(filtered);
   }
 
-  openCreateQuizDialog(quiz?: any) {
-    const dialogRef = this.dialog.open(QuizDialogComponent, {
-      width: '90vw',
-      maxWidth: '1200px',
-      height: '90vh',
-      maxHeight: '800px',
-      panelClass: 'quiz-dialog-panel',
-      autoFocus: false,
-      data: { quiz: quiz || null }
-    });
+  showCreateForm() {
+    this.selectedQuiz.set(null);
+    this.isFormVisible.set(true);
+  }
 
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.loadQuizzes();
-      }
-    });
+  hideForm() {
+    this.isFormVisible.set(false);
+    this.selectedQuiz.set(null);
+  }
+
+  onQuizSaved() {
+    this.hideForm();
+    this.loadQuizzes();
   }
 
   editQuiz(quiz: any) {
-    this.openCreateQuizDialog(quiz);
+    this.selectedQuiz.set(quiz);
+    this.isFormVisible.set(true);
   }
 
   deleteQuiz(quizId: string) {

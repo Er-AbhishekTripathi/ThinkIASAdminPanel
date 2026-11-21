@@ -332,7 +332,7 @@
   </div>
   <div *ngIf="!loading() && currentUser()?.role === 'admin' && !statisticsError()" class="admin-dashboard">
     <div class="stats-grid">
-      <a class="stat-card-link" routerLink="/manage-tests" [queryParams]="{ seriesKind: 'pre' }" aria-label="View Prelims tests">
+      <a class="stat-card-link" routerLink="/question-bank-suite/prelims/tests" aria-label="View Prelims tests">
         <mat-card class="stat-card stat-card-prelims">
           <div class="stat-card-topline">
             <div class="stat-icon" aria-hidden="true"><mat-icon>fact_check</mat-icon></div>
@@ -343,7 +343,7 @@
         </mat-card>
       </a>
 
-      <a class="stat-card-link" routerLink="/manage-tests" [queryParams]="{ seriesKind: 'mains' }" aria-label="View Mains tests">
+      <a class="stat-card-link" routerLink="/question-bank-suite/mains/tests" aria-label="View Mains tests">
         <mat-card class="stat-card stat-card-mains">
           <div class="stat-card-topline">
             <div class="stat-icon" aria-hidden="true"><mat-icon>edit_note</mat-icon></div>

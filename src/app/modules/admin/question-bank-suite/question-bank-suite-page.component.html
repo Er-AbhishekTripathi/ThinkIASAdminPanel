@@ -1,0 +1,487 @@
+<ng-container *ngIf="store.loading(); else pageContent">
+  <section class="state-card loading-state">Loading Question Bank Suite…</section>
+</ng-container>
+
+<ng-template #pageContent>
+  <section class="state-card" *ngIf="!store.state(); else readyPage">
+    QBank data is unavailable. Retry the request before making changes.
+    <button class="button" type="button" (click)="store.retry()">Retry</button>
+  </section>
+  <ng-template #readyPage>
+  <section class="page" *ngIf="page() === 'dashboard'">
+    <header class="page-title dashboard-title">
+      <div>
+        <span class="dashboard-kicker">YOUR WORKSPACE</span>
+        <h2>Question Bank Dashboard</h2>
+        <p>A clear overview of your question banks, usage and tests.</p>
+      </div>
+      <div class="dashboard-total">
+        <strong>{{ questionUsageSummary('PRELIMS').total + questionUsageSummary('MAINS').total }}</strong>
+        <span>questions in your bank</span>
+      </div>
+    </header>
+
+    <div class="dashboard-grid">
+      <section class="overview-card prelims-card">
+        <header class="overview-heading">
+          <span class="overview-icon" aria-hidden="true">P</span>
+          <div><span class="overview-eyebrow">QUESTION BANK</span><h2>Prelims</h2><p>Multiple-choice questions and practice tests</p></div>
+        </header>
+        <div class="overview-stats">
+          <article class="metric-card"><span>Questions</span><strong>{{ questionUsageSummary('PRELIMS').total }}</strong></article>
+          <article class="metric-card fresh"><span>Fresh</span><strong>{{ questionUsageSummary('PRELIMS').fresh }}</strong><small>Unused</small></article>
+          <article class="metric-card used"><span>Used</span><strong>{{ questionUsageSummary('PRELIMS').used }}</strong></article>
+          <article class="metric-card reused"><span>Reused 2+</span><strong>{{ questionUsageSummary('PRELIMS').reused }}</strong></article>
+          <article class="metric-card tests"><span>Tests</span><strong>{{ countTests('PRELIMS') }}</strong></article>
+        </div>
+        <p class="usage-note">Fresh and used counts are based on non-draft tests.</p>
+        <section class="overview-table-section">
+          <div class="overview-subheading"><h3>Exam-wise</h3><span>{{ questionExamSummary('PRELIMS').length }} {{ questionExamSummary('PRELIMS').length === 1 ? 'exam' : 'exams' }}</span></div>
+          <div class="table-wrap">
+            <table class="summary-table">
+              <thead><tr><th>Exam</th><th>Total</th><th>Fresh</th><th>Used</th></tr></thead>
+              <tbody>
+                <tr *ngFor="let exam of questionExamSummary('PRELIMS')"><td>{{ exam.name }}</td><td>{{ exam.total }}</td><td>{{ exam.fresh }}</td><td>{{ exam.used }}</td></tr>
+                <tr *ngIf="!questionExamSummary('PRELIMS').length"><td colspan="4" class="summary-empty">No questions yet</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+        <div class="dashboard-actions">
+          <a class="button primary" routerLink="/question-bank-suite/prelims/questions">Question bank</a>
+          <a class="button" routerLink="/question-bank-suite/prelims/tests">Tests</a>
+          <a class="button" routerLink="/question-bank-suite/prelims/import">Word import</a>
+        </div>
+      </section>
+
+      <section class="overview-card mains-card">
+        <header class="overview-heading">
+          <span class="overview-icon" aria-hidden="true">M</span>
+          <div><span class="overview-eyebrow">QUESTION BANK</span><h2>Mains</h2><p>Written answers, papers and practice tests</p></div>
+        </header>
+        <div class="overview-stats">
+          <article class="metric-card"><span>Questions</span><strong>{{ questionUsageSummary('MAINS').total }}</strong></article>
+          <article class="metric-card fresh"><span>Fresh</span><strong>{{ questionUsageSummary('MAINS').fresh }}</strong><small>Unused</small></article>
+          <article class="metric-card used"><span>Used</span><strong>{{ questionUsageSummary('MAINS').used }}</strong></article>
+          <article class="metric-card reused"><span>Reused 2+</span><strong>{{ questionUsageSummary('MAINS').reused }}</strong></article>
+          <article class="metric-card tests"><span>Tests</span><strong>{{ countTests('MAINS') }}</strong></article>
+        </div>
+        <p class="usage-note">Fresh and used counts are based on non-draft tests.</p>
+        <div class="mains-summary-grid">
+          <section class="overview-table-section">
+            <div class="overview-subheading"><h3>Exam-wise</h3><span>{{ questionExamSummary('MAINS').length }} {{ questionExamSummary('MAINS').length === 1 ? 'exam' : 'exams' }}</span></div>
+            <div class="table-wrap">
+              <table class="summary-table">
+                <thead><tr><th>Exam</th><th>Total</th><th>Fresh</th></tr></thead>
+                <tbody>
+                  <tr *ngFor="let exam of questionExamSummary('MAINS')"><td>{{ exam.name }}</td><td>{{ exam.total }}</td><td>{{ exam.fresh }}</td></tr>
+                  <tr *ngIf="!questionExamSummary('MAINS').length"><td colspan="3" class="summary-empty">No questions yet</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+          <section class="overview-table-section">
+            <div class="overview-subheading"><h3>Paper-wise</h3><span>{{ questionPaperSummary('MAINS').length }} {{ questionPaperSummary('MAINS').length === 1 ? 'paper' : 'papers' }}</span></div>
+            <div class="table-wrap">
+              <table class="summary-table">
+                <thead><tr><th>Paper</th><th>Total</th><th>Fresh</th></tr></thead>
+                <tbody>
+                  <tr *ngFor="let paper of questionPaperSummary('MAINS')"><td>{{ paper.name }}</td><td>{{ paper.total }}</td><td>{{ paper.fresh }}</td></tr>
+                  <tr *ngIf="!questionPaperSummary('MAINS').length"><td colspan="3" class="summary-empty">No questions yet</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+        <div class="dashboard-actions">
+          <a class="button primary" routerLink="/question-bank-suite/mains/questions">Question bank</a>
+          <a class="button" routerLink="/question-bank-suite/mains/tests">Tests</a>
+          <a class="button" routerLink="/question-bank-suite/mains/import">Word import</a>
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <section class="page" *ngIf="page() === 'questions'">
+    <div class="page-title">
+      <div><h2>{{ kindLabel(kind()) }} Questions</h2><p>{{ questionsForKind().length }} questions in this bank.</p></div>
+      <button type="button" class="button primary" (click)="beginQuestion()">Add question</button>
+    </div>
+
+    <div class="overview-stats question-page-stats" *ngIf="questionUsageSummary(kind()) as usage">
+      <article class="metric-card"><span>Questions</span><strong>{{ usage.total }}</strong></article>
+      <article class="metric-card fresh"><span>Fresh</span><strong>{{ usage.fresh }}</strong><small>Unused</small></article>
+      <article class="metric-card used"><span>Used</span><strong>{{ usage.used }}</strong></article>
+      <article class="metric-card reused"><span>Reused 2+</span><strong>{{ usage.reused }}</strong></article>
+      <article class="metric-card tests"><span>Tests</span><strong>{{ countTests(kind()) }}</strong></article>
+    </div>
+    <p class="usage-note question-page-usage-note">Fresh and used counts are based on non-draft tests.</p>
+
+    <form #questionEditor class="editor panel" *ngIf="questionFormVisible" (ngSubmit)="saveQuestion()">
+      <h3>{{ questionDraft.id ? 'Edit question' : 'New question' }}</h3>
+      <div class="form-grid">
+        <div class="field wide"><span>Question (English) *</span><ckeditor name="questionEn" [editor]="Editor" [config]="editorConfig" [(ngModel)]="questionDraft.en"></ckeditor></div>
+        <div class="field wide"><span>Question (Hindi)</span><ckeditor name="questionHi" [editor]="Editor" [config]="editorConfig" [(ngModel)]="questionDraft.hi"></ckeditor></div>
+        <label class="field"><span>Exam</span><select name="exam" [(ngModel)]="questionDraft.exam"><option *ngFor="let exam of store.masters()?.exams || []" [value]="exam">{{ exam }}</option></select></label>
+        <label class="field"><span>Subject</span><select name="subject" [(ngModel)]="questionDraft.subject"><option *ngFor="let subject of store.masters()?.subjects || []" [value]="subject">{{ subject }}</option></select></label>
+        <label class="field"><span>Source</span><select name="source" [(ngModel)]="questionDraft.source"><option>Own</option><option>PYQ</option><option>Mock</option></select></label>
+        <label class="field"><span>Difficulty</span><select name="difficulty" [(ngModel)]="questionDraft.difficulty"><option>Easy</option><option>Medium</option><option>Hard</option></select></label>
+        <label class="field" *ngIf="kind() === 'MAINS'"><span>Paper</span><select name="paper" [(ngModel)]="questionDraft.paper"><option *ngFor="let paper of store.masters()?.papers || []" [value]="paper.name">{{ paper.name }}</option></select></label>
+        <label class="field"><span>Topic</span><input name="topic" [(ngModel)]="questionDraft.topic"></label>
+        <label class="field"><span>Marks</span><input name="marks" type="number" min="0" [(ngModel)]="questionDraft.marks"></label>
+        <div class="field wide question-tag-field">
+          <span>Category / Sub Category / Topic tags ({{ selectedQuestionTags.length }} selected)</span>
+          <input name="questionTagSearch" [(ngModel)]="questionTagSearch" placeholder="Search category, subcategory or topic">
+          <div class="question-tag-options" style="max-height: 240px; overflow-y: auto;">
+            <div class="tag-row" *ngFor="let tag of questionTagOptions()">
+              <label>
+                <input type="checkbox" [checked]="selectedQuestionTags.includes(tag.name)"
+                       (change)="toggleQuestionTag(tag.name, $any($event.target).checked)">
+                #{{ tag.name }}
+              </label>
+            </div>
+          </div>
+          <p class="empty-state" *ngIf="!tagsForKind().length">
+            No tags available. Create category, subcategory and topic tags in Question Bank Suite > Setup > Tag Management.
+          </p>
+          <p class="empty-state" *ngIf="tagsForKind().length && !questionTagOptions().length">No matching tags.</p>
+          <label class="field"><span>Additional tags (comma separated)</span><input name="tags" [(ngModel)]="tagsText" placeholder="e.g. polity, constitution"></label>
+        </div>
+        <label class="field wide" *ngIf="kind() === 'PRELIMS'"><span>Options (one per line) *</span><textarea rows="4" name="options" [(ngModel)]="optionsText"></textarea></label>
+        <label class="field" *ngIf="kind() === 'PRELIMS'"><span>Correct option *</span><select name="correct" [(ngModel)]="questionDraft.correct"><option value="">Select</option><option>A</option><option>B</option><option>C</option><option>D</option></select></label>
+      </div>
+      <p class="notice error" role="alert" *ngIf="questionError">{{ questionError }}</p>
+      <div class="action-row">
+        <button type="submit" class="button primary">Save question</button>
+        <button type="button" class="button" (click)="cancelQuestion()">Cancel</button>
+      </div>
+    </form>
+
+    <section class="panel">
+      <div class="toolbar question-toolbar">
+        <input class="search" name="questionSearch" [(ngModel)]="questionSearch" placeholder="Search questions, exam, subject or tag">
+        <a class="button" [routerLink]="['/question-bank-suite', kind().toLowerCase(), 'import']">Import questions</a>
+      </div>
+      <div class="question-list" *ngIf="questionsForKind().length; else noQuestions">
+        <article class="question-row" *ngFor="let question of questionsForKind(); let i = index">
+          <div class="question-content">
+            <div class="question-meta">
+              <span class="badge">{{ question.exam || 'No exam' }}</span>
+              <span class="badge muted">{{ question.subject || 'No subject' }}</span>
+              <div class="tag-list" *ngIf="question.tags?.length"><span *ngFor="let tag of question.tags" [class.highlighted]="isHighlightedTag(tag)">#{{ tag }}</span></div>
+              <span class="badge muted" *ngIf="question.paper">{{ question.paper }}</span>
+              <ng-container *ngIf="usedInExams(question) as usedExams">
+                <span
+                  class="badge used-in"
+                  *ngIf="usedExams.length"
+                  [attr.title]="usedExams.length > 1 ? 'Also used in: ' + usedExams.slice(1).join(', ') : null"
+                  [attr.aria-label]="'Used in ' + usedExams.join(', ')">
+                  Used in {{ usedExams[0] }}<span class="used-in-count" *ngIf="usedExams.length > 1">+{{ usedExams.length - 1 }}</span>
+                </span>
+              </ng-container>
+            </div>
+            <div class="question-line"><span class="question-serial">{{ i + 1 }}.</span><div class="question-en" [innerHTML]="question.en"></div></div>
+            <div class="question-hi" *ngIf="question.hi" [innerHTML]="question.hi"></div>
+            <div class="options" *ngIf="kind() === 'PRELIMS' && question.options?.length">
+              <span *ngFor="let option of question.options; let i = index" [class.correct]="question.correct === 'ABCD'[i]">{{ 'ABCD'[i] }}. {{ option }}<small *ngIf="question.optionsHi?.[i]">{{ question.optionsHi?.[i] }}</small></span>
+            </div>
+          </div>
+          <div class="row-actions">
+            <button type="button" class="button small" (click)="beginQuestion(question)">Edit</button>
+            <button type="button" class="button small danger" (click)="deleteQuestion(question)">Delete</button>
+          </div>
+        </article>
+      </div>
+      <ng-template #noQuestions><div class="empty-state">No questions yet. Add one or import a JSON question file.</div></ng-template>
+    </section>
+  </section>
+
+  <section class="page" *ngIf="page() === 'tests'">
+    <div class="page-title">
+      <div><h2>{{ kindLabel(kind()) }} Tests</h2><p>Build and manage tests using questions in this suite.</p></div>
+      <button type="button" class="button primary" (click)="createTest()">Create test</button>
+    </div>
+    <section class="panel">
+      <div class="toolbar test-toolbar">
+        <input class="search" name="testSearch" [(ngModel)]="testSearch" placeholder="Search tests">
+        <select name="testExamFilter" [(ngModel)]="testExamFilter"><option value="">All exams</option><option *ngFor="let exam of store.masters()?.exams || []" [value]="exam">{{ exam }}</option></select>
+        <select name="testStatusFilter" [(ngModel)]="testStatusFilter"><option value="">All statuses</option><option value="draft">Draft</option><option value="live">Live</option><option value="completed">Completed</option></select>
+        <select name="testPaperFilter" [(ngModel)]="testPaperFilter"><option value="">All papers</option><option *ngFor="let paper of store.masters()?.papers || []" [value]="paper.name">{{ paper.name }}</option></select>
+        <select name="testOptionalFilter" [(ngModel)]="testOptionalFilter"><option value="">All optionals</option><option *ngFor="let optional of store.masters()?.optionals || []" [value]="optional.name">{{ optional.name }}</option></select>
+        <span class="muted">{{ testsForKind().length }} tests</span>
+      </div>
+      <div class="test-cards" *ngIf="testsForKind().length; else noTests">
+        <article class="test-card" *ngFor="let test of testsForKind()">
+          <header class="test-card-header">
+            <div class="test-card-heading">
+              <span class="test-kind-label">{{ kindLabel(test.kind) }} TEST</span>
+              <h3>{{ test.title }}</h3>
+              <div class="test-schedule">
+                <span><mat-icon>event</mat-icon>Starts: {{ test.start ? (test.start | date:'MMM d, y, h:mm:ss a') : 'Not scheduled' }}</span>
+                <span><mat-icon>event_available</mat-icon>Ends: {{ test.end ? (test.end | date:'MMM d, y, h:mm:ss a') : 'Not scheduled' }}</span>
+                <span><mat-icon>schedule</mat-icon>Duration: {{ test.duration }} minutes</span>
+              </div>
+            </div>
+            <span class="test-status-badge" [ngClass]="test.status || 'live'">{{ test.status || 'live' }}</span>
+          </header>
+
+          <div class="test-card-details">
+            <section class="test-description">
+              <mat-icon class="test-metric-icon">description</mat-icon>
+              <span class="test-metric-label">DESCRIPTION</span>
+              <p>{{ test.description || 'No description added.' }}</p>
+            </section>
+            <div class="test-metrics">
+              <article class="test-metric">
+                <mat-icon class="test-metric-icon">quiz</mat-icon>
+                <span class="test-metric-label">TOTAL QUESTIONS</span>
+                <strong>{{ test.questionIds.length }}</strong>
+              </article>
+              <article class="test-metric">
+                <mat-icon class="test-metric-icon">star</mat-icon>
+                <span class="test-metric-label">MARKS PER QUESTION</span>
+                <strong>{{ test.marksPerQ }}</strong>
+              </article>
+              <article class="test-metric">
+                <mat-icon class="test-metric-icon">remove_circle_outline</mat-icon>
+                <span class="test-metric-label">NEGATIVE MARKS</span>
+                <strong>{{ test.negMarks }}</strong>
+              </article>
+              <article class="test-metric max-marks">
+                <mat-icon class="test-metric-icon">emoji_events</mat-icon>
+                <span class="test-metric-label">MAX MARKS</span>
+                <strong>{{ maxTestMarks(test) | number:'1.0-2' }}</strong>
+              </article>
+            </div>
+          </div>
+
+          <footer class="test-card-actions">
+            <button type="button" class="button small" (click)="editTest(test)"><mat-icon>edit</mat-icon>Edit/View</button>
+            <button type="button" class="button small danger" (click)="deleteTest(test)"><mat-icon>delete</mat-icon>Delete</button>
+            <button type="button" class="button small" (click)="reopenTestForStudent(test)" [disabled]="reopeningTestId() === test.id">
+              <mat-icon>lock_open</mat-icon>{{ reopeningTestId() === test.id ? 'Reopening…' : 'Reopen for student' }}
+            </button>
+            <button type="button" class="button small" (click)="duplicateTest(test)"><mat-icon>content_copy</mat-icon>Duplicate</button>
+            <label class="test-status-control">
+              <span>Status</span>
+              <select [ngModel]="test.status || 'live'" (ngModelChange)="setTestStatus(test, $event)" [name]="'status-' + test.id">
+                <option value="draft">Draft</option>
+                <option value="live">Live</option>
+                <option value="completed">Completed</option>
+              </select>
+            </label>
+          </footer>
+        </article>
+      </div>
+      <ng-template #noTests><div class="empty-state">No tests yet. Create a test and select questions from this bank.</div></ng-template>
+    </section>
+  </section>
+
+  <section class="page" *ngIf="page() === 'test-editor'">
+    <ng-container *ngIf="testDraft; else missingTest">
+      <div class="page-title">
+        <div>
+          <h2>{{ testDraft.id ? 'Edit test' : testSeriesContext() ? 'Create test for series' : 'Create test' }}</h2>
+          <p>{{ kindLabel(kind()) }} test setup.</p>
+        </div>
+        <button type="button" class="button" (click)="backToTests()">Back to tests</button>
+      </div>
+      <form class="panel" (ngSubmit)="saveTest()">
+        <p class="info-box" *ngIf="isTestFrozen()">Live and completed tests are read-only.</p>
+        <p class="info-box" *ngIf="testSeriesContext()">
+          This test will be linked to “{{ testSeriesContext()?.title }}”. Questions are filtered to the selected exam and the scheduled test time is pre-filled.
+        </p>
+        <fieldset class="test-fields" [disabled]="isTestFrozen()">
+        <div class="form-grid">
+          <label class="field wide"><span>Test title *</span><input name="testTitle" [(ngModel)]="testDraft.title" required></label>
+          <label class="field"><span>Exam</span><select name="testExam" [(ngModel)]="testDraft.exam"><option *ngFor="let exam of store.masters()?.exams || []" [value]="exam">{{ exam }}</option></select></label>
+          <label class="field"><span>Subject</span><select name="testSubject" [(ngModel)]="testDraft.subject"><option *ngFor="let subject of store.masters()?.subjects || []" [value]="subject">{{ subject }}</option></select></label>
+          <label class="field" *ngIf="kind() === 'MAINS'"><span>Paper</span><select name="testPaper" [(ngModel)]="testDraft.paper"><option *ngFor="let paper of store.masters()?.papers || []" [value]="paper.name">{{ paper.name }}</option></select></label>
+          <label class="field"><span>Duration (minutes)</span><input name="duration" type="number" min="1" [(ngModel)]="testDraft.duration"></label>
+          <label class="field"><span>Start date / time</span><input name="start" type="datetime-local" [(ngModel)]="testDraft.start"></label>
+          <label class="field"><span>End date / time</span><input name="end" type="datetime-local" [(ngModel)]="testDraft.end"></label>
+          <label class="field"><span>Marks per question</span><input name="marksPerQ" type="number" min="0" step="0.25" [(ngModel)]="testDraft.marksPerQ"></label>
+          <label class="field" *ngIf="kind() === 'PRELIMS'"><span>Negative marks</span><input name="negativeMarks" type="number" min="0" step="0.01" [(ngModel)]="testDraft.negMarks"></label>
+          <label class="field"><span>Optional subject</span><select name="optionalSubject" [(ngModel)]="testDraft.optionalSubject"><option value="">None</option><option *ngFor="let optional of store.masters()?.optionals || []" [value]="optional.name">{{ optional.name }}</option></select></label>
+          <label class="field" *ngIf="testDraft.optionalSubject"><span>Optional paper</span><select name="optionalPaper" [(ngModel)]="testDraft.optionalPaper"><option>Paper-I</option><option>Paper-II</option></select></label>
+          <label class="field"><span>Status</span><select name="testStatus" [(ngModel)]="testDraft.status"><option value="draft">Draft</option><option value="live">Live</option><option value="completed">Completed</option></select></label>
+        </div>
+        <section class="question-picker">
+          <h3>Select questions <span class="muted">({{ testDraft.questionIds.length }} selected)</span></h3>
+          <div class="picker-list" *ngIf="testPickerQuestions().length; else noPickerQuestions">
+            <label class="picker-row" *ngFor="let question of testPickerQuestions()">
+              <div class="question-meta">
+                <span class="badge muted" *ngIf="question.deleted">Deleted question</span>
+                <span class="badge">{{ question.exam || 'No exam' }}</span>
+                <span class="badge muted">{{ question.subject || 'No subject' }}</span>
+                <div class="tag-list" *ngIf="question.tags?.length"><span *ngFor="let tag of question.tags" [class.highlighted]="isHighlightedTag(tag)">#{{ tag }}</span></div>
+                <span class="badge muted" *ngIf="question.paper">{{ question.paper }}</span>
+              </div>
+              <input type="checkbox" [checked]="testDraft.questionIds.includes(question.id)" (change)="toggleQuestionForTest(question.id, $any($event.target).checked)">
+              <div class="picker-question-content">
+                <div class="picker-question-text" [innerHTML]="question.en"></div>
+                <div class="question-hi" *ngIf="question.hi" [innerHTML]="question.hi"></div>
+                <div class="options" *ngIf="kind() === 'PRELIMS' && question.options?.length">
+                  <span *ngFor="let option of question.options; let i = index" [class.correct]="question.correct === 'ABCD'[i]">
+                    {{ 'ABCD'[i] }}. <span [innerHTML]="option"></span>
+                    <small *ngIf="question.optionsHi?.[i]" [innerHTML]="question.optionsHi?.[i] || ''"></small>
+                  </span>
+                </div>
+              </div>
+            </label>
+          </div>
+          <ng-template #noPickerQuestions>
+            <p class="empty-state">
+              {{ testSeriesContext() ? 'No questions are available for ' + testDraft.exam + '.' : 'Add questions before creating a test.' }}
+              <a [routerLink]="['/question-bank-suite', kind().toLowerCase(), 'questions']">Open question bank</a>
+            </p>
+          </ng-template>
+        </section>
+        </fieldset>
+        <div class="action-row"><button type="submit" class="button primary" [disabled]="!testDraft.title.trim() || isTestFrozen()">Save test</button><button type="button" class="button" (click)="backToTests()">Cancel</button></div>
+      </form>
+    </ng-container>
+    <ng-template #missingTest><section class="state-card">Test not found. <button class="button" type="button" (click)="backToTests()">Return to tests</button></section></ng-template>
+  </section>
+
+  <section class="page" *ngIf="page() === 'import'">
+    <div class="page-title"><div><h2>Import {{ kindLabel(kind()) }} Questions</h2><p>Import questions into the existing QBank state.</p></div></div>
+    <section class="panel import-panel">
+      <div class="info-box">Upload bilingual DOCX/TXT files or JSON. Text questions should start with Q1., Q2., or bold Markdown markers such as **Q1.** English and Hindi questions with matching numbers are paired.</div>
+      <div class="action-row template-links" *ngIf="kind() === 'PRELIMS'; else mainsTemplates">
+        <a class="button" href="/EnglishQuestionTemplate.docx" download>English DOCX template</a>
+        <a class="button" href="/HindiQuestionTemplate.docx" download>Hindi DOCX template</a>
+      </div>
+      <ng-template #mainsTemplates><div class="action-row template-links"><a class="button" href="/MainsEnglishQuestionTemplate.docx" download>English DOCX template</a><a class="button" href="/MainsHindiQuestionTemplate.docx" download>Hindi DOCX template</a></div></ng-template>
+      <label class="field"><span>JSON question file</span><input type="file" accept=".json,application/json" (change)="readImportFile($event, 'json')"></label>
+      <label class="field"><span>English DOCX / TXT / MD</span><input type="file" accept=".docx,.txt,.md" (change)="readImportFile($event, 'en')"></label>
+      <label class="field"><span>Hindi DOCX / TXT / MD</span><input type="file" accept=".docx,.txt,.md" (change)="readImportFile($event, 'hi')"></label>
+      <label class="field"><span>Or paste JSON</span><textarea rows="8" name="importText" [(ngModel)]="importText" placeholder='[{"en":"Question text","options":["A","B","C","D"],"correct":"A","subject":"Polity"}]'></textarea></label>
+      <label class="field"><span>Or paste English question text</span><textarea rows="8" name="englishImportText" [(ngModel)]="englishImportText" placeholder="Q1. Question text&#10;(a) Option A&#10;(b) Option B&#10;Answer: A"></textarea></label>
+      <label class="field"><span>Or paste Hindi question text</span><textarea rows="8" name="hindiImportText" [(ngModel)]="hindiImportText"></textarea></label>
+      <p class="notice success" *ngIf="importMessage">{{ importMessage }}</p>
+      <p class="notice error" role="alert" *ngIf="importError">{{ importError }}</p>
+      <div class="question-list import-preview" *ngIf="importPreview.length">
+        <article class="question-row" *ngFor="let question of importPreview; let i = index">
+          <div class="question-content"><span class="badge">Question {{ i + 1 }}</span><div class="question-en" [innerHTML]="question.en"></div><div class="question-hi" *ngIf="question.hi" [innerHTML]="question.hi"></div><small>{{ question.exam }} · {{ question.subject }}</small></div>
+        </article>
+      </div>
+      <div class="action-row">
+        <button type="button" class="button primary" (click)="importQuestions()">Build preview</button>
+        <button type="button" class="button primary" *ngIf="importPreview.length" (click)="confirmImport()">Confirm import ({{ importPreview.length }})</button>
+        <button type="button" class="button" *ngIf="importPreview.length" (click)="cancelImportPreview()">Cancel preview</button>
+      </div>
+    </section>
+    <section class="panel" *ngIf="importHistoryForKind().length">
+      <h3>Import history</h3>
+      <div class="master-row" *ngFor="let record of importHistoryForKind()">
+        <span>{{ record['count'] || 0 }} question(s)<small>{{ importDate(record) }}</small></span>
+        <button type="button" class="button small danger" [disabled]="record['undone'] === true || !record['questionIds']" (click)="undoImport(record)">Undo import</button>
+      </div>
+    </section>
+  </section>
+
+  <section class="page" *ngIf="page() === 'master'">
+    <div class="page-title"><div><h2>Master Data</h2><p>Manage exams, subjects, papers, optionals and directives.</p></div></div>
+    <section class="panel">
+      <div class="tab-row">
+        <button type="button" *ngFor="let tab of ['exams','subjects','papers','optionals','directives']" [class.selected]="masterTab() === tab" (click)="selectMasterTab(tab)">{{ tab | titlecase }}</button>
+      </div>
+      <form class="master-add" (ngSubmit)="addMaster()">
+        <input name="newMasterName" [(ngModel)]="newMasterName" [placeholder]="'Add ' + (masterTab() | lowercase)" required>
+        <select *ngIf="masterTab() === 'papers'" name="newMasterType" [(ngModel)]="newMasterType"><option value="GS">GS</option><option value="ESSAY">Essay</option><option value="OPTIONAL">Optional</option></select>
+        <button class="button primary" type="submit">Add</button>
+      </form>
+      <div class="master-list" *ngIf="masterValues().length; else noMasterValues">
+        <div class="master-row" *ngFor="let item of masterValues()">
+          <span>{{ masterName(item) }}<small *ngIf="masterDetail(item)">{{ masterDetail(item) }}</small></span>
+          <button type="button" class="button small danger" (click)="removeMaster(item)">Remove</button>
+        </div>
+      </div>
+      <ng-template #noMasterValues><div class="empty-state">No values in this category.</div></ng-template>
+    </section>
+  </section>
+
+  <section class="page" *ngIf="page() === 'tags'">
+    <div class="page-title"><div><h2>{{ kindLabel(kind()) }} Tags</h2><p>Create a Category / Sub Category / Topic hierarchy, then apply those tags to questions.</p></div><div class="kind-toggle"><button type="button" [class.selected]="kind() === 'PRELIMS'" (click)="setTagKind('PRELIMS')">Prelims</button><button type="button" [class.selected]="kind() === 'MAINS'" (click)="setTagKind('MAINS')">Mains</button></div></div>
+    <section class="panel" *ngIf="tagFormVisible">
+      <h3>{{ editingTagPath ? 'Edit tag' : 'Create a new tag' }}</h3>
+      <p class="tag-form-description">Each tag is stored as Category / Sub Category / Topic and can be assigned to multiple questions.</p>
+      <div class="form-grid">
+        <label class="field">
+          <span>Category *</span>
+          <input name="tagCategory" [(ngModel)]="tagDraft.category" list="qbank-tag-categories" placeholder="e.g. polity">
+          <datalist id="qbank-tag-categories"><option *ngFor="let category of tagCategories()" [value]="category"></option></datalist>
+        </label>
+        <label class="field">
+          <span>Sub Category *</span>
+          <input name="tagSubCategory" [(ngModel)]="tagDraft.subCategory" list="qbank-tag-subcategories" placeholder="e.g. constitution">
+          <datalist id="qbank-tag-subcategories"><option *ngFor="let subCategory of tagSubcategories()" [value]="subCategory"></option></datalist>
+        </label>
+        <label class="field">
+          <span>Topic *</span>
+          <input name="tagTopic" [(ngModel)]="tagDraft.topic" placeholder="e.g. fundamental rights">
+        </label>
+      </div>
+      <p class="notice error" role="alert" *ngIf="tagError">{{ tagError }}</p>
+      <p class="notice error" role="alert" *ngIf="store.error()">{{ store.error() }}</p>
+      <p class="notice" role="status" *ngIf="store.saving()">Saving tag changes...</p>
+      <p class="notice" role="status" *ngIf="tagNotice">{{ tagNotice }}</p>
+      <div class="action-row">
+        <button type="button" class="button primary" (click)="saveQuestionBankTag()">{{ editingTagPath ? 'Save changes' : 'Create tag' }}</button>
+        <button type="button" class="button" (click)="cancelTagForm()">Cancel</button>
+      </div>
+    </section>
+    <section class="panel">
+      <div class="tag-list-header">
+        <div><h3>{{ kindLabel(kind()) }} Tags</h3><span class="tag-count">{{ tagsForKind().length }} tag(s)</span></div>
+        <button type="button" class="button tag-create-button" (click)="openTagForm()">
+          <mat-icon aria-hidden="true">add</mat-icon>
+          {{ tagFormVisible ? 'Close' : 'Create New Tag' }}
+        </button>
+      </div>
+      <div class="tag-table-wrap" *ngIf="tagsForKind().length">
+        <table class="tag-table">
+          <thead>
+            <tr><th>Category</th><th>Sub-Category</th><th>Topic</th><th>Tag</th><th>Actions</th></tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let tag of tagsForKind()">
+              <td><span class="tag-category-badge">{{ tag.category ? (tag.category | titlecase) : '—' }}</span></td>
+              <td><span class="tag-subcategory-badge">{{ tag.subCategory ? (tag.subCategory | titlecase) : '—' }}</span></td>
+              <td><span class="tag-topic-badge">{{ tag.topic ? (tag.topic | titlecase) : '—' }}</span></td>
+              <td class="tag-full-path"><code>{{ tag.name }}</code></td>
+              <td>
+                <div class="tag-actions">
+                  <button type="button" class="button small tag-edit-button" (click)="editTag(tag)" [attr.aria-label]="'Edit tag ' + tag.name"><mat-icon aria-hidden="true">edit</mat-icon>Edit</button>
+                  <button type="button" class="button small tag-delete-button" (click)="deleteTag(tag.name)" [attr.aria-label]="'Delete tag ' + tag.name"><mat-icon aria-hidden="true">delete</mat-icon>Delete</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="empty-state" *ngIf="!tagsForKind().length">No tags have been added to {{ kindLabel(kind()) }} questions yet.</div>
+    </section>
+  </section>
+
+  <section class="page" *ngIf="page() === 'settings'">
+    <div class="page-title"><div><h2>Settings & Backup</h2><p>Export or restore your QBank data.</p></div></div>
+    <section class="panel settings-card">
+      <h3>Backup</h3>
+      <p>Download questions, tests, imports and master data as a JSON file.</p>
+      <div class="action-row">
+        <button type="button" class="button primary" (click)="downloadBackup()">Download backup</button>
+        <label class="button file-button">Restore backup<input type="file" accept=".json,application/json" (change)="restoreBackup($event)"></label>
+      </div>
+      <p class="notice success" *ngIf="backupMessage">{{ backupMessage }}</p>
+      <p class="notice error" role="alert" *ngIf="backupError">{{ backupError }}</p>
+    </section>
+    <section class="panel danger-panel">
+      <h3>Reset data</h3>
+      <p>Remove all questions, tests, imports and custom master data from the QBank state.</p>
+      <button type="button" class="button danger" (click)="clearAllData()">Clear all QBank data</button>
+    </section>
+  </section>
+  </ng-template>
+</ng-template>

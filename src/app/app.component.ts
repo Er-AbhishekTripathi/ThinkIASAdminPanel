@@ -318,11 +318,11 @@ export class AppComponent implements OnInit, OnDestroy {
       'manage-tests': 'Test Management',
       'prelims-tests': 'Prelims Tests',
       'live-test': 'Live Tests',
-      'demo-test-admin': 'Demo Tests',
+      'demo-test-thinkcivil-ias': 'Demo Tests',
       'prelims-test-series': 'Prelims Test Series',
       'mains-test-series': 'Mains Test Series',
       'answer-writing': 'Daily Answer Writing',
-      quizzes: 'Quiz Management',
+      quizzes: 'Daily Quiz',
       'prelims-results': 'Prelims Results',
       'admin-results': 'Results Management',
       'study-module': 'Study Modules'

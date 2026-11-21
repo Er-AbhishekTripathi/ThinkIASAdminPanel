@@ -1,16 +1,37 @@
 <div class="quizzes-container">
   <div class="header">
-    <h1>Quiz Management</h1>
-    <button mat-raised-button color="primary" (click)="openCreateQuizDialog()">
+    <div class="header-copy">
+      <span class="header-kicker">DAILY QUIZ · ADMIN</span>
+      <h1>Daily Quiz</h1>
+      <p>Create and manage daily quizzes for students.</p>
+    </div>
+    <button *ngIf="!isFormVisible()" mat-raised-button color="primary" (click)="showCreateForm()">
       <mat-icon>add</mat-icon>
-      Create Quiz
+      Create Daily Quiz
+    </button>
+    <button *ngIf="isFormVisible()" mat-stroked-button (click)="hideForm()">
+      <mat-icon>close</mat-icon>
+      Cancel
     </button>
   </div>
 
+  <div class="form-container" *ngIf="isFormVisible()">
+    <mat-card class="form-card">
+      <mat-card-content>
+        <app-quiz-dialog
+          [quiz]="selectedQuiz()"
+          (saved)="onQuizSaved()"
+          (cancelled)="hideForm()">
+        </app-quiz-dialog>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <ng-container *ngIf="!isFormVisible()">
   <div class="filters">
     <mat-form-field appearance="outline" class="filter-field">
-      <mat-label>Search Quizzes</mat-label>
-          <input matInput [(ngModel)]="searchTerm" (ngModelChange)="filterQuizzes()">
+      <mat-label>Search Daily Quizzes</mat-label>
+      <input matInput [(ngModel)]="searchTerm" (ngModelChange)="filterQuizzes()" placeholder="Search by title...">
       <mat-icon matSuffix>search</mat-icon>
     </mat-form-field>
 
@@ -46,7 +67,7 @@
         <p *ngIf="!searchTerm && statusFilter === 'all'">
           You haven't created any quizzes yet.
         </p>
-        <button mat-raised-button color="primary" (click)="openCreateQuizDialog()">
+        <button mat-raised-button color="primary" (click)="showCreateForm()">
           <mat-icon>add</mat-icon>
           Create Your First Quiz
         </button>
@@ -56,19 +77,32 @@
 
   <div class="quizzes-grid" *ngIf="!loading() && filteredQuizzes().length > 0">
     <mat-card *ngFor="let quiz of filteredQuizzes()" class="quiz-card">
-      <mat-card-header>
-        <mat-card-title>{{ quiz.title }}</mat-card-title>
-        <mat-card-subtitle>
-          <div class="status-badge" [class.active]="quiz.isActive" [class.inactive]="!quiz.isActive">
-            <mat-icon>{{ quiz.isActive ? 'toggle_on' : 'toggle_off' }}</mat-icon>
-            {{ quiz.isActive ? 'Active' : 'Inactive' }}
+      <mat-card-header class="card-header">
+        <div class="card-header-main">
+          <div class="card-title-row">
+            <mat-card-title>{{ quiz.title }}</mat-card-title>
+            <div class="status-badge" [class.active]="quiz.isActive" [class.inactive]="!quiz.isActive">
+              <mat-icon>{{ quiz.isActive ? 'toggle_on' : 'toggle_off' }}</mat-icon>
+              {{ quiz.isActive ? 'Active' : 'Inactive' }}
+            </div>
           </div>
-          <div>Created: {{ quiz.createdAt | date:'medium' }}</div>
-        </mat-card-subtitle>
+          <mat-card-subtitle class="card-subtitle">
+            <div class="card-meta-item">
+              <mat-icon>event</mat-icon>
+              <span>Created: {{ quiz.createdAt | date:'medium' }}</span>
+            </div>
+          </mat-card-subtitle>
+        </div>
       </mat-card-header>
       
       <mat-card-content>
-        <p><strong>Description:</strong> {{ quiz.description || 'No description' }}</p>
+        <div class="quiz-description">
+          <div class="description-heading">
+            <mat-icon>description</mat-icon>
+            <strong>Description:</strong>
+          </div>
+          <p>{{ quiz.description || 'No description' }}</p>
+        </div>
         <div class="quiz-details">
           <div class="detail-item">
             <mat-icon>quiz</mat-icon>
@@ -115,4 +149,5 @@
       </mat-card-actions>
     </mat-card>
   </div>
+  </ng-container>
 </div>

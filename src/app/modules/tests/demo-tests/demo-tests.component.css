@@ -5,22 +5,83 @@
 }
 
 .header {
+  position: relative;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 30px;
+  gap: 20px;
+  padding: 18px 22px;
+  border: 1px solid #e1eaf0;
+  border-radius: 17px;
+  margin-bottom: 22px;
+  background: linear-gradient(110deg, #fff 0%, #fbfdff 74%, #f1f8fc 100%);
+  box-shadow: 0 8px 26px rgb(22 53 83 / 5%);
+}
+
+.header-copy {
+  min-width: 0;
+}
+
+.header-kicker {
+  color: #4386a8;
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: .13em;
 }
 
 .header h1 {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin: 4px 0 5px;
+  color: #1c365e;
+  font-size: clamp(22px, 2vw, 26px);
+  font-weight: 750;
+  letter-spacing: -.025em;
+}
+
+.header h1::before {
+  width: 4px;
+  height: 24px;
+  flex: 0 0 4px;
+  border-radius: 4px;
+  background: linear-gradient(180deg, #2c83bb, #22a588);
+  content: "";
+}
+
+.header p {
   margin: 0;
-  color: #3f51b5;
+  color: #72839a;
+  font-size: 13px;
+}
+
+.header > button {
+  min-height: 40px;
+  flex: 0 0 auto;
+  padding: 0 18px;
+  border-radius: 9px;
+  box-shadow: 0 5px 13px rgb(36 104 139 / 16%);
+}
+
+.form-container {
+  margin-bottom: 30px;
+  scroll-margin-top: 20px;
+}
+
+.form-card {
+  overflow: hidden;
 }
 
 .filters {
   display: flex;
   gap: 20px;
-  margin-bottom: 30px;
   align-items: center;
+  padding: 14px 16px 2px;
+  border: 1px solid #e1eaf0;
+  border-radius: 15px;
+  margin-bottom: 24px;
+  background: linear-gradient(110deg, #fff 0%, #fbfdff 74%, #f1f8fc 100%);
+  box-shadow: 0 7px 22px rgb(22 53 83 / 5%);
 }
 
 .filter-field {
@@ -80,6 +141,69 @@
 .demo-test-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+:host ::ng-deep .demo-test-card .card-header {
+  display: block;
+}
+
+.card-header-main {
+  width: 100%;
+  min-width: 0;
+}
+
+.card-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+:host ::ng-deep .card-title-row .mat-mdc-card-title {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.card-title-row .status-badge {
+  flex: 0 0 auto;
+}
+
+:host ::ng-deep .card-subtitle {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.description-heading strong {
+  font-weight: 600;
+}
+
+.description-heading {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.description-heading mat-icon {
+  width: 18px;
+  height: 18px;
+  color: #4386a8;
+  font-size: 18px;
+}
+
+.card-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.card-meta-item mat-icon {
+  width: 16px;
+  height: 16px;
+  color: #4386a8;
+  font-size: 16px;
 }
 
 .test-description {
@@ -320,6 +444,8 @@
   .filters {
     flex-direction: column;
     align-items: stretch;
+    gap: 10px;
+    padding: 12px 12px 2px;
   }
   
   .filter-field {
@@ -330,6 +456,10 @@
     flex-direction: column;
     gap: 16px;
     align-items: stretch;
+  }
+
+  .header button {
+    width: 100%;
   }
   
   .test-actions {

@@ -1,6 +1,10 @@
-<iframe
-  class="question-bank-frame"
-  [src]="suiteUrl"
-  (load)="onFrameLoad($event)"
-  title="Question Bank Suite"
-></iframe>
+<section class="suite-shell">
+  <p class="suite-error" role="alert" *ngIf="state.error()">
+    <span>{{ state.error() }}</span>
+    <button type="button" class="link-button" (click)="state.retry()">Retry</button>
+  </p>
+
+  <main class="suite-content">
+    <router-outlet></router-outlet>
+  </main>
+</section>

@@ -9,6 +9,8 @@ import { MatInputModule } from '@angular/material/input';
 
 interface ReopenExamDialogData {
   testTitle?: string;
+  seriesWide?: boolean;
+  scheduledExamCount?: number;
 }
 
 function toLocalPickerValue(date: Date): string {
@@ -26,7 +28,7 @@ function toLocalPickerValue(date: Date): string {
         <div class="header-icon"><mat-icon>lock_open</mat-icon></div>
         <div class="header-copy">
           <span class="eyebrow">EXAM ACCESS</span>
-          <h2 mat-dialog-title>Reopen exam</h2>
+          <h2 mat-dialog-title>{{ data.seriesWide ? 'Reopen Test Series' : 'Reopen exam' }}</h2>
           <p *ngIf="data.testTitle">{{ data.testTitle }}</p>
         </div>
         <button mat-icon-button type="button" mat-dialog-close aria-label="Close dialog" class="close-button">
@@ -35,7 +37,11 @@ function toLocalPickerValue(date: Date): string {
       </header>
 
       <mat-dialog-content>
-        <p class="dialog-description">Choose the student and the date/time until which they can access this exam.</p>
+        <p class="dialog-description">
+          {{ data.seriesWide
+            ? 'Choose the student and the date/time until which they can access all ' + data.scheduledExamCount + ' scheduled exams in this test series.'
+            : 'Choose the student and the date/time until which they can access this exam.' }}
+        </p>
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Student email</mat-label>
           <input matInput type="email" [(ngModel)]="email" name="studentEmail" required email autocomplete="email" placeholder="student@example.com">
@@ -58,7 +64,7 @@ function toLocalPickerValue(date: Date): string {
       <mat-dialog-actions align="end">
         <button mat-button type="button" mat-dialog-close>Cancel</button>
         <button mat-raised-button color="primary" type="button" class="confirm-button" (click)="confirm()" [disabled]="!canConfirm()">
-          <mat-icon>lock_open</mat-icon>Reopen exam
+          <mat-icon>lock_open</mat-icon>{{ data.seriesWide ? 'Reopen Test Series' : 'Reopen exam' }}
         </button>
       </mat-dialog-actions>
     </section>

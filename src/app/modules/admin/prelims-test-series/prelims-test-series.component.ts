@@ -2,7 +2,7 @@ import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
 import { LanguageService } from '../../../shared/i18n/language.service';
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { catchError, forkJoin, from, map, mergeMap, of, toArray } from 'rxjs';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -17,11 +17,13 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
+import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
+import { richTextMinLength, richTextRequired } from '../../../shared/forms/rich-text-validators';
 import { PrelimsTSService, PrelimsTestSeries, TestDate } from '../../../shared/services/prelims-ts.service';
+import { QbankQuestion, QuestionBankSuiteStateService } from '../question-bank-suite/question-bank-suite-state.service';
 import { ConfirmDialogService } from '../../../shared/services/confirm-dialog.service';
-import { CreateTestDialogComponent } from '../../tests/create-test-dialog/create-test-dialog.component';
 import { ReopenExamDialogComponent } from '../../tests/reopen-exam-dialog/reopen-exam-dialog.component';
-
 
 @Component({
   selector: 'app-prelims-test-series',
@@ -42,19 +44,32 @@ import { ReopenExamDialogComponent } from '../../tests/reopen-exam-dialog/reopen
     MatDatepickerModule,
     MatNativeDateModule,
     MatChipsModule,
-    MatTooltipModule
+    MatTooltipModule,
+    CKEditorModule
   ],
   templateUrl: './prelims-test-series.component.html',
   styleUrls: ['./prelims-test-series.component.css']
 })
 export class PrelimsTestSeriesComponent implements OnInit {
+  readonly Editor = ClassicEditor;
+  readonly editorConfig = {
+    toolbar: [
+      'heading', '|', 'bold', 'italic', '|',
+      'bulletedList', 'numberedList', '|',
+      'insertTable', 'blockQuote', '|', 'undo', 'redo'
+    ],
+    table: {
+      contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells']
+    }
+  };
+
   readonly language = inject(LanguageService);
   private fb = inject(FormBuilder);
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
   private confirmDialog = inject(ConfirmDialogService);
-  private router = inject(Router);
   private prelimsTSService = inject(PrelimsTSService);
+  readonly questionBank = inject(QuestionBankSuiteStateService);
 
   // Main data
   testSeries = signal<PrelimsTestSeries[]>([]);
@@ -76,9 +91,12 @@ export class PrelimsTestSeriesComponent implements OnInit {
 
   // Form
   testSeriesForm!: FormGroup;
+  seriesQuestionSearch = '';
+  selectedSeriesQuestionIds: string[] = [];
 
   ngOnInit() {
     this.initForm();
+    this.questionBank.initialize();
     this.loadTestSeries();
   }
 
@@ -86,7 +104,7 @@ export class PrelimsTestSeriesComponent implements OnInit {
     this.testSeriesForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(3)]],
       nameHi: [''],
-      description: ['', [Validators.required, Validators.minLength(10)]],
+      description: ['', [richTextRequired, richTextMinLength(10)]],
       descriptionHi: [''],
       intro: [''], introHi: [''],
       startDate: ['', [Validators.required]],
@@ -218,6 +236,8 @@ export class PrelimsTestSeriesComponent implements OnInit {
     while (this.testDatesArray.length) {
       this.testDatesArray.removeAt(0);
     }
+    this.seriesQuestionSearch = '';
+    this.selectedSeriesQuestionIds = [];
   }
 
   patchFormData(series: PrelimsTestSeries) {
@@ -231,6 +251,13 @@ export class PrelimsTestSeriesComponent implements OnInit {
       endDate: series.endDate,
       isActive: series.isActive
     });
+    this.selectedSeriesQuestionIds = [...new Set(
+      (series.testDates || []).flatMap(testDate =>
+        Array.isArray(testDate.exam?.questionUids)
+          ? testDate.exam.questionUids.filter((id: unknown): id is string => typeof id === 'string')
+          : []
+      )
+    )];
 
     while (this.testDatesArray.length) {
       this.testDatesArray.removeAt(0);
@@ -250,6 +277,15 @@ export class PrelimsTestSeriesComponent implements OnInit {
       duration: [testDate?.duration || 120, [Validators.required, Validators.min(30)]]
     });
     this.testDatesArray.push(dateGroup);
+  }
+
+  openTimePicker(input: HTMLInputElement): void {
+    if (typeof input.showPicker === 'function') {
+      input.showPicker();
+      return;
+    }
+
+    input.focus();
   }
 
   removeTestDate(index: number) {
@@ -402,37 +438,115 @@ export class PrelimsTestSeriesComponent implements OnInit {
       isActive: formValue.isActive
     };
 
-    if (this.isEditMode() && this.editingId()) {
-      // Update existing
-      this.prelimsTSService.updateTestSeries(this.editingId()!, testSeriesData).subscribe({
-        next: (response) => {
-          this.snackBar.open('Test series updated successfully!', 'Close', { duration: 3000 });
+    const isEditing = this.isEditMode() && this.editingId();
+    const saveRequest = isEditing
+      ? this.prelimsTSService.updateTestSeries(this.editingId()!, testSeriesData)
+      : this.prelimsTSService.createTestSeries(testSeriesData);
+
+    saveRequest.subscribe({
+      next: response => {
+        if (isEditing) {
+          this.saveSharedQuestions(response.data);
+          return;
+        }
+
+        const createdSeries = response?.data as PrelimsTestSeries | undefined;
+        if (!createdSeries?._id) {
+          console.error('Test series was created but the response did not include its identifier.', response);
+          this.snackBar.open('Test series was created. Refresh and edit it to add questions.', 'Close', { duration: 5000 });
           this.loadTestSeries();
           this.hideForm();
           this.submitting.set(false);
-        },
-        error: (error) => {
-          console.error('Error updating test series:', error);
-          this.snackBar.open('Error updating test series', 'Close', { duration: 3000 });
-          this.submitting.set(false);
+          return;
         }
-      });
-    } else {
-      // Create new
-      this.prelimsTSService.createTestSeries(testSeriesData).subscribe({
-        next: (response) => {
-          this.snackBar.open('Test series created successfully!', 'Close', { duration: 3000 });
-          this.loadTestSeries();
-          this.hideForm();
-          this.submitting.set(false);
-        },
-        error: (error) => {
-          console.error('Error creating test series:', error);
-          this.snackBar.open('Error creating test series', 'Close', { duration: 3000 });
-          this.submitting.set(false);
-        }
-      });
+
+        this.isEditMode.set(true);
+        this.editingId.set(createdSeries._id);
+        this.patchFormData(createdSeries);
+        this.loadTestSeries();
+        this.snackBar.open('Test series created. Select shared questions, then update the series to add them.', 'Close', { duration: 5000 });
+        this.submitting.set(false);
+      },
+      error: error => {
+        console.error(`Error ${isEditing ? 'updating' : 'creating'} test series:`, error);
+        this.snackBar.open(`Error ${isEditing ? 'updating' : 'creating'} test series`, 'Close', { duration: 3000 });
+        this.submitting.set(false);
+      }
+    });
+  }
+
+  seriesQuestions(): QbankQuestion[] {
+    const query = this.seriesQuestionSearch.trim().toLowerCase();
+    return this.questionBank.questions()
+      .filter(question => question.kind === 'PRELIMS')
+      .filter(question => {
+        if (!query) return true;
+        const searchableText = [
+          question.en,
+          question.hi || '',
+          ...(question.options || []),
+          ...(question.optionsHi || []),
+          question.exam || '',
+          question.subject || '',
+          ...(question.tags || [])
+        ].join(' ').replace(/<[^>]*>/g, ' ').toLowerCase();
+        return searchableText.includes(query);
+      })
+      .sort((left, right) => Number(this.isSeriesQuestionSelected(right.id)) - Number(this.isSeriesQuestionSelected(left.id)));
+  }
+
+  isSeriesQuestionSelected(questionId: string): boolean {
+    return this.selectedSeriesQuestionIds.includes(questionId);
+  }
+
+  toggleSeriesQuestion(questionId: string, checked: boolean): void {
+    const selected = new Set(this.selectedSeriesQuestionIds);
+    if (checked) selected.add(questionId);
+    else selected.delete(questionId);
+    this.selectedSeriesQuestionIds = [...selected];
+  }
+
+  private saveSharedQuestions(series: PrelimsTestSeries): void {
+    const seriesId = series?._id;
+    const testDates = series?.testDates || [];
+    if (!seriesId || !testDates.length || testDates.some(testDate => !testDate._id)) {
+      console.error('Test series was saved without the identifiers needed to assign questions to its dates.', series);
+      this.isEditMode.set(true);
+      this.editingId.set(seriesId || null);
+      this.snackBar.open('Test series was saved, but questions could not be assigned to its dates. Refresh and retry.', 'Close', { duration: 5000 });
+      this.submitting.set(false);
+      return;
     }
+
+    const questionUids = [...this.selectedSeriesQuestionIds];
+    from(testDates).pipe(
+      mergeMap(testDate => this.prelimsTSService.saveSlotExam(seriesId, testDate._id!, {
+        title: testDate.exam?.title || `${series.name} - ${this.formatDate(testDate.date)}`,
+        description: testDate.exam?.description || series.description,
+        duration: testDate.duration || testDate.exam?.duration || 120,
+        marksPerQuestion: testDate.exam?.marksPerQuestion ?? 2,
+        negativeMarks: testDate.exam?.negativeMarks ?? 0.66,
+        introPage: testDate.exam?.introPage || '',
+        introPageHi: testDate.exam?.introPageHi || '',
+        isActive: testDate.exam?.isActive !== false,
+        questionUids
+      }), 5),
+      toArray()
+    ).subscribe({
+      next: () => {
+        this.snackBar.open(`Test series updated successfully with ${questionUids.length} shared question(s)!`, 'Close', { duration: 3000 });
+        this.loadTestSeries();
+        this.hideForm();
+        this.submitting.set(false);
+      },
+      error: error => {
+        console.error('Test series was saved, but shared questions could not be assigned to every date:', error);
+        this.isEditMode.set(true);
+        this.editingId.set(seriesId);
+        this.snackBar.open('Test series was saved, but questions could not be assigned to every date. Update the series to retry.', 'Close', { duration: 5000 });
+        this.submitting.set(false);
+      }
+    });
   }
 
   // CRUD Operations
@@ -508,39 +622,61 @@ export class PrelimsTestSeriesComponent implements OnInit {
     return date;
   }
 
-  openPaperDialog(series: PrelimsTestSeries, slot: TestDate) {
-    const start = this.slotStart(slot);
-    const dialogRef = this.dialog.open(CreateTestDialogComponent, {
-      width: '90vw', maxWidth: '1200px', height: '90vh', maxHeight: 'calc(100vh - 24px)',
-      panelClass: 'create-test-dialog-panel', autoFocus: false,
-      data: {
-        test: slot.exam || null,
-        seriesId: series._id,
-        seriesKind: 'pre',
-        slotId: slot._id || (slot as any).id,
-        startTime: start,
-        endTime: new Date(start.getTime() + (slot.duration || 120) * 60000),
-        duration: slot.duration || 120,
-        title: `${series.name} - ${this.formatDate(slot.date)}`
-      }
-    });
-    dialogRef.afterClosed().subscribe(result => { if (result) this.loadTestSeries(); });
+  hasReopenableExams(series: PrelimsTestSeries): boolean {
+    return this.reopenableExams(series).length > 0;
   }
 
-  openReopen(series: PrelimsTestSeries, exam: any) {
+  openReopenSeries(series: PrelimsTestSeries): void {
+    const exams = this.reopenableExams(series);
+    if (!series._id || exams.length === 0) {
+      this.snackBar.open('There are no created exams to reopen in this test series.', 'Close', { duration: 3000 });
+      return;
+    }
+
     const dialogRef = this.dialog.open(ReopenExamDialogComponent, {
       width: '480px',
       maxWidth: 'calc(100vw - 32px)',
       panelClass: 'reopen-exam-dialog-panel',
       autoFocus: false,
-      data: { testTitle: exam.title }
+      data: { testTitle: series.name, seriesWide: true, scheduledExamCount: exams.length }
     });
     dialogRef.afterClosed().subscribe(details => {
       if (!details) return;
-      this.prelimsTSService.reopenExam(series._id!, exam._id, details.email, details.until).subscribe({
-        next: () => this.snackBar.open('Exam reopened for the student', 'Close', { duration: 3000 }),
-        error: error => this.snackBar.open(error.error?.message || 'Unable to reopen exam', 'Close', { duration: 4000 })
+      forkJoin(exams.map(exam => this.prelimsTSService
+        .reopenExam(series._id!, exam.id, details.email, details.until)
+        .pipe(
+          map(() => ({ success: true as const, title: exam.title })),
+          catchError((error: unknown) => of({ success: false as const, title: exam.title, error }))
+        )
+      )).subscribe(results => {
+        const failed = results.filter(result => !result.success);
+        const reopened = results.length - failed.length;
+        if (failed.length === 0) {
+          this.snackBar.open(`Reopened all ${reopened} scheduled exams for the student.`, 'Close', { duration: 4000 });
+          return;
+        }
+        this.snackBar.open(
+          `Reopened ${reopened} of ${results.length} exams. Failed: ${failed.map(result => result.title).join(', ')}.`,
+          'Close',
+          { duration: 6000 }
+        );
       });
     });
+  }
+
+  private reopenableExams(series: PrelimsTestSeries): Array<{ id: string; title: string }> {
+    const exams = new Map<string, { id: string; title: string }>();
+    for (const slot of series.testDates || []) {
+      const exam = slot.exam;
+      const id = typeof exam?._id === 'string' ? exam._id : '';
+      if (!id) continue;
+      exams.set(id, {
+        id,
+        title: typeof exam.title === 'string' && exam.title.trim()
+          ? exam.title
+          : `${series.name} - ${this.formatDate(slot.date)}`
+      });
+    }
+    return Array.from(exams.values());
   }
 }

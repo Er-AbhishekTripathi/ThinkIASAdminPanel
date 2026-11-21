@@ -458,7 +458,7 @@
 
 .content-wrapper.suite-content-wrapper {
   height: 100%;
-  overflow: hidden;
+  overflow: auto;
 }
 
 .content-wrapper > * {

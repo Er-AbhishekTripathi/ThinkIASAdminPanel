@@ -14,7 +14,7 @@ import { DemoTestService } from '../../../shared/services/demo-test.service';
     <main class="results-page">
       <header class="page-header">
         <div>
-          <a mat-stroked-button routerLink="/demo-test-admin"><mat-icon>arrow_back</mat-icon> Demo Tests</a>
+          <a mat-stroked-button routerLink="/demo-test-thinkcivil-ias"><mat-icon>arrow_back</mat-icon> Demo Tests</a>
           <p class="eyebrow">DEMO TEST ATTEMPTS</p>
           <h1>{{ test()?.title || 'Student attempts' }}</h1>
           <p class="subtitle">{{ results().length }} student submission{{ results().length === 1 ? '' : 's' }}</p>

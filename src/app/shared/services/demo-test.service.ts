@@ -20,7 +20,7 @@ export class DemoTestService {
   }
 
   updateDemoTest(testId: string, testData: any): Observable<any> {
-    return this.http.put(`${this.apiUrl}/admin/${testId}`, testData);
+    return this.http.put(`${this.apiUrl}/${testId}`, testData);
   }
 
   deleteDemoTest(testId: string): Observable<any> {
@@ -28,7 +28,7 @@ export class DemoTestService {
   }
 
   toggleDemoTestStatus(testId: string): Observable<any> {
-    return this.http.patch(`${this.apiUrl}/admin/${testId}/toggle-status`, {});
+    return this.http.patch(`${this.apiUrl}/${testId}/toggle-status`, {});
   }
 
   // Public APIs (available to both admin and students)

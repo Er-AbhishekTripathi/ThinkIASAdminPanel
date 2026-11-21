@@ -84,6 +84,20 @@ export class PrelimsTSService {
     return this.http.put(`${this.baseUrl}/${id}`, data);
   }
 
+  saveSlotExam(seriesId: string, slotId: string, data: {
+    title: string;
+    description: string;
+    duration: number;
+    marksPerQuestion: number;
+    negativeMarks: number;
+    introPage: string;
+    introPageHi: string;
+    isActive: boolean;
+    questionUids: string[];
+  }): Observable<any> {
+    return this.http.post(`${this.baseUrl}/${seriesId}/slots/${slotId}/exam`, data);
+  }
+
   toggleStatus(id: string): Observable<any> {
     return this.http.patch(`${this.baseUrl}/${id}/toggle-status`, {});
   }

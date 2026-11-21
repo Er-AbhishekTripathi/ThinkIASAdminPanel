@@ -214,24 +214,41 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 8px;
 }
 
 .action-buttons {
   display: flex;
-  gap: 12px;
+  gap: 6px;
   flex-wrap: wrap;
   align-items: center;
 }
 
+.questions-section .section-title {
+  margin: 0;
+  font-size: 1rem;
+  white-space: nowrap;
+}
+
+:host ::ng-deep .questions-section .action-buttons .mat-mdc-button-base {
+  min-width: 0;
+  padding: 0 8px;
+  white-space: nowrap;
+}
+
+:host ::ng-deep .questions-section .action-buttons mat-icon {
+  margin-right: 4px;
+}
+
 .total-questions {
   color: #666;
-  font-size: 0.9em;
-  padding: 8px 12px;
+  font-size: 0.8em;
+  padding: 4px 8px;
   background: #f5f5f5;
   border-radius: 4px;
+  white-space: nowrap;
 }
 
 /* Filter by Tag Section */

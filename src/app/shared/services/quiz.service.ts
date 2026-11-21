@@ -31,6 +31,41 @@ export interface Submission {
   submittedAt: Date;
 }
 
+export interface QuizAttemptText {
+  english?: string;
+  hindi?: string;
+}
+
+export interface QuizAttemptOption {
+  optionNumber: number;
+  optionLetter: string;
+  optionText: string | QuizAttemptText;
+  isCorrect: boolean;
+  isSelected: boolean;
+}
+
+export interface QuizAttemptQuestion {
+  questionNumber: number;
+  questionUid: string;
+  questionText: string | QuizAttemptText;
+  description?: string | QuizAttemptText | null;
+  options: QuizAttemptOption[];
+  selectedOption: number;
+  correctOption: number;
+  selectedOptionLetter: string | null;
+  correctOptionLetter: string;
+  isCorrect: boolean;
+}
+
+export interface QuizSubmissionDetails extends Submission {
+  phone?: string;
+  correctAnswers: number;
+  wrongAnswers: number;
+  percentage?: number;
+  quiz?: { title: string; description?: string };
+  questionOverview?: QuizAttemptQuestion[];
+}
+
 export interface LeaderboardResponse {
   leaderboard: LeaderboardItem[];
   totalParticipants: number;
@@ -86,6 +121,10 @@ export class QuizService {
 
   getAllQuizSubmissions(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/admin/submissions`);
+  }
+
+  getQuizSubmissionDetails(id: string): Observable<QuizSubmissionDetails> {
+    return this.http.get<QuizSubmissionDetails>(`${this.apiUrl}/admin/submissions/${id}`);
   }
 
   // Public operations

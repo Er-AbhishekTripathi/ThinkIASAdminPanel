@@ -15,9 +15,37 @@ export const routes: Routes = [
   { path: 'notifications', loadComponent: () => import('./modules/admin/notifications/notifications.component').then(m => m.NotificationsComponent), canActivate: [authGuard, roleGuard], data: { role: 'admin' } },
   { path: 'exam-monitoring', loadComponent: () => import('./modules/admin/exam-monitoring/exam-monitoring.component').then(m => m.ExamMonitoringComponent), canActivate: [authGuard, roleGuard], data: { role: 'admin' } },
   { path: 'manage-exams', loadComponent: () => import('./modules/admin/manage-exams/manage-exams.component').then(m => m.ManageExamsComponent), canActivate: [authGuard, roleGuard], data: { role: 'admin' } },
-  { path: 'question-bank-suite', loadComponent: () => import('./modules/admin/question-bank-suite/question-bank-suite.component').then(m => m.QuestionBankSuiteComponent), canActivate: [authGuard, roleGuard], data: { role: 'admin' } },
-  { path: 'question-bank-suite/:section/:page', loadComponent: () => import('./modules/admin/question-bank-suite/question-bank-suite.component').then(m => m.QuestionBankSuiteComponent), canActivate: [authGuard, roleGuard], data: { role: 'admin' } },
-  { path: 'question-bank-suite/:section/:page/:id', loadComponent: () => import('./modules/admin/question-bank-suite/question-bank-suite.component').then(m => m.QuestionBankSuiteComponent), canActivate: [authGuard, roleGuard], data: { role: 'admin' } },
+  {
+    path: 'question-bank-suite',
+    loadComponent: () => import('./modules/admin/question-bank-suite/question-bank-suite.component').then(m => m.QuestionBankSuiteComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { role: 'admin' },
+    children: [
+      { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
+      { path: 'dashboard', loadComponent: () => import('./modules/admin/question-bank-suite/question-bank-suite-page.component').then(m => m.QuestionBankSuitePageComponent), data: { page: 'dashboard' } },
+      { path: 'prelims/questions', loadComponent: () => import('./modules/admin/question-bank-suite/question-bank-suite-page.component').then(m => m.QuestionBankSuitePageComponent), data: { page: 'questions', kind: 'PRELIMS' } },
+      { path: 'mains/questions', loadComponent: () => import('./modules/admin/question-bank-suite/question-bank-suite-page.component').then(m => m.QuestionBankSuitePageComponent), data: { page: 'questions', kind: 'MAINS' } },
+      { path: 'prelims/tests', loadComponent: () => import('./modules/admin/question-bank-suite/question-bank-suite-page.component').then(m => m.QuestionBankSuitePageComponent), data: { page: 'tests', kind: 'PRELIMS' } },
+      { path: 'mains/tests', loadComponent: () => import('./modules/admin/question-bank-suite/question-bank-suite-page.component').then(m => m.QuestionBankSuitePageComponent), data: { page: 'tests', kind: 'MAINS' } },
+      { path: 'prelims/tests/:id', loadComponent: () => import('./modules/admin/question-bank-suite/question-bank-suite-page.component').then(m => m.QuestionBankSuitePageComponent), data: { page: 'test-editor', kind: 'PRELIMS' } },
+      { path: 'mains/tests/:id', loadComponent: () => import('./modules/admin/question-bank-suite/question-bank-suite-page.component').then(m => m.QuestionBankSuitePageComponent), data: { page: 'test-editor', kind: 'MAINS' } },
+      { path: 'prelims/import', loadComponent: () => import('./modules/admin/question-bank-suite/question-bank-suite-page.component').then(m => m.QuestionBankSuitePageComponent), data: { page: 'import', kind: 'PRELIMS' } },
+      { path: 'mains/import', loadComponent: () => import('./modules/admin/question-bank-suite/question-bank-suite-page.component').then(m => m.QuestionBankSuitePageComponent), data: { page: 'import', kind: 'MAINS' } },
+      { path: 'prelims/test-series', loadComponent: () => import('./modules/admin/prelims-test-series/prelims-test-series.component').then(m => m.PrelimsTestSeriesComponent) },
+      { path: 'prelims/test-series/create', loadComponent: () => import('./modules/admin/prelims-test-series/prelims-test-series.component').then(m => m.PrelimsTestSeriesComponent) },
+      { path: 'prelims/test-series/:id', loadComponent: () => import('./modules/admin/prelims-test-series/prelims-test-series.component').then(m => m.PrelimsTestSeriesComponent) },
+      { path: 'mains/test-series', loadComponent: () => import('./modules/admin/mains-test-series/mains-test-series.component').then(m => m.MainsTestSeriesComponent) },
+      { path: 'mains/test-series/create', loadComponent: () => import('./modules/admin/mains-test-series/mains-test-series.component').then(m => m.MainsTestSeriesComponent) },
+      { path: 'mains/test-series/:id', loadComponent: () => import('./modules/admin/mains-test-series/mains-test-series.component').then(m => m.MainsTestSeriesComponent) },
+      { path: 'setup/tags', redirectTo: 'tags' },
+      { path: 'setup/settings', redirectTo: 'settings' },
+      { path: 'master', pathMatch: 'full', redirectTo: 'master/exams' },
+      { path: 'master/:tab', loadComponent: () => import('./modules/admin/question-bank-suite/question-bank-suite-page.component').then(m => m.QuestionBankSuitePageComponent), data: { page: 'master' } },
+      { path: 'tags', loadComponent: () => import('./modules/admin/question-bank-suite/question-bank-suite-page.component').then(m => m.QuestionBankSuitePageComponent), data: { page: 'tags', kind: 'PRELIMS' } },
+      { path: 'settings', loadComponent: () => import('./modules/admin/question-bank-suite/question-bank-suite-page.component').then(m => m.QuestionBankSuitePageComponent), data: { page: 'settings' } },
+      { path: '**', redirectTo: 'dashboard' }
+    ]
+  },
   { path: 'manage-batches', loadComponent: () => import('./modules/admin/manage-batches/manage-batches.component').then(m => m.ManageBatchesComponent), canActivate: [authGuard, roleGuard], data: { role: 'admin' } },
   { path: 'manage-plans', loadComponent: () => import('./modules/admin/manage-plans/manage-plans.component').then(m => m.ManagePlansComponent), canActivate: [authGuard, roleGuard], data: { role: 'admin' } },
   // { 
@@ -192,16 +220,26 @@ export const routes: Routes = [
   },
 
   {
-  path: 'demo-test-admin', 
+  path: 'demo-test-thinkcivil-ias',
   loadComponent: () => import('./modules/tests/demo-tests/demo-tests.component').then(m => m.DemoTestsComponent),
   canActivate: [authGuard, roleGuard],
   data: { role: 'admin' }
   },
   {
-    path: 'demo-test-admin/:id/results',
+    path: 'demo-test-thinkcivil-ias/:id/results',
     loadComponent: () => import('./modules/tests/demo-tests/demo-test-results.component').then(m => m.DemoTestResultsComponent),
     canActivate: [authGuard, roleGuard],
     data: { role: 'admin' }
+  },
+  {
+    path: 'demo-test-admin/:id/results',
+    redirectTo: 'demo-test-thinkcivil-ias/:id/results',
+    pathMatch: 'full'
+  },
+  {
+    path: 'demo-test-admin',
+    redirectTo: 'demo-test-thinkcivil-ias',
+    pathMatch: 'full'
   },
   {
     path: 'demo-test-attempts',
@@ -214,6 +252,12 @@ export const routes: Routes = [
     loadComponent: () => import('./modules/tests/demo-tests/demo-test-attempts.component').then(m => m.DemoTestAttemptsComponent),
     canActivate: [authGuard, roleGuard],
     data: { role: 'admin', attemptType: 'quiz' }
+  },
+  {
+    path: 'website-quiz-attempts/:id',
+    loadComponent: () => import('./modules/tests/demo-tests/website-quiz-attempt-detail.component').then(m => m.WebsiteQuizAttemptDetailComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { role: 'admin' }
   },
   { path: 'quizzes', component: QuizzesComponent, canActivate: [authGuard, roleGuard], data: { role: 'admin' } },
   { path: 'quizzes/:id', component: QuizDetailsComponent, canActivate: [authGuard, roleGuard], data: { role: 'admin' } },

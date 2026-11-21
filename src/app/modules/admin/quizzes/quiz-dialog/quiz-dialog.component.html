@@ -1,12 +1,5 @@
 <div class="quiz-dialog">
-  <div class="dialog-header">
-    <h2 mat-dialog-title>{{ isEdit() ? 'Edit Quiz' : 'Create Quiz' }}</h2>
-    <button mat-icon-button (click)="onCancel()" class="close-button">
-      <mat-icon>close</mat-icon>
-    </button>
-  </div>
-
-  <mat-dialog-content class="dialog-content">
+  <div class="dialog-content">
     <form [formGroup]="quizForm" (ngSubmit)="onSubmit()" class="quiz-form">
       <!-- Basic Quiz Info -->
       <div class="form-section">
@@ -42,36 +35,20 @@
       <!-- Questions Selection Section -->
       <div class="questions-section">
         <div class="section-header">
-          <h3 class="section-title">Questions in Quiz ({{ selectedQuestions().length }})</h3>
+          <h3 class="section-title">Select questions <span class="muted">({{ selectedQuestions().length }} selected)</span></h3>
           <div class="action-buttons" *ngIf="!questionsLoading()">
-            <button type="button" mat-raised-button color="primary" (click)="addSelectedToQuiz()"
-              [disabled]="temporarilySelectedUids().length === 0" class="add-selected-btn">
-              <mat-icon>add_circle</mat-icon>
-              Add to Quiz ({{ temporarilySelectedUids().length }})
-            </button>
-            
-            <button type="button" mat-stroked-button color="accent" (click)="toggleAddByUid()" class="add-by-uid-btn">
-              <mat-icon>add</mat-icon>
-              Add By UID
-            </button>
-
-            <button type="button" mat-stroked-button color="accent" (click)="toggleAddByType()" class="add-by-type-btn">
-              <mat-icon>category</mat-icon>
-              Add By Type
-            </button>
-
             <button type="button" mat-stroked-button color="primary" (click)="toggleTagFilter()"
               class="filter-by-tag-btn">
               <mat-icon>filter_list</mat-icon>
               {{ currentFilterTag() ? 'Filtered: ' + currentFilterTag() : 'Filter by Tag' }}
             </button>
 
-            <span class="total-questions">
-              Available: {{ availableQuestions().length }}
-            </span>
+            <span class="total-questions">Available: {{ availableQuestions().length }}</span>
 
-            <button type="button" mat-stroked-button color="primary" (click)="toggleSelectAll()"
-              *ngIf="availableQuestions().length > 0" class="select-all-btn">
+            <button type="button" mat-flat-button color="primary" (click)="toggleSelectAll()"
+              *ngIf="availableQuestions().length > 0" [class.all-selected]="isAllFilteredSelected()"
+              [attr.aria-label]="isAllFilteredSelected() ? 'Deselect all available questions' : 'Select all available questions'"
+              class="select-all-btn">
               <mat-icon>{{ isAllFilteredSelected() ? 'check_box' : 'check_box_outline_blank' }}</mat-icon>
               {{ isAllFilteredSelected() ? 'Deselect All' : 'Select All' }}
             </button>
@@ -116,145 +93,62 @@
           </div>
         </div>
 
-        <!-- Add by UID Section -->
-        <div *ngIf="showAddByUid()" class="add-by-uid-section">
-          <div class="uid-textarea-container">
-            <div class="textarea-header">
-              <h4 class="textarea-title">Add Questions by UID</h4>
-              <span class="uid-count">
-                {{ getUidCount() }} UID(s) entered
-              </span>
-            </div>
-
-            <div class="textarea-wrapper">
-              <mat-icon class="textarea-icon">fingerprint</mat-icon>
-              <textarea class="uid-textarea"
-                placeholder="Paste UIDs here (one per line or separated by commas)&#10;Example:&#10;daaeac9a-e1d1-4186-beab-fb49a5797945&#10;c45e6e61-2827-4fbd-a1a2-b25e8c2b4a69&#10;faa57786-ee3e-4ca7-8c6e-bb1c3c758f3a"
-                [(ngModel)]="uidTextareaValue" [ngModelOptions]="{standalone: true}"
-                (input)="onUidTextareaChange($event)" rows="8" [disabled]="uidProcessingStatus() === 'loading'">
-              </textarea>
-            </div>
-
-            <div *ngIf="uidProcessingStatus() !== 'idle'" class="uid-processing-status" [class]="uidProcessingStatus()">
-              <mat-spinner diameter="20" *ngIf="uidProcessingStatus() === 'loading'"></mat-spinner>
-              <mat-icon *ngIf="uidProcessingStatus() === 'success'">check_circle</mat-icon>
-              <mat-icon *ngIf="uidProcessingStatus() === 'error'">error</mat-icon>
-              <span>
-                {{ uidProcessingStatus() === 'loading' ? 'Processing UIDs...' :
-                uidProcessingStatus() === 'success' ? 'UIDs processed successfully' :
-                uidProcessingStatus() === 'error' ? 'Error processing UIDs' : '' }}
-              </span>
-            </div>
-
-            <div class="format-hint">
-              <mat-icon>info</mat-icon>
-              <span>You can paste multiple UIDs separated by commas, new lines, or copy-paste directly from a list.</span>
-            </div>
-          </div>
-
-          <div class="uid-section-actions">
-            <button type="button" mat-stroked-button (click)="clearUids()"
-              [disabled]="uidProcessingStatus() === 'loading'">
-              <mat-icon>clear_all</mat-icon>
-              Clear All
-            </button>
-
-            <button type="button" mat-raised-button color="primary" (click)="processUids()"
-              [disabled]="!uidTextareaValue().trim() || uidProcessingStatus() === 'loading'" class="process-uids-btn">
-              <mat-spinner diameter="20" *ngIf="uidProcessingStatus() === 'loading'"></mat-spinner>
-              <mat-icon *ngIf="uidProcessingStatus() !== 'loading'">play_arrow</mat-icon>
-              Add to Quiz
-            </button>
-
-            <button type="button" mat-stroked-button color="warn" (click)="toggleAddByUid()"
-              [disabled]="uidProcessingStatus() === 'loading'">
-              <mat-icon>close</mat-icon>
-              Close
-            </button>
-          </div>
-        </div>
-
-        <!-- Add by Type Section -->
-        <div *ngIf="showAddByType()" class="add-by-type-section add-by-uid-section">
-          <div class="type-selection-container">
-            <div class="textarea-header">
-              <h4 class="textarea-title">Add Questions by Type</h4>
-              <span class="uid-count" *ngIf="selectedQuestionType()">
-                {{ getQuestionCountByType() }} question(s) found
-              </span>
-            </div>
-
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Select Type</mat-label>
-              <mat-select [value]="selectedQuestionType()"
-                (selectionChange)="selectedQuestionType.set($event.value)">
-                <mat-option *ngFor="let type of questionTypes()" [value]="type">{{ type }}</mat-option>
-              </mat-select>
-            </mat-form-field>
-          </div>
-
-          <div class="uid-section-actions">
-            <button type="button" mat-stroked-button (click)="selectedQuestionType.set('')"
-              [disabled]="!selectedQuestionType()">
-              <mat-icon>clear_all</mat-icon>
-              Clear
-            </button>
-            <button type="button" mat-raised-button color="primary" (click)="processQuestionsByType()"
-              [disabled]="!selectedQuestionType() || getQuestionCountByType() === 0">
-              <mat-icon>add_circle</mat-icon>
-              Add to Quiz
-            </button>
-            <button type="button" mat-stroked-button color="warn" (click)="toggleAddByType()">
-              <mat-icon>close</mat-icon>
-              Close
-            </button>
-          </div>
-        </div>
-
-        <!-- Questions Multi-select -->
+        <!-- Direct question picker -->
         <div class="questions-select-section">
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Select Questions
-              <span *ngIf="currentFilterTag()" class="filter-indicator">
-                (Filtered by: {{ currentFilterTag() }})
-              </span>
-            </mat-label>
-            <mat-select [value]="temporarilySelectedUids()" (selectionChange)="onSelectionChange($event.value)" multiple>
-              <mat-select-trigger>
-                {{ temporarilySelectedUids().length }} question(s) selected
-              </mat-select-trigger>
-              <mat-option *ngFor="let question of filteredQuestions()" [value]="question.uid" class="question-option">
-                <div class="question-option-content">
-                  <div class="question-checkbox">
-                    <mat-icon class="checkbox-icon">
-                      {{ isQuestionSelected(question.uid) ? 'check_box' : 'check_box_outline_blank' }}
-                    </mat-icon>
-                  </div>
-                  <div class="question-preview">
-                    <div class="question-text-preview" [innerHTML]="getQuestionDisplayText(question)"></div>
-                    <div class="question-meta">
-                      <span class="correct-answer">
-                        Correct: {{ getOptionLetter(question.correctAnswer) }}
-                      </span>
-                      <span class="question-tags">
-                        Tags: {{ getQuestionTags(question) }}
-                      </span>
-                      <span class="question-id">
-                        ID: {{ question.uid.slice(0, 8) }}...
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </mat-option>
-            </mat-select>
-            <mat-icon matSuffix>quiz</mat-icon>
-            <mat-hint>Select questions and click "Add to Quiz"</mat-hint>
+          <mat-form-field appearance="outline" class="question-search-field full-width">
+            <mat-label>Search questions</mat-label>
+            <input matInput [(ngModel)]="questionPickerSearch" [ngModelOptions]="{standalone: true}"
+              placeholder="Search question text, exam, subject or tags">
+            <mat-icon matSuffix>search</mat-icon>
           </mat-form-field>
 
           <div *ngIf="questionsLoading()" class="questions-loading">
             <mat-spinner diameter="30"></mat-spinner>
             <p>Loading questions...</p>
           </div>
+          <div *ngIf="questionBank.error()" class="question-bank-error">
+            <span>{{ questionBank.error() }}</span>
+            <button type="button" mat-stroked-button color="primary" (click)="questionBank.retry()">
+              <mat-icon>refresh</mat-icon>
+              Retry Prelims questions
+            </button>
+          </div>
+
+          <div class="picker-list" *ngIf="pickerQuestions().length; else noPickerQuestions">
+            <label class="picker-row" *ngFor="let question of pickerQuestions()"
+              [class.selected]="isQuestionInQuiz(question.uid)">
+              <input type="checkbox"
+                [checked]="isQuestionInQuiz(question.uid)"
+                [disabled]="question.source === 'Prelims Test' && !question.isActive && !isQuestionInQuiz(question.uid)"
+                (change)="toggleQuestionForQuiz(question.uid, $any($event.target).checked)">
+              <div class="picker-question-content">
+                <div class="question-meta">
+                  <span class="badge">{{ question.exam || 'No exam' }}</span>
+                  <span class="badge muted">{{ question.subject || 'No subject' }}</span>
+                  <span class="badge muted" *ngIf="getQuestionTags(question) !== 'None'">#{{ getQuestionTags(question) }}</span>
+                  <span class="badge used-in" *ngIf="getQuestionUsageLabels(question).length"
+                    [attr.title]="getQuestionUsageLabels(question).join(', ')">
+                    Used in {{ getQuestionUsageLabels(question)[0] }}
+                  </span>
+                </div>
+                <div class="picker-question-text" [innerHTML]="question.question.english"></div>
+                <div class="question-hi" *ngIf="question.question.hindi" [innerHTML]="question.question.hindi"></div>
+                <div class="options" *ngIf="question.options?.length">
+                  <span *ngFor="let option of question.options; let i = index"
+                    [class.correct]="i === question.correctAnswer">
+                    {{ getOptionLetter(i) }}. <span [innerHTML]="option.english"></span>
+                    <small *ngIf="option.hindi" [innerHTML]="option.hindi"></small>
+                  </span>
+                </div>
+              </div>
+            </label>
+          </div>
+          <ng-template #noPickerQuestions>
+            <div class="no-questions-selected">
+              <mat-icon class="no-questions-icon">help_outline</mat-icon>
+              <h4>No matching questions</h4>
+            </div>
+          </ng-template>
         </div>
 
         <!-- Selected Questions Preview -->
@@ -276,6 +170,9 @@
                   </span>
                   <span class="question-uid-badge">
                     UID: {{ question.uid }}
+                  </span>
+                  <span *ngIf="question.source" class="question-tags-badge">
+                    {{ question.source }}{{ question.exam ? ' · ' + question.exam : '' }}{{ question.subject ? ' · ' + question.subject : '' }}
                   </span>
                   <span *ngIf="question.tags && question.tags.length > 0" class="question-tags-badge">
                     <mat-icon>label</mat-icon>
@@ -335,9 +232,9 @@
         </div>
       </div>
     </form>
-  </mat-dialog-content>
+  </div>
 
-  <mat-dialog-actions align="end" class="dialog-actions">
+  <div class="dialog-actions">
     <button mat-raised-button color="primary" (click)="onSubmit()"
       [disabled]="!quizForm.valid || selectedQuestions().length === 0 || loading()" class="submit-btn">
       <mat-spinner diameter="20" *ngIf="loading()"></mat-spinner>
@@ -345,5 +242,5 @@
         {{ isEdit() ? 'Update' : 'Create' }} Quiz ({{ selectedQuestions().length }} questions)
       </span>
     </button>
-  </mat-dialog-actions>
+  </div>
 </div>

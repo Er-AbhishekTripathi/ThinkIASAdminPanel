@@ -63,6 +63,7 @@ type AttemptType = 'demo' | 'quiz';
                 <th>Score</th>
                 <th>Correct</th>
                 <th *ngIf="attemptType() === 'demo'">Attempt</th>
+                <th *ngIf="attemptType() === 'quiz'">Question report</th>
                 <th>Submitted</th>
               </tr>
             </thead>
@@ -83,6 +84,11 @@ type AttemptType = 'demo' | 'quiz';
                 </td>
                 <td><span class="correct-value">{{ getCorrectCount(attempt) }}</span><small class="muted-value">correct</small></td>
                 <td *ngIf="attemptType() === 'demo'"><span class="attempt-badge">{{ attempt.attemptNumber || 1 }}</span></td>
+                <td *ngIf="attemptType() === 'quiz'">
+                  <a class="report-link" [routerLink]="['/website-quiz-attempts', attempt._id]" [attr.aria-label]="'View question report for ' + getStudentName(attempt)">
+                    <mat-icon>fact_check</mat-icon><span>View report</span>
+                  </a>
+                </td>
                 <td class="date-cell">{{ attempt.submittedAt | date:'MMM d, y' }}<small>{{ attempt.submittedAt | date:'h:mm a' }}</small></td>
               </tr>
             </tbody>
@@ -147,6 +153,9 @@ type AttemptType = 'demo' | 'quiz';
     .correct-value{color:#276b53;font-weight:700}
     .muted-value{margin-left:4px;color:#829098;font-size:11px}
     .attempt-badge{display:inline-grid;min-width:26px;height:26px;place-items:center;border-radius:50%;background:#f0f3f4;color:#526570;font-size:11px;font-weight:700}
+    .report-link{display:inline-flex;align-items:center;gap:5px;padding:7px 9px;border:1px solid #c9dfe4;border-radius:5px;background:#f2f8f9;color:#22677a;font-size:11px;font-weight:700;text-decoration:none;white-space:nowrap}
+    .report-link:hover{border-color:#8ebac3;background:#e8f3f5}
+    .report-link mat-icon{width:16px;height:16px;font-size:16px}
     .date-cell{color:#394f5b;font-size:12px;white-space:nowrap}
     .date-cell small{margin-top:4px;color:#7d8c93;font-size:11px}
     .list-footer{padding:11px 18px;border-top:1px solid #e7edef;color:#71818a;font-size:11px;text-align:right}

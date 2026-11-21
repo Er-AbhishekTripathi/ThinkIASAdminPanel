@@ -1,4 +1,5 @@
 import { HttpClient } from '@angular/common/http';
+import { catchError, forkJoin, from, map, mergeMap, of, toArray } from 'rxjs';
 import { environment } from '../../../../environment/environment';
 import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
 import { LanguageService } from '../../../shared/i18n/language.service';
@@ -20,9 +21,11 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatDividerModule } from '@angular/material/divider';
+import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
+import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
+import { richTextMinLength, richTextRequired } from '../../../shared/forms/rich-text-validators';
+import { QbankQuestion, QuestionBankSuiteStateService } from '../question-bank-suite/question-bank-suite-state.service';
 import { ConfirmDialogService } from '../../../shared/services/confirm-dialog.service';
-import { CreateTestDialogComponent } from '../../tests/create-test-dialog/create-test-dialog.component';
 import { ReopenExamDialogComponent } from '../../tests/reopen-exam-dialog/reopen-exam-dialog.component';
 
 export interface MainsTestDate {
@@ -69,12 +72,27 @@ export interface MainsTestSeries {
     MatNativeDateModule,
     MatChipsModule,
     MatTooltipModule,
-    MatDividerModule
+    CKEditorModule
   ],
   templateUrl: './mains-test-series.component.html',
-  styleUrl: './mains-test-series.component.css'
+  styleUrls: [
+    './mains-test-series.component.css',
+    '../prelims-test-series/prelims-test-series.component.css'
+  ]
 })
 export class MainsTestSeriesComponent implements OnInit {
+  readonly Editor = ClassicEditor;
+  readonly editorConfig = {
+    toolbar: [
+      'heading', '|', 'bold', 'italic', '|',
+      'bulletedList', 'numberedList', '|',
+      'insertTable', 'blockQuote', '|', 'undo', 'redo'
+    ],
+    table: {
+      contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells']
+    }
+  };
+
   readonly language = inject(LanguageService);
   private http = inject(HttpClient);
   private api = `${environment.apiUrl}/mains-ts`;
@@ -83,6 +101,7 @@ export class MainsTestSeriesComponent implements OnInit {
   private snackBar = inject(MatSnackBar);
   private confirmDialog = inject(ConfirmDialogService);
   private router = inject(Router);
+  readonly questionBank = inject(QuestionBankSuiteStateService);
 
   // Main data
   testSeries = signal<MainsTestSeries[]>([]);
@@ -99,9 +118,12 @@ export class MainsTestSeriesComponent implements OnInit {
 
   // Form
   testSeriesForm!: FormGroup;
+  seriesQuestionSearch = '';
+  selectedSeriesQuestionIds: string[] = [];
 
   ngOnInit() {
     this.initForm();
+    this.questionBank.initialize();
     this.loadTestSeries();
   }
 
@@ -109,7 +131,7 @@ export class MainsTestSeriesComponent implements OnInit {
     this.testSeriesForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(3)]],
       nameHi: [''],
-      description: ['', [Validators.required, Validators.minLength(10)]],
+      description: ['', [richTextRequired, richTextMinLength(10)]],
       descriptionHi: [''],
       intro: [''], introHi: [''],
       startDate: ['', [Validators.required]],
@@ -217,6 +239,8 @@ export class MainsTestSeriesComponent implements OnInit {
     while (this.testDatesArray.length) {
       this.testDatesArray.removeAt(0);
     }
+    this.seriesQuestionSearch = '';
+    this.selectedSeriesQuestionIds = [];
   }
 
   patchFormData(series: MainsTestSeries) {
@@ -230,6 +254,13 @@ export class MainsTestSeriesComponent implements OnInit {
       endDate: series.endDate,
       isActive: series.isActive
     });
+    this.selectedSeriesQuestionIds = [...new Set(
+      (series.testDates || []).flatMap(testDate =>
+        Array.isArray(testDate.exam?.questionUids)
+          ? testDate.exam.questionUids.filter((id: unknown): id is string => typeof id === 'string')
+          : []
+      )
+    )];
 
     while (this.testDatesArray.length) {
       this.testDatesArray.removeAt(0);
@@ -248,6 +279,15 @@ export class MainsTestSeriesComponent implements OnInit {
       duration: [testDate?.duration || 180, [Validators.required, Validators.min(30)]]
     });
     this.testDatesArray.push(dateGroup);
+  }
+
+  openTimePicker(input: HTMLInputElement): void {
+    if (typeof input.showPicker === 'function') {
+      input.showPicker();
+      return;
+    }
+
+    input.focus();
   }
 
   removeTestDate(index: number) {
@@ -401,10 +441,114 @@ export class MainsTestSeriesComponent implements OnInit {
       totalTests: formValue.testDates.length
     };
 
-    const request = this.isEditMode() && this.editingId()
-      ? this.http.put(`${this.api}/${this.editingId()}`, testSeriesData)
-      : this.http.post(this.api, testSeriesData);
-    request.subscribe({next: () => { this.submitting.set(false); this.hideForm(); this.loadTestSeries(); }, error: e => { this.submitting.set(false); this.snackBar.open(e.error?.message || 'Unable to save test series.', 'Close', {duration: 5000}); }});
+    const isEditing = this.isEditMode() && this.editingId();
+    const request = isEditing
+      ? this.http.put<{ data?: MainsTestSeries }>(`${this.api}/${this.editingId()}`, testSeriesData)
+      : this.http.post<{ data?: MainsTestSeries }>(this.api, testSeriesData);
+    request.subscribe({
+      next: response => {
+        if (isEditing) {
+          this.saveSharedQuestions(response.data);
+          return;
+        }
+
+        const createdSeries = response.data;
+        if (!createdSeries?._id) {
+          console.error('Mains test series was created but the response did not include its identifier.', response);
+          this.snackBar.open('Test series was created. Refresh and edit it to add questions.', 'Close', { duration: 5000 });
+          this.loadTestSeries();
+          this.hideForm();
+          this.submitting.set(false);
+          return;
+        }
+
+        this.isEditMode.set(true);
+        this.editingId.set(createdSeries._id);
+        this.patchFormData(createdSeries);
+        this.loadTestSeries();
+        this.snackBar.open('Test series created. Select shared questions, then update the series to add them.', 'Close', { duration: 5000 });
+        this.submitting.set(false);
+      },
+      error: error => {
+        console.error(`Error ${isEditing ? 'updating' : 'creating'} Mains test series:`, error);
+        this.submitting.set(false);
+        this.snackBar.open(error.error?.message || 'Unable to save test series.', 'Close', { duration: 5000 });
+      }
+    });
+  }
+
+  seriesQuestions(): QbankQuestion[] {
+    const query = this.seriesQuestionSearch.trim().toLowerCase();
+    return this.questionBank.questions()
+      .filter(question => question.kind === 'MAINS')
+      .filter(question => {
+        if (!query) return true;
+        const searchableText = [
+          question.en,
+          question.hi || '',
+          question.exam || '',
+          question.subject || '',
+          question.paper || '',
+          question.topic || '',
+          ...(question.tags || [])
+        ].join(' ').replace(/<[^>]*>/g, ' ').toLowerCase();
+        return searchableText.includes(query);
+      })
+      .sort((left, right) => Number(this.isSeriesQuestionSelected(right.id)) - Number(this.isSeriesQuestionSelected(left.id)));
+  }
+
+  isSeriesQuestionSelected(questionId: string): boolean {
+    return this.selectedSeriesQuestionIds.includes(questionId);
+  }
+
+  toggleSeriesQuestion(questionId: string, checked: boolean): void {
+    const selected = new Set(this.selectedSeriesQuestionIds);
+    if (checked) selected.add(questionId);
+    else selected.delete(questionId);
+    this.selectedSeriesQuestionIds = [...selected];
+  }
+
+  private saveSharedQuestions(series: MainsTestSeries | undefined): void {
+    const seriesId = series?._id;
+    const testDates = series?.testDates || [];
+    if (!seriesId || !testDates.length || testDates.some(testDate => !testDate._id)) {
+      console.error('Mains test series was saved without the identifiers needed to assign questions to its dates.', series);
+      this.isEditMode.set(true);
+      this.editingId.set(seriesId || null);
+      this.snackBar.open('Test series was saved, but questions could not be assigned to its dates. Refresh and retry.', 'Close', { duration: 5000 });
+      this.submitting.set(false);
+      return;
+    }
+
+    const questionUids = [...this.selectedSeriesQuestionIds];
+    from(testDates).pipe(
+      mergeMap(testDate => this.http.post(`${this.api}/${seriesId}/slots/${testDate._id}/exam`, {
+        title: testDate.exam?.title || `${series.name} - ${this.formatDate(testDate.date)}`,
+        description: testDate.exam?.description || series.description,
+        duration: testDate.duration || testDate.exam?.duration || 180,
+        marksPerQuestion: testDate.exam?.marksPerQuestion ?? 10,
+        negativeMarks: 0,
+        introPage: testDate.exam?.introPage || '',
+        introPageHi: testDate.exam?.introPageHi || '',
+        isActive: testDate.exam?.isActive !== false,
+        questionUids
+      }), 5),
+      toArray()
+    ).subscribe({
+      next: () => {
+        this.snackBar.open(`Mains test series updated with ${questionUids.length} shared question(s)!`, 'Close', { duration: 3000 });
+        this.loadTestSeries();
+        this.hideForm();
+        this.submitting.set(false);
+      },
+      error: error => {
+        console.error('Mains test series was saved, but shared questions could not be assigned to every date:', error);
+        this.isEditMode.set(true);
+        this.editingId.set(seriesId);
+        this.snackBar.open('Test series was saved, but questions could not be assigned to every date. Update the series to retry.', 'Close', { duration: 5000 });
+        this.submitting.set(false);
+      }
+    });
   }
 
   deleteTestSeries(id: string) {
@@ -441,45 +585,61 @@ export class MainsTestSeriesComponent implements OnInit {
     return index;
   }
 
-  slotStart(slot: MainsTestDate) {
-    const date = new Date(slot.date);
-    const [hours, minutes] = String(slot.time || '09:00').split(':').map(Number);
-    date.setHours(hours || 0, minutes || 0, 0, 0);
-    return date;
+  hasReopenableExams(series: MainsTestSeries): boolean {
+    return this.reopenableExams(series).length > 0;
   }
 
-  openPaperDialog(series: MainsTestSeries, slot: any) {
-    const start = this.slotStart(slot);
-    this.dialog.open(CreateTestDialogComponent, {
-      width: '90vw', maxWidth: '1200px', height: '90vh', maxHeight: 'calc(100vh - 24px)',
-      panelClass: 'create-test-dialog-panel', autoFocus: false,
-      data: {
-        test: slot.exam || null,
-        seriesId: series._id,
-        seriesKind: 'mains',
-        slotId: slot._id || slot.id,
-        startTime: start,
-        endTime: new Date(start.getTime() + (slot.duration || 180) * 60000),
-        duration: slot.duration || 180,
-        title: `${series.name} - ${this.formatDate(slot.date)}`
-      }
-    }).afterClosed().subscribe(result => { if (result) this.loadTestSeries(); });
-  }
+  openReopenSeries(series: MainsTestSeries): void {
+    const exams = this.reopenableExams(series);
+    if (!series._id || exams.length === 0) {
+      this.snackBar.open('There are no created exams to reopen in this test series.', 'Close', { duration: 3000 });
+      return;
+    }
 
-  openReopen(series: MainsTestSeries, exam: any) {
     const dialogRef = this.dialog.open(ReopenExamDialogComponent, {
       width: '480px',
       maxWidth: 'calc(100vw - 32px)',
       panelClass: 'reopen-exam-dialog-panel',
       autoFocus: false,
-      data: { testTitle: exam.title }
+      data: { testTitle: series.name, seriesWide: true, scheduledExamCount: exams.length }
     });
     dialogRef.afterClosed().subscribe(details => {
       if (!details) return;
-      this.http.post(`${this.api}/${series._id}/exams/${exam._id}/reopen`, { email: details.email, until: details.until }).subscribe({
-        next: () => this.snackBar.open('Exam reopened for the student', 'Close', { duration: 3000 }),
-        error: error => this.snackBar.open(error.error?.message || 'Unable to reopen exam', 'Close', { duration: 4000 })
+      forkJoin(exams.map(exam => this.http
+        .post(`${this.api}/${series._id}/exams/${exam.id}/reopen`, { email: details.email, until: details.until })
+        .pipe(
+          map(() => ({ success: true as const, title: exam.title })),
+          catchError((error: unknown) => of({ success: false as const, title: exam.title, error }))
+        )
+      )).subscribe(results => {
+        const failed = results.filter(result => !result.success);
+        const reopened = results.length - failed.length;
+        if (failed.length === 0) {
+          this.snackBar.open(`Reopened all ${reopened} scheduled exams for the student.`, 'Close', { duration: 4000 });
+          return;
+        }
+        this.snackBar.open(
+          `Reopened ${reopened} of ${results.length} exams. Failed: ${failed.map(result => result.title).join(', ')}.`,
+          'Close',
+          { duration: 6000 }
+        );
       });
     });
+  }
+
+  private reopenableExams(series: MainsTestSeries): Array<{ id: string; title: string }> {
+    const exams = new Map<string, { id: string; title: string }>();
+    for (const slot of series.testDates || []) {
+      const exam = slot.exam;
+      const id = typeof exam?._id === 'string' ? exam._id : '';
+      if (!id) continue;
+      exams.set(id, {
+        id,
+        title: typeof exam.title === 'string' && exam.title.trim()
+          ? exam.title
+          : `${series.name} - ${this.formatDate(slot.date)}`
+      });
+    }
+    return Array.from(exams.values());
   }
 }

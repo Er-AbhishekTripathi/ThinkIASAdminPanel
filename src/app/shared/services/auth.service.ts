@@ -195,7 +195,36 @@ export class AuthService {
       item.path === '/mains-test-series' ||
       item.path === 'mains-test-series';
 
-    const visibleAdminMenu = adminMenu
+    const filterSectionLinks = (items: MenuItem[], sectionName = ''): MenuItem[] =>
+      items.reduce<MenuItem[]>((filteredItems, item) => {
+        const itemName = item.name?.trim().toLowerCase() || '';
+        const currentSection = itemName === 'prelims examination' || itemName === 'mains section'
+          ? itemName
+          : sectionName;
+        const children = item.children
+          ? filterSectionLinks(item.children, currentSection)
+          : undefined;
+        const isPrelimsLinkToRemove = currentSection === 'prelims examination' &&
+          ['manage tests', 'question bank', 'tag management'].includes(itemName);
+        const isMainsLinkToRemove = currentSection === 'mains section' &&
+          (
+            itemName === 'mains tag management' ||
+            item.path === '/mains-tag-master' ||
+            itemName === 'mains question bank' ||
+            item.path === '/mains-questions-master'
+          );
+        const isEmptySection = (itemName === 'prelims examination' || itemName === 'mains section') &&
+          !children?.length;
+
+        if (isPrelimsLinkToRemove || isMainsLinkToRemove || isEmptySection) {
+          return filteredItems;
+        }
+
+        filteredItems.push(item.children ? { ...item, children } : item);
+        return filteredItems;
+      }, []);
+
+    const visibleAdminMenu = filterSectionLinks(adminMenu
       .filter(item => item.name !== 'Question Management' && !isLegacyTestSeriesItem(item) && !isHiddenAdminPage(item.path))
       .map(item => ({
         ...item,
@@ -205,7 +234,7 @@ export class AuthService {
             ...child,
             children: child.children?.filter(grandchild => !isLegacyTestSeriesItem(grandchild) && !isHiddenAdminPage(grandchild.path))
           }))
-      }));
+      })));
 
     if (this.currentUserSignal()?.role === 'admin' &&
         !visibleAdminMenu.some(item => item.path === '/question-bank-suite' || item.path === 'question-bank-suite')) {

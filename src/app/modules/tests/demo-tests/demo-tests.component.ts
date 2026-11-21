@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatMenuModule } from '@angular/material/menu';
@@ -12,13 +12,12 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { FormsModule } from '@angular/forms';
-import { ReactiveFormsModule, FormControl } from '@angular/forms';
-import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
-import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
+import { ReactiveFormsModule } from '@angular/forms';
 
 import { DemoTestService } from '../../../shared/services/demo-test.service';
 import { DemoTestDialogComponent } from './demo-test-dialog/demo-test-dialog.component';
 import { ConfirmDialogService } from '../../../shared/services/confirm-dialog.service';
+import { timeout } from 'rxjs';
 
 @Component({
   selector: 'app-demo-tests',
@@ -37,14 +36,13 @@ import { ConfirmDialogService } from '../../../shared/services/confirm-dialog.se
     MatSelectModule,
     FormsModule,
     ReactiveFormsModule,
-    CKEditorModule
+    DemoTestDialogComponent
   ],
   templateUrl: './demo-tests.component.html',
   styleUrl: './demo-tests.component.css'
 })
 export class DemoTestsComponent implements OnInit {
   private demoTestService = inject(DemoTestService);
-  private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
   private router = inject(Router);
   private confirmDialog = inject(ConfirmDialogService);
@@ -52,40 +50,20 @@ export class DemoTestsComponent implements OnInit {
   tests = signal<any[]>([]);
   filteredTests = signal<any[]>([]);
   loading = signal(false);
+  isFormVisible = signal(false);
+  selectedTest = signal<any | null>(null);
   
   // Search and filter
   searchTerm = '';
   statusFilter = 'all';
   
-  // Intro modal
-  showIntroModal = false;
-  selectedTest: any = null;
-  introContent = new FormControl('');
-  updatingIntro = false;
-  
-  // CKEditor
-  public Editor = ClassicEditor;
-  public editorConfig = {
-    toolbar: [
-      'heading', '|',
-      'bold', 'italic', 'underline', 'strikethrough', '|',
-      'bulletedList', 'numberedList', '|',
-      'insertTable', 'blockQuote', '|',
-      'undo', 'redo'
-    ],
-    table: {
-      contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells']
-    },
-    height: '300px'
-  };
-
   ngOnInit() {
     this.loadDemoTests();
   }
 
   loadDemoTests() {
     this.loading.set(true);
-    this.demoTestService.getDemoTests().subscribe({
+    this.demoTestService.getDemoTests().pipe(timeout(10000)).subscribe({
       next: (tests) => {
         this.tests.set(tests);
         this.filterTests();
@@ -119,22 +97,27 @@ export class DemoTestsComponent implements OnInit {
     this.filteredTests.set(filtered);
   }
 
-  openCreateDemoTestDialog(test?: any) {
-    const dialogRef = this.dialog.open(DemoTestDialogComponent, {
-      width: '90vw',
-      maxWidth: '1200px',
-      height: '90vh',
-      maxHeight: '800px',
-      panelClass: 'demo-test-dialog-panel',
-      autoFocus: false,
-      data: { test: test || null }
-    });
+  showCreateForm() {
+    this.selectedTest.set(null);
+    this.isFormVisible.set(true);
+  }
 
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.loadDemoTests();
-      }
-    });
+  hideForm() {
+    this.isFormVisible.set(false);
+    this.selectedTest.set(null);
+  }
+
+  onDemoTestSaved() {
+    this.hideForm();
+    this.loadDemoTests();
+  }
+
+  openCreateDemoTestDialog(test?: any) {
+    this.selectedTest.set(test || null);
+    this.isFormVisible.set(true);
+    setTimeout(() => {
+      document.querySelector('.form-container')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
   }
 
   editDemoTest(test: any) {
@@ -158,8 +141,13 @@ export class DemoTestsComponent implements OnInit {
   toggleDemoTestStatus(test: any) {
     const newStatus = !test.isActive;
     const action = newStatus ? 'activate' : 'deactivate';
-    
-    if (confirm(`Are you sure you want to ${action} this demo test?`)) {
+
+    this.confirmDialog.ask({
+      title: `${newStatus ? 'Activate' : 'Deactivate'} demo test?`,
+      message: `Are you sure you want to ${action} this demo test?`,
+      confirmText: newStatus ? 'Activate' : 'Deactivate',
+      icon: newStatus ? 'toggle_on' : 'toggle_off'
+    }).subscribe(() => {
       this.demoTestService.toggleDemoTestStatus(test._id).subscribe({
         next: (updatedTest) => {
           // Update local state
@@ -179,63 +167,15 @@ export class DemoTestsComponent implements OnInit {
           this.snackBar.open(`Error ${action}ing demo test`, 'Close', { duration: 3000 });
         }
       });
-    }
+    });
   }
 
   viewResults(test: any) {
-    this.router.navigate(['/demo-test-admin', test._id, 'results']);
+    this.router.navigate(['/demo-test-thinkcivil-ias', test._id, 'results']);
   }
 
   previewDemoTest(test: any) {
     this.router.navigate(['/take-demo-test', test._id]);
-  }
-
-  // Intro Modal Methods
-  openIntroModal(test: any) {
-    this.selectedTest = test;
-    this.introContent.setValue(test.introPage || '');
-    this.showIntroModal = true;
-  }
-
-  closeIntroModal() {
-    this.showIntroModal = false;
-    this.selectedTest = null;
-    this.introContent.setValue('');
-    this.updatingIntro = false;
-  }
-
-  updateIntro() {
-    if (!this.selectedTest) return;
-
-    const introPage = this.introContent.value?.trim() || '';
-    this.updatingIntro = true;
-    
-    this.demoTestService.updateDemoTest(this.selectedTest._id, { introPage }).subscribe({
-      next: (updatedTest) => {
-        const updatedTests = this.tests().map(t => 
-          t._id === this.selectedTest._id ? { ...t, introPage } : t
-        );
-        this.tests.set(updatedTests);
-        this.filterTests();
-        
-        this.snackBar.open(
-          introPage ? 'Intro saved successfully!' : 'Intro removed!',
-          'Close',
-          { duration: 3000 }
-        );
-        
-        this.closeIntroModal();
-      },
-      error: (error) => {
-        console.error('Error updating intro:', error);
-        this.snackBar.open(
-          'Failed to save intro: ' + (error.error?.message || 'Unknown error'),
-          'Close',
-          { duration: 3000 }
-        );
-        this.updatingIntro = false;
-      }
-    });
   }
 
   getOptionLetter(index: number): string {

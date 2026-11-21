@@ -1,7 +1,7 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, effect, inject, signal, OnInit, Input, Output, EventEmitter, untracked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormControl } from '@angular/forms';
-import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
+import { MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -15,6 +15,9 @@ import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 import { DemoTestService } from '../../../../shared/services/demo-test.service';
 import { QuestionService } from '../../../../shared/services/question.service';
+import { QuizService } from '../../../../shared/services/quiz.service';
+import { PrelimsTSService } from '../../../../shared/services/prelims-ts.service';
+import { QbankQuestion, QuestionBankSuiteStateService } from '../../../admin/question-bank-suite/question-bank-suite-state.service';
 import { FormsModule } from '@angular/forms';
 
 interface Question {
@@ -39,6 +42,9 @@ interface Question {
   isActive: boolean;
   createdAt?: string;
   updatedAt?: string;
+  source?: string;
+  exam?: string;
+  subject?: string;
 }
 
 interface Tag {
@@ -73,9 +79,13 @@ export class DemoTestDialogComponent implements OnInit {
   private fb = inject(FormBuilder);
   private demoTestService = inject(DemoTestService);
   private questionService = inject(QuestionService);
+  private quizService = inject(QuizService);
+  private prelimsTestService = inject(PrelimsTSService);
+  readonly questionBank = inject(QuestionBankSuiteStateService);
   private snackBar = inject(MatSnackBar);
-  private dialogRef = inject(MatDialogRef<DemoTestDialogComponent>);
-  private data = inject(MAT_DIALOG_DATA);
+  @Input() test: any = null;
+  @Output() saved = new EventEmitter<void>();
+  @Output() cancelled = new EventEmitter<void>();
 
   testForm: FormGroup;
   isEdit = signal(false);
@@ -85,6 +95,9 @@ export class DemoTestDialogComponent implements OnInit {
   // Questions from API
   allQuestions = signal<Question[]>([]);
   filteredQuestions = signal<Question[]>([]);
+  private legacyQuestions = signal<Question[]>([]);
+  private legacyQuestionsLoaded = signal(false);
+  private editQuestionsHydrated = false;
   
   // Tags
   tags = signal<Tag[]>([]);
@@ -100,6 +113,8 @@ export class DemoTestDialogComponent implements OnInit {
   // Question selection
   selectedQuestions = signal<Question[]>([]);
   temporarilySelectedUids = signal<string[]>([]);
+  usageByQuestion = signal<Map<string, string[]>>(new Map());
+  questionPickerSearch = '';
   public Editor = ClassicEditor;
   public editorConfig = {
     toolbar: [
@@ -116,7 +131,29 @@ export class DemoTestDialogComponent implements OnInit {
 
   constructor() {
     this.testForm = this.createTestForm();
-    this.isEdit.set(!!this.data.test);
+    effect(() => {
+      const state = this.questionBank.state();
+      const bankLoading = this.questionBank.loading();
+      const questions = new Map<string, Question>();
+      (state?.questions || [])
+        .filter(question => question.kind === 'PRELIMS')
+        .forEach(question => {
+          if (!questions.has(question.id)) {
+            questions.set(question.id, this.mapQbankQuestion(question));
+          }
+        });
+
+      const mergedQuestions = [...questions.values()];
+      this.allQuestions.set(mergedQuestions);
+      this.filteredQuestions.set(mergedQuestions);
+      this.questionsLoading.set(bankLoading);
+      untracked(() => this.mergeQbankTestUsage());
+
+      if (this.isEdit() && this.test && !bankLoading && !this.editQuestionsHydrated) {
+        this.populateForm(this.test);
+        this.editQuestionsHydrated = true;
+      }
+    });
   }
 
   createTestForm(): FormGroup {
@@ -131,12 +168,107 @@ export class DemoTestDialogComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.loadAvailableQuestions().then(() => {
-      if (this.isEdit()) {
-        this.populateForm(this.data.test);
-      }
-    });
+    this.isEdit.set(!!this.test);
+    this.questionBank.initialize();
     this.loadTags();
+    this.loadUsageSources();
+  }
+
+  private mergeUsage(questionIds: unknown, label: string): void {
+    if (!Array.isArray(questionIds) || !label) return;
+    const usage = new Map(this.usageByQuestion());
+    for (const uid of questionIds) {
+      if (typeof uid !== 'string') continue;
+      const labels = usage.get(uid) || [];
+      if (!labels.includes(label)) labels.push(label);
+      usage.set(uid, labels);
+    }
+    this.usageByQuestion.set(usage);
+  }
+
+  private mergeQbankTestUsage(): void {
+    for (const test of this.questionBank.tests()) {
+      if (test.status === 'draft') continue;
+      this.mergeUsage(test.questionIds, `Prelims Test: ${test.title || test.exam || test.id}`);
+    }
+  }
+
+  private loadUsageSources(): void {
+    this.quizService.getAllQuizzes().subscribe({
+      next: (quizzes: any[]) => quizzes.forEach(quiz =>
+        this.mergeUsage(quiz.questionUids, `Quiz: ${quiz.title || quiz._id}`))
+    });
+    this.demoTestService.getDemoTests().subscribe({
+      next: (tests: any[]) => tests.forEach(test =>
+        this.mergeUsage(test.questionUids, `Demo Test: ${test.title || test._id}`))
+    });
+    this.prelimsTestService.getAllTestSeries({ page: 1, limit: 500 }).subscribe({
+      next: (response) => response.data.forEach(series => {
+        for (const testDate of series.testDates || []) {
+          const exam = testDate.exam as any;
+          this.mergeUsage(exam?.questionUids, `Prelims: ${exam?.title || exam?.name || series.name}`);
+        }
+      })
+    });
+  }
+
+  getQuestionUsageLabels(question: Question): string[] {
+    return this.usageByQuestion().get(question.uid) || [];
+  }
+
+  pickerQuestions(): Question[] {
+    const search = this.questionPickerSearch.trim().toLowerCase();
+    return this.filteredQuestions().filter(question => {
+      if (!search) return true;
+      return [
+        question.question.english,
+        question.question.hindi,
+        question.exam,
+        question.subject,
+        this.getQuestionTags(question),
+        ...question.tags
+      ].join(' ').toLowerCase().includes(search);
+    });
+  }
+
+  isQuestionInTest(uid: string): boolean {
+    return this.selectedQuestions().some(question => question.uid === uid);
+  }
+
+  toggleQuestionForTest(uid: string, checked: boolean): void {
+    const selected = [...this.selectedQuestions()];
+    if (checked) {
+      if (!selected.some(question => question.uid === uid)) {
+        const question = this.allQuestions().find(item => item.uid === uid);
+        if (question) selected.push(question);
+      }
+    } else {
+      const index = selected.findIndex(question => question.uid === uid);
+      if (index >= 0) selected.splice(index, 1);
+    }
+    this.selectedQuestions.set(selected);
+  }
+
+  private mapQbankQuestion(question: QbankQuestion): Question {
+    return {
+      _id: question.id,
+      uid: question.id,
+      question: {
+        english: question.en,
+        hindi: question.hi || ''
+      },
+      options: (question.options || []).map((english, index) => ({
+        english,
+        hindi: question.optionsHi?.[index] || ''
+      })),
+      correctAnswer: 'ABCD'.indexOf(question.correct || ''),
+      description: undefined,
+      tags: question.tags || [],
+      isActive: !question.deleted,
+      source: 'Prelims Test',
+      exam: question.exam,
+      subject: question.subject
+    };
   }
 
   loadAvailableQuestions(): Promise<void> {
@@ -161,16 +293,15 @@ export class DemoTestDialogComponent implements OnInit {
             updatedAt: q.updatedAt
           }));
           
-          this.allQuestions.set(questions);
-          this.filteredQuestions.set(questions);
-          this.questionsLoading.set(false);
+          this.legacyQuestions.set(questions);
+          this.legacyQuestionsLoaded.set(true);
           resolve();
         },
         error: (error) => {
           console.error('Error loading questions:', error);
           this.snackBar.open('Error loading questions', 'Close', { duration: 3000 });
-          this.questionsLoading.set(false);
-          reject(error);
+          this.legacyQuestionsLoaded.set(true);
+          resolve();
         }
       });
     });
@@ -260,6 +391,12 @@ export class DemoTestDialogComponent implements OnInit {
 
   getQuestionTags(question: Question): string {
     if (!question.tags || question.tags.length === 0) return 'None';
+    if (question.source === 'Prelims Test') {
+      return question.tags
+        .map((tag: any) => typeof tag === 'string' ? tag : (tag?.tag || ''))
+        .filter(tagName => !!tagName)
+        .join(', ') || 'None';
+    }
     const allTags = this.tags();
     const tagNames = question.tags
       .map(tagId => {
@@ -272,7 +409,9 @@ export class DemoTestDialogComponent implements OnInit {
 
   // Available questions for display
   availableQuestions(): Question[] {
-    return this.filteredQuestions();
+    return this.pickerQuestions().filter(question =>
+      question.source !== 'Prelims Test' || question.isActive || this.isQuestionInTest(question.uid)
+    );
   }
 
   // Add by UID functionality
@@ -384,25 +523,22 @@ export class DemoTestDialogComponent implements OnInit {
   }
 
   isAllFilteredSelected(): boolean {
-    const filteredQuestions = this.filteredQuestions();
-    const tempSelectedUids = this.temporarilySelectedUids();
-    if (filteredQuestions.length === 0) return false;
-    return filteredQuestions.every(q => tempSelectedUids.includes(q.uid));
+    const availableQuestions = this.availableQuestions();
+    if (availableQuestions.length === 0) return false;
+    return availableQuestions.every(question => this.isQuestionInTest(question.uid));
   }
 
   toggleSelectAll() {
-    const filteredQuestions = this.filteredQuestions();
-    const filteredUids = filteredQuestions.map(q => q.uid);
-    const currentTempUids = this.temporarilySelectedUids();
-    
+    const availableQuestions = this.availableQuestions();
+    if (availableQuestions.length === 0) return;
+
     if (this.isAllFilteredSelected()) {
-      // Deselect all filtered
-      const remaining = currentTempUids.filter(uid => !filteredUids.includes(uid));
-      this.temporarilySelectedUids.set(remaining);
+      const availableUids = new Set(availableQuestions.map(question => question.uid));
+      this.selectedQuestions.set(this.selectedQuestions().filter(question => !availableUids.has(question.uid)));
     } else {
-      // Select all filtered
-      const allSelectedUids = [...new Set([...currentTempUids, ...filteredUids])];
-      this.temporarilySelectedUids.set(allSelectedUids);
+      const selectedUids = new Set(this.selectedQuestions().map(question => question.uid));
+      const newQuestions = availableQuestions.filter(question => !selectedUids.has(question.uid));
+      this.selectedQuestions.set([...this.selectedQuestions(), ...newQuestions]);
     }
   }
 
@@ -460,16 +596,13 @@ export class DemoTestDialogComponent implements OnInit {
   }
 
   getQuestionDisplayText(question: Question): string {
-    const engText = question.question.english;
-    return engText.length > 100 ? engText.substring(0, 100) + '...' : engText;
+    const english = question.question.english || '';
+    const hindi = question.question.hindi || '';
+    return `<strong>English:</strong> ${english}${hindi ? `<br><strong>Hindi:</strong> ${hindi}` : ''}`;
   }
 
   getOptionLetter(index: number): string {
-    return String.fromCharCode(65 + index);
-  }
-
-  isQuestionInTest(uid: string): boolean {
-    return this.selectedQuestions().some(q => q.uid === uid);
+    return index >= 0 && index < 26 ? String.fromCharCode(65 + index) : '?';
   }
 
   isQuestionSelected(uid: string): boolean {
@@ -493,13 +626,13 @@ export class DemoTestDialogComponent implements OnInit {
       };
 
       const operation = this.isEdit() 
-        ? this.demoTestService.updateDemoTest(this.data.test._id, testData)
+        ? this.demoTestService.updateDemoTest(this.test._id, testData)
         : this.demoTestService.createDemoTest(testData);
 
       operation.subscribe({
         next: () => {
           this.snackBar.open(`Demo test ${this.isEdit() ? 'updated' : 'created'} successfully`, 'Close', { duration: 3000 });
-          this.dialogRef.close(true);
+          this.saved.emit();
         },
         error: (error) => {
           this.loading.set(false);
@@ -518,6 +651,6 @@ export class DemoTestDialogComponent implements OnInit {
   }
 
   onCancel() {
-    this.dialogRef.close(false);
+    this.cancelled.emit();
   }
 }
