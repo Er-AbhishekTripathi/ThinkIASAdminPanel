@@ -1,6 +1,6 @@
 import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
 import { LanguageService } from '../../../shared/i18n/language.service';
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, computed, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { catchError, forkJoin, from, map, mergeMap, of, toArray } from 'rxjs';
 import { MatCardModule } from '@angular/material/card';
@@ -93,6 +93,34 @@ export class PrelimsTestSeriesComponent implements OnInit {
   testSeriesForm!: FormGroup;
   seriesQuestionSearch = '';
   selectedSeriesQuestionIds: string[] = [];
+  readonly questionUsage = computed(() => {
+    const usage = new Map<string, string[]>();
+    const merge = (questionIds: unknown, label: string) => {
+      if (!Array.isArray(questionIds) || !label) return;
+      for (const questionId of questionIds) {
+        if (typeof questionId !== 'string') continue;
+        const labels = usage.get(questionId) || [];
+        if (!labels.includes(label)) labels.push(label);
+        usage.set(questionId, labels);
+      }
+    };
+
+    for (const test of this.questionBank.tests()) {
+      if (test.kind !== 'PRELIMS' || test.status === 'draft') continue;
+      merge(test.questionIds, `Test: ${test.title || test.exam || test.id}`);
+    }
+
+    for (const series of this.testSeries()) {
+      for (const testDate of series.testDates || []) {
+        const exam = testDate.exam;
+        merge(
+          exam?.questionUids,
+          `Test Series: ${series.name || 'Test Series'}`
+        );
+      }
+    }
+    return usage;
+  });
 
   ngOnInit() {
     this.initForm();
@@ -504,6 +532,20 @@ export class PrelimsTestSeriesComponent implements OnInit {
     if (checked) selected.add(questionId);
     else selected.delete(questionId);
     this.selectedSeriesQuestionIds = [...selected];
+  }
+
+  usedInExams(question: QbankQuestion): string[] {
+    const exams: string[] = [];
+    for (const test of this.questionBank.tests()) {
+      if (test.kind !== 'PRELIMS' || test.status === 'draft') continue;
+      if (!test.questionIds.includes(question.id) || !test.exam) continue;
+      if (!exams.includes(test.exam)) exams.push(test.exam);
+    }
+    return exams;
+  }
+
+  usedInTests(question: QbankQuestion): string[] {
+    return this.questionUsage().get(question.id) || [];
   }
 
   private saveSharedQuestions(series: PrelimsTestSeries): void {

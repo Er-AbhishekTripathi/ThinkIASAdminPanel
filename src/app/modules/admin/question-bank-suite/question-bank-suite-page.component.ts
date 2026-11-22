@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import { Component, computed, effect, ElementRef, inject, signal, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -9,6 +10,7 @@ import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 import { TestService } from '../../../shared/services/test.service';
 import { ReopenExamDialogComponent } from '../../tests/reopen-exam-dialog/reopen-exam-dialog.component';
+import { environment } from '../../../../environment/environment';
 import {
   QbankKind,
   QbankMasters,
@@ -85,6 +87,7 @@ export class QuestionBankSuitePageComponent {
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
   private readonly testService = inject(TestService);
+  private readonly http = inject(HttpClient);
   @ViewChild('questionEditor') private questionEditor?: ElementRef<HTMLElement>;
   readonly Editor = ClassicEditor;
   readonly editorConfig = {
@@ -117,6 +120,7 @@ export class QuestionBankSuitePageComponent {
     }
     return examsByQuestion;
   });
+  readonly externalTestUsage = signal<Map<string, string[]>>(new Map());
 
   questionSearch = '';
   testSearch = '';
@@ -187,6 +191,49 @@ export class QuestionBankSuitePageComponent {
       this.editorKey = key;
       this.initializeTestDraft(id, kind, state.tests, state.masters, seriesContext);
     });
+    this.loadExternalTestUsage();
+  }
+
+  private loadExternalTestUsage(): void {
+    this.http.get<{ data?: Array<Record<string, unknown>> }>(
+      `${environment.apiUrl}/mains-ts/admin`,
+      { params: { limit: 500 } }
+    ).subscribe({
+      next: response => {
+        const seriesList = Array.isArray(response?.data)
+          ? response.data
+          : [];
+        const usage = new Map<string, string[]>(this.externalTestUsage());
+
+        for (const series of seriesList) {
+          const seriesName = typeof series['name'] === 'string'
+            ? series['name']
+            : 'Mains Test Series';
+          const testDates = Array.isArray(series['testDates'])
+            ? series['testDates'] as Array<Record<string, unknown>>
+            : [];
+
+          for (const testDate of testDates) {
+            const exam = testDate['exam'];
+            if (!exam || typeof exam !== 'object') continue;
+            const examRecord = exam as Record<string, unknown>;
+            const questionIds = examRecord['questionUids'];
+            if (!Array.isArray(questionIds)) continue;
+            const label = `Test Series: ${seriesName}`;
+
+            for (const questionId of questionIds) {
+              if (typeof questionId !== 'string') continue;
+              const labels = usage.get(questionId) || [];
+              if (!labels.includes(label)) labels.push(label);
+              usage.set(questionId, labels);
+            }
+          }
+        }
+
+        this.externalTestUsage.set(usage);
+      },
+      error: error => console.error('Unable to load Mains test-series question usage:', error)
+    });
   }
 
   questionsForKind(): QbankQuestion[] {
@@ -241,6 +288,26 @@ export class QuestionBankSuitePageComponent {
 
   usedInExams(question: QbankQuestion): string[] {
     return this.questionExamUsage().get(`${question.kind}:${question.id}`) || [];
+  }
+
+  usedInTests(question: QbankQuestion): string[] {
+    const labels: string[] = [];
+
+    for (const test of this.store.tests()) {
+      if (test.status === 'draft' || test.kind !== question.kind) continue;
+      if (!test.questionIds.includes(question.id)) continue;
+
+      const label = test.seriesId
+        ? `Test Series: ${test.title || test.id}`
+        : `Test: ${test.title || test.id}`;
+      if (!labels.includes(label)) labels.push(label);
+    }
+
+    for (const label of this.externalTestUsage().get(question.id) || []) {
+      if (!labels.includes(label)) labels.push(label);
+    }
+
+    return labels;
   }
 
   questionExamSummary(kind: QbankKind): QuestionGroupSummary[] {

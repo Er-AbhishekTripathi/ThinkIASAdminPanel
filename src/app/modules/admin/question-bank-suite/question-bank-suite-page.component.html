@@ -170,6 +170,15 @@
               <span class="badge muted">{{ question.subject || 'No subject' }}</span>
               <div class="tag-list" *ngIf="question.tags?.length"><span *ngFor="let tag of question.tags" [class.highlighted]="isHighlightedTag(tag)">#{{ tag }}</span></div>
               <span class="badge muted" *ngIf="question.paper">{{ question.paper }}</span>
+              <ng-container *ngIf="usedInTests(question) as usedTests">
+                <span
+                  class="badge used-in"
+                  *ngIf="usedTests.length"
+                  [attr.title]="usedTests.join(', ')"
+                  [attr.aria-label]="usedTests.join(', ')">
+                  {{ usedTests[0] }}<span class="used-in-count" *ngIf="usedTests.length > 1">+{{ usedTests.length - 1 }}</span>
+                </span>
+              </ng-container>
               <ng-container *ngIf="usedInExams(question) as usedExams">
                 <span
                   class="badge used-in"
@@ -177,6 +186,15 @@
                   [attr.title]="usedExams.length > 1 ? 'Also used in: ' + usedExams.slice(1).join(', ') : null"
                   [attr.aria-label]="'Used in ' + usedExams.join(', ')">
                   Used in {{ usedExams[0] }}<span class="used-in-count" *ngIf="usedExams.length > 1">+{{ usedExams.length - 1 }}</span>
+                </span>
+              </ng-container>
+              <ng-container *ngIf="usedInTests(question) as usedTests">
+                <span
+                  class="badge used-in"
+                  *ngIf="usedTests.length"
+                  [attr.title]="usedTests.join(', ')"
+                  [attr.aria-label]="usedTests.join(', ')">
+                  {{ usedTests[0] }}<span class="used-in-count" *ngIf="usedTests.length > 1">+{{ usedTests.length - 1 }}</span>
                 </span>
               </ng-container>
             </div>
@@ -316,6 +334,22 @@
                 <span class="badge muted">{{ question.subject || 'No subject' }}</span>
                 <div class="tag-list" *ngIf="question.tags?.length"><span *ngFor="let tag of question.tags" [class.highlighted]="isHighlightedTag(tag)">#{{ tag }}</span></div>
                 <span class="badge muted" *ngIf="question.paper">{{ question.paper }}</span>
+                <ng-container *ngIf="usedInExams(question) as usedExams">
+                  <span
+                    class="badge used-in"
+                    *ngFor="let exam of usedExams"
+                    [attr.title]="'Used in ' + exam">
+                    Used in {{ exam }}
+                  </span>
+                </ng-container>
+                <ng-container *ngIf="usedInTests(question) as usedTests">
+                  <span
+                    class="badge used-in"
+                    *ngFor="let testName of usedTests"
+                    [attr.title]="testName">
+                    {{ testName }}
+                  </span>
+                </ng-container>
               </div>
               <input type="checkbox" [checked]="testDraft.questionIds.includes(question.id)" (change)="toggleQuestionForTest(question.id, $any($event.target).checked)">
               <div class="picker-question-content">

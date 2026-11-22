@@ -1,5 +1,6 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormControl } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -20,10 +21,14 @@ import { QuestionService } from '../../../shared/services/question.service';
 import { MainsQuestionService } from '../../../shared/services/mains-question.service';
 import { TagService } from '../../../shared/services/tag.service';
 import { FormsModule } from '@angular/forms';
+import { environment } from '../../../../environment/environment';
 
 interface Question {
   _id: string;
   uid: string;
+  exam?: string;
+  subject?: string;
+  paper?: string;
   question: {
     english: string;
     hindi: string;
@@ -85,6 +90,7 @@ export class CreateTestDialogComponent implements OnInit {
   private snackBar = inject(MatSnackBar);
   private dialogRef = inject(MatDialogRef<CreateTestDialogComponent>);
   private data = inject(MAT_DIALOG_DATA);
+  private http = inject(HttpClient);
 
   testForm: FormGroup;
   isEdit = signal(false);
@@ -111,6 +117,8 @@ export class CreateTestDialogComponent implements OnInit {
   // Question selection
   selectedQuestions = signal<Question[]>([]);
   temporarilySelectedUids = signal<string[]>([]);
+  usageByQuestion = signal<Map<string, string[]>>(new Map());
+  questionMetaByUid = signal<Map<string, { exam?: string; subject?: string; paper?: string }>>(new Map());
   readonly hours = Array.from({ length: 24 }, (_, hour) => this.padZero(hour));
   readonly minutes = Array.from({ length: 60 }, (_, minute) => this.padZero(minute));
   public Editor = ClassicEditor;
@@ -276,6 +284,7 @@ endTimeValidator(control: FormControl): { [key: string]: any } | null {
 }
 
   ngOnInit() {
+    this.loadUsageSources();
     this.loadAvailableQuestions().then(() => {
       this.loadTags();
       if (this.isEdit()) {
@@ -291,6 +300,80 @@ endTimeValidator(control: FormControl): { [key: string]: any } | null {
         }
       }
     });
+  }
+
+  private mergeUsage(questionIds: unknown, label: string): void {
+    if (!Array.isArray(questionIds) || !label) return;
+    const usage = new Map(this.usageByQuestion());
+    for (const uid of questionIds) {
+      if (typeof uid !== 'string') continue;
+      const labels = usage.get(uid) || [];
+      if (!labels.includes(label)) labels.push(label);
+      usage.set(uid, labels);
+    }
+    this.usageByQuestion.set(usage);
+  }
+
+  private loadUsageSources(): void {
+    const kind = this.data?.seriesKind === 'mains' ? 'mains' : 'pre';
+
+    this.testService.getAllTests(kind).subscribe({
+      next: (tests: any[]) => tests.forEach(test =>
+        this.mergeUsage(test.questionUids, `Test: ${test.title || test._id}`))
+    });
+
+    const seriesEndpoint = kind === 'mains' ? '/mains-ts' : '/prelims-ts';
+    this.http.get<{ data?: any[] }>(
+      `${environment.apiUrl}${seriesEndpoint}/admin`,
+      { params: { limit: 500 } }
+    ).subscribe({
+      next: response => (response.data || []).forEach((series: any) => {
+        for (const testDate of series.testDates || []) {
+          const exam = testDate.exam;
+          this.mergeUsage(
+            exam?.questionUids,
+            `Test Series: ${series.name || 'Test Series'}`
+          );
+        }
+      }),
+      error: error => console.error('Unable to load test-series question usage:', error)
+    });
+
+    this.http.get<any>(`${environment.apiUrl}/qbank/state`).subscribe({
+      next: state => {
+        const qbankKind = kind === 'mains' ? 'MAINS' : 'PRELIMS';
+        const meta = new Map(this.questionMetaByUid());
+        for (const test of state?.tests || []) {
+          if (test.status === 'draft' || test.kind !== qbankKind) continue;
+          this.mergeUsage(
+            test.questionIds,
+            `Test: ${test.title || test.exam || test.id}`
+          );
+        }
+        for (const question of state?.questions || []) {
+          if (question.kind !== qbankKind || question.deleted) continue;
+          meta.set(String(question.id), {
+            exam: question.exam,
+            subject: question.subject,
+            paper: question.paper
+          });
+        }
+        this.questionMetaByUid.set(meta);
+      },
+      error: error => console.error('Unable to load QBank test question usage:', error)
+    });
+  }
+
+  getQuestionUsageLabels(question: Question): string[] {
+    return this.usageByQuestion().get(question.uid) || [];
+  }
+
+  getQuestionMeta(question: Question): { exam?: string; subject?: string; paper?: string } {
+    return this.questionMetaByUid().get(question.uid) || {
+      exam: question.exam,
+      subject: question.subject,
+      paper: question.paper
+    };
   }
 
   loadAvailableQuestions(): Promise<void> {

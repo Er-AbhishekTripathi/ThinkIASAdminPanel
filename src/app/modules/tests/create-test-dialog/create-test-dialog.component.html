@@ -355,11 +355,26 @@
                     <div *ngIf="question.question.hindi" class="question-text-preview question-text-hindi"
                       [innerHTML]="question.question.hindi"></div>
                     <div class="question-meta">
+                      <ng-container *ngIf="getQuestionMeta(question) as meta">
+                        <span class="question-meta-badge exam-badge" *ngIf="meta.exam">{{ meta.exam }}</span>
+                        <span class="question-meta-badge subject-badge" *ngIf="meta.subject">{{ meta.subject }}</span>
+                        <span class="question-meta-badge paper-badge" *ngIf="meta.paper">{{ meta.paper }}</span>
+                        <span class="question-meta-badge used-exam-badge" *ngIf="meta.exam">
+                          Used in {{ meta.exam }}
+                        </span>
+                      </ng-container>
                       <span class="correct-answer">
                         Correct: {{ getOptionLetter(question.correctAnswer) }}
                       </span>
                       <span class="question-tags">
                         Tags: {{ getQuestionTags(question) }}
+                      </span>
+                      <span class="question-tags used-in" *ngIf="getQuestionUsageLabels(question).length"
+                        [attr.title]="getQuestionUsageLabels(question).join(', ')">
+                        {{ getQuestionUsageLabels(question)[0] }}
+                        <span *ngIf="getQuestionUsageLabels(question).length > 1">
+                          +{{ getQuestionUsageLabels(question).length - 1 }}
+                        </span>
                       </span>
                       <span class="question-id">
                         ID: {{ question.uid }}

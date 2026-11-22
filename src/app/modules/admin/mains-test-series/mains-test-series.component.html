@@ -220,6 +220,13 @@
                       <span class="badge muted" *ngIf="question.paper">{{ question.paper }}</span>
                       <span class="badge muted" *ngIf="question.marks">{{ question.marks }} {{ 'marks' | t }}</span>
                       <span class="badge muted" *ngIf="question.tags?.length">#{{ question.tags?.join(' #') }}</span>
+                      <ng-container *ngIf="usedInExams(question) as usedExams">
+                        <span class="badge used-in" *ngFor="let exam of usedExams">Used in {{ exam }}</span>
+                      </ng-container>
+                      <ng-container *ngIf="usedInTests(question) as usedTests">
+                        <span class="badge used-in" *ngFor="let testName of usedTests"
+                          [attr.title]="testName">{{ testName }}</span>
+                      </ng-container>
                     </div>
                     <div class="picker-question-text" [innerHTML]="question.en"></div>
                     <div class="question-hi" *ngIf="question.hi" [innerHTML]="question.hi"></div>
